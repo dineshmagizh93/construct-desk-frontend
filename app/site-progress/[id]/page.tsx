@@ -1,0 +1,168 @@
+"use client"
+
+import * as React from "react"
+import { useParams, useRouter } from "next/navigation"
+import { ArrowLeft, Calendar, FileText, Image as ImageIcon, X } from "lucide-react"
+import { siteProgressApi } from "@/lib/api/site-progress"
+import { SiteProgress } from "@/types/site-progress"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link"
+import { useState } from "react"
+
+export default function SiteProgressDetailsPage() {
+  const params = useParams()
+  const router = useRouter()
+  const [progress, setProgress] = React.useState<SiteProgress | null>(null)
+  const [loading, setLoading] = React.useState(true)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+
+  React.useEffect(() => {
+    const loadProgress = async () => {
+      if (params.id && typeof params.id === "string") {
+        try {
+          setLoading(true)
+          const data = await siteProgressApi.getById(params.id)
+          setProgress(data)
+        } catch (error) {
+          console.error("Failed to load site progress:", error)
+        } finally {
+          setLoading(false)
+        }
+      }
+    }
+    loadProgress()
+  }, [params.id])
+
+  if (loading) {
+    return <div className="flex items-center justify-center p-8">Loading site progress...</div>
+  }
+
+  if (!progress) {
+    return (
+      <div className="space-y-4">
+        <Button variant="ghost" onClick={() => router.push("/site-progress")}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Site Progress
+        </Button>
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Site progress entry not found</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.push("/site-progress")}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Site Progress</h1>
+            <p className="text-muted-foreground">
+              <Link href={`/projects/${progress.projectId}`} className="hover:underline">
+                {progress.projectName}
+              </Link>
+            </p>
+          </div>
+        </div>
+        <Button variant="outline" onClick={() => router.push(`/site-progress/${progress.id}/edit`)}>
+          Edit
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Date
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-lg">{new Date(progress.date).toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })}</p>
+        </CardContent>
+      </Card>
+
+      {progress.notes && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Notes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{progress.notes}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {progress.photos.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5" />
+              Photos ({progress.photos.length})
+            </CardTitle>
+            <CardDescription>Click on any photo to view in full size</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {progress.photos.map((photo, index) => (
+                <div
+                  key={index}
+                  className="relative aspect-video cursor-pointer group"
+                  onClick={() => setSelectedImage(photo)}
+                >
+                  <img
+                    src={photo}
+                    alt={`Progress photo ${index + 1}`}
+                    className="w-full h-full object-cover rounded-md border"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://via.placeholder.com/300x200?text=Image+Not+Found"
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-md" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative max-w-7xl max-h-full">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 right-4 z-10 bg-black/50 text-white hover:bg-black/70"
+              onClick={() => setSelectedImage(null)}
+            >
+              <X className="h-6 w-6" />
+            </Button>
+            <img
+              src={selectedImage}
+              alt="Full size"
+              className="max-w-full max-h-[90vh] object-contain rounded-md"
+              onClick={(e) => e.stopPropagation()}
+              onError={(e) => {
+                e.currentTarget.src = "https://via.placeholder.com/800x600?text=Image+Not+Found"
+              }}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

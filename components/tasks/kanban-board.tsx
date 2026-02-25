@@ -1,0 +1,298 @@
+"use client"
+
+import * as React from "react"
+import { Task, TaskStatus, TaskPriority, UpdateTaskPositionDto } from "@/lib/api/tasks"
+import { useTasks } from "@/lib/hooks/use-tasks"
+import { TaskCard } from "./task-card"
+import { TaskForm } from "./task-form"
+import { TaskDetail } from "./task-detail"
+import { Button } from "@/components/ui/button"
+import { Plus, Search, Filter, X } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { useProjects } from "@/lib/hooks/use-projects"
+import { useUsers } from "@/lib/hooks/use-users"
+import { TaskFilters } from "@/lib/api/tasks"
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { LayoutGrid, List } from "lucide-react"
+
+const COLUMNS: { status: TaskStatus; label: string; color: string }[] = [
+  { status: TaskStatus.TODO, label: "To Do", color: "bg-gray-100" },
+  { status: TaskStatus.IN_PROGRESS, label: "In Progress", color: "bg-blue-100" },
+  { status: TaskStatus.REVIEW, label: "Review", color: "bg-yellow-100" },
+  { status: TaskStatus.DONE, label: "Done", color: "bg-green-100" },
+  { status: TaskStatus.BLOCKED, label: "Blocked", color: "bg-red-100" },
+]
+
+export function KanbanBoard() {
+  const { projects } = useProjects()
+  const { users } = useUsers()
+  const [filters, setFilters] = React.useState<TaskFilters>({})
+  const { tasks, loading, error, createTask, updateTaskPosition, loadTasks } = useTasks(filters)
+  const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
+  const [selectedTask, setSelectedTask] = React.useState<Task | null>(null)
+  const [draggedTask, setDraggedTask] = React.useState<Task | null>(null)
+  const [draggedOverColumn, setDraggedOverColumn] = React.useState<string | null>(null)
+
+  // Group tasks by status
+  const tasksByStatus = React.useMemo(() => {
+    const grouped: Record<TaskStatus, Task[]> = {
+      [TaskStatus.TODO]: [],
+      [TaskStatus.IN_PROGRESS]: [],
+      [TaskStatus.REVIEW]: [],
+      [TaskStatus.DONE]: [],
+      [TaskStatus.BLOCKED]: [],
+    }
+
+    tasks.forEach((task) => {
+      if (grouped[task.status as TaskStatus]) {
+        grouped[task.status as TaskStatus].push(task)
+      }
+    })
+
+    // Sort by position
+    Object.keys(grouped).forEach((status) => {
+      grouped[status as TaskStatus].sort((a, b) => a.position - b.position)
+    })
+
+    return grouped
+  }, [tasks])
+
+  const handleDragStart = (e: React.DragEvent, task: Task) => {
+    setDraggedTask(task)
+    e.dataTransfer.effectAllowed = "move"
+  }
+
+  const handleDragOver = (e: React.DragEvent, status: TaskStatus) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = "move"
+    setDraggedOverColumn(status)
+  }
+
+  const handleDragLeave = () => {
+    setDraggedOverColumn(null)
+  }
+
+  const handleDrop = async (e: React.DragEvent, targetStatus: TaskStatus) => {
+    e.preventDefault()
+    setDraggedOverColumn(null)
+
+    if (!draggedTask) return
+
+    const targetColumnTasks = tasksByStatus[targetStatus]
+    const newPosition = targetColumnTasks.length
+
+    // If moving to same column, don't do anything
+    if (draggedTask.status === targetStatus) {
+      setDraggedTask(null)
+      return
+    }
+
+    try {
+      const updateData: UpdateTaskPositionDto = {
+        taskId: draggedTask.id,
+        newStatus: targetStatus,
+        newPosition,
+      }
+
+      await updateTaskPosition(updateData)
+    } catch (error) {
+      console.error("Failed to move task:", error)
+    } finally {
+      setDraggedTask(null)
+    }
+  }
+
+  const handleCreateTask = async (data: any) => {
+    try {
+      await createTask(data)
+      setCreateDialogOpen(false)
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const getPriorityColor = (priority: TaskPriority) => {
+    switch (priority) {
+      case TaskPriority.URGENT:
+        return "bg-red-500"
+      case TaskPriority.HIGH:
+        return "bg-orange-500"
+      case TaskPriority.MEDIUM:
+        return "bg-yellow-500"
+      case TaskPriority.LOW:
+        return "bg-blue-500"
+      default:
+        return "bg-gray-500"
+    }
+  }
+
+  // Only show loading if we have no tasks at all (initial load)
+  if (loading && tasks.length === 0) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading tasks...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-lg border border-destructive bg-destructive/10 p-8 text-center">
+        <p className="text-destructive font-medium mb-2">Error loading tasks</p>
+        <p className="text-sm text-muted-foreground mb-4">{error}</p>
+        <Button variant="outline" onClick={() => loadTasks()}>
+          Retry
+        </Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col h-full space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-shrink-0">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Task Management</h1>
+          <p className="text-muted-foreground">Manage your tasks with Kanban board</p>
+        </div>
+        <Button onClick={() => setCreateDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          New Task
+        </Button>
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-4 flex-wrap flex-shrink-0">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search tasks..."
+            value={filters.search || ""}
+            onChange={(e) => setFilters({ ...filters, search: e.target.value || undefined })}
+            className="pl-9"
+          />
+        </div>
+        <select
+          value={filters.projectId || "all"}
+          onChange={(e) => setFilters({ ...filters, projectId: e.target.value === "all" ? undefined : e.target.value })}
+          className="w-[200px] flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          <option value="all">All Projects</option>
+          {projects.map((project) => (
+            <option key={project.id} value={project.id}>
+              {project.name}
+            </option>
+          ))}
+        </select>
+        <select
+          value={filters.assignedTo || "all"}
+          onChange={(e) => setFilters({ ...filters, assignedTo: e.target.value === "all" ? undefined : e.target.value })}
+          className="w-[180px] flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          <option value="all">All Assignees</option>
+          {users.map((user) => (
+            <option key={user.id} value={user.id}>
+              {user.name || `${user.firstName} ${user.lastName}`}
+            </option>
+          ))}
+        </select>
+        <select
+          value={filters.priority || "all"}
+          onChange={(e) => setFilters({ ...filters, priority: e.target.value === "all" ? undefined : e.target.value })}
+          className="w-[150px] flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          <option value="all">All Priorities</option>
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+          <option value="Urgent">Urgent</option>
+        </select>
+        {(filters.search || filters.projectId || filters.assignedTo || filters.priority) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setFilters({})}
+          >
+            <X className="h-4 w-4 mr-2" />
+            Clear
+          </Button>
+        )}
+      </div>
+
+      {/* Kanban Board */}
+      <div className="flex-1 flex gap-4 overflow-x-auto min-h-0">
+        {COLUMNS.map((column) => {
+          const columnTasks = tasksByStatus[column.status]
+          const isDraggedOver = draggedOverColumn === column.status
+
+          return (
+            <div
+              key={column.status}
+              className={`flex-1 min-w-[280px] flex flex-col rounded-lg border-2 ${
+                isDraggedOver ? "border-primary bg-primary/5" : "border-border"
+              } transition-colors`}
+              onDragOver={(e) => handleDragOver(e, column.status)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, column.status)}
+            >
+              {/* Column Header */}
+              <div className={`p-4 rounded-t-lg ${column.color} border-b`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold">{column.label}</h3>
+                    <Badge variant="secondary">{columnTasks.length}</Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tasks */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {columnTasks.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground text-sm">
+                    No tasks
+                  </div>
+                ) : (
+                  columnTasks.map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onDragStart={(e) => handleDragStart(e, task)}
+                      onClick={() => setSelectedTask(task)}
+                      isDragging={draggedTask?.id === task.id}
+                    />
+                  ))
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Create Task Dialog */}
+      {createDialogOpen && (
+        <TaskForm
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          onSubmit={handleCreateTask}
+          projects={projects}
+          users={users}
+        />
+      )}
+
+      {/* Task Detail Dialog */}
+      {selectedTask && (
+        <TaskDetail
+          taskId={selectedTask.id}
+          open={!!selectedTask}
+          onOpenChange={(open) => !open && setSelectedTask(null)}
+          onUpdate={loadTasks}
+        />
+      )}
+    </div>
+  )
+}
+
