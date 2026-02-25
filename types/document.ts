@@ -1,4 +1,4 @@
-export type DocumentType = "Agreement" | "Drawing" | "Bill" | "Invoice" | "Approval" | "Other"
+export type DocumentType = "Agreement" | "Drawing" | "Bill" | "Invoice" | "Approval" | "Permit" | "Receipt" | "Other"
 
 export interface Document {
   id: string

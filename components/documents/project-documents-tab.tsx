@@ -81,6 +81,10 @@ export function ProjectDocumentsTab({ projectId }: ProjectDocumentsTabProps) {
         return "success"
       case "Approval":
         return "warning"
+      case "Permit":
+        return "secondary"
+      case "Receipt":
+        return "success"
       case "Other":
         return "outline"
       default:
@@ -96,6 +100,8 @@ export function ProjectDocumentsTab({ projectId }: ProjectDocumentsTabProps) {
       Bill: [],
       Invoice: [],
       Approval: [],
+      Permit: [],
+      Receipt: [],
       Other: [],
     }
 

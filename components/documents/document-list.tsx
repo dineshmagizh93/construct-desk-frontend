@@ -187,6 +187,10 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
         return "success"
       case "Approval":
         return "warning"
+      case "Permit":
+        return "secondary"
+      case "Receipt":
+        return "success"
       case "Other":
         return "outline"
       default:

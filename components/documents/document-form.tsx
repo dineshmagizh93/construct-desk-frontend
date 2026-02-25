@@ -180,6 +180,8 @@ export function DocumentForm({ document, projectId, onSubmit, onCancel }: Docume
             <option value="Bill">Bill</option>
             <option value="Invoice">Invoice</option>
             <option value="Approval">Approval</option>
+            <option value="Permit">Permit</option>
+            <option value="Receipt">Receipt</option>
             <option value="Other">Other</option>
           </Select>
           {errors.type && <p className="text-sm text-destructive">{errors.type.message}</p>}
