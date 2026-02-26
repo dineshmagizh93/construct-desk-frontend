@@ -4,8 +4,6 @@ const nextConfig = {
   // Optimize for faster navigation
   experimental: {
     optimizePackageImports: ['lucide-react'],
-    // Enable faster page transitions
-    optimizeCss: true,
   },
   // Enable static optimization
   swcMinify: true,

@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,7 +9,9 @@ import { CheckCircle2, XCircle, Loader2, Building2, User, Mail } from "lucide-re
 import { apiClient } from "@/lib/api/client"
 import toast from "react-hot-toast"
 
-export default function AdminApprovePage() {
+export const dynamic = "force-dynamic"
+
+function AdminApprovePageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [loading, setLoading] = React.useState(false)
@@ -195,3 +198,21 @@ export default function AdminApprovePage() {
   )
 }
 
+export default function AdminApprovePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 px-4 py-12">
+        <Card className="w-full max-w-md shadow-xl">
+          <CardHeader className="space-y-1 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+              <Building2 className="h-8 w-8 text-primary animate-pulse" />
+            </div>
+            <CardTitle className="text-2xl font-bold">Loading...</CardTitle>
+          </CardHeader>
+        </Card>
+      </div>
+    }>
+      <AdminApprovePageContent />
+    </Suspense>
+  )
+}
