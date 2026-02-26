@@ -55,19 +55,18 @@ export default function RegisterPage() {
         lastName: data.lastName,
       })
 
-      // Check if approval is required
-      if (response.requiresApproval || response.message) {
-        // Show success message and redirect to login
-        alert(response.message || "Registration successful. Your account is pending approval. You will receive an email once your account is approved.")
-        router.push("/login")
-        return
-      }
-
-      // If token is provided (legacy/approved immediately), save and redirect
+      // If token is provided, save and redirect to dashboard (immediate login)
       if (response.access_token) {
         setAuthToken(response.access_token)
         router.push("/dashboard")
         router.refresh()
+        return
+      }
+
+      // Fallback: if no token but registration succeeded, redirect to login
+      if (response.message && !response.requiresApproval) {
+        router.push("/login")
+        return
       }
     } catch (err: any) {
       setError(err.message || "Registration failed. Please try again.")
