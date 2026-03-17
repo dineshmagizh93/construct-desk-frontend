@@ -426,8 +426,10 @@ export default function PricingPage() {
                           <span className="text-2xl font-bold">{priceLabel}</span>
                           {subLabel && <span className="text-muted-foreground">{subLabel}</span>}
                       </div>
-                      {plan.price !== "Custom" && (
-                        <p className="text-sm text-muted-foreground mt-1">Billed monthly</p>
+                      {plan.priceInrMonthly != null && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {billingPeriod === "monthly" ? "Billed monthly" : "Billed yearly"}
+                        </p>
                       )}
                     </div>
                   </CardHeader>

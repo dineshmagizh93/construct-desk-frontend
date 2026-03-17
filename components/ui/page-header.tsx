@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button"
 import { LucideIcon } from "lucide-react"
 
 interface PageHeaderProps {
-  title: string
-  subtitle?: string
+  title: React.ReactNode
+  subtitle?: React.ReactNode
+  description?: React.ReactNode
   action?: {
     label: string
     icon?: LucideIcon
@@ -18,10 +19,12 @@ interface PageHeaderProps {
 export function PageHeader({
   title,
   subtitle,
+  description,
   action,
   className,
 }: PageHeaderProps) {
   const ActionIcon = action?.icon
+  const subtext = subtitle ?? description
 
   return (
     <div
@@ -34,9 +37,9 @@ export function PageHeader({
         <h1 className="text-[22px] font-bold tracking-tight text-foreground">
           {title}
         </h1>
-        {subtitle && (
+        {subtext && (
           <p className="text-[12px] text-muted-foreground mt-0.5">
-            {subtitle}
+            {subtext}
           </p>
         )}
       </div>

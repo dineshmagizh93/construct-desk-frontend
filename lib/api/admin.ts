@@ -66,8 +66,11 @@ export interface Company {
   id: string;
   name: string;
   email: string;
+  phone?: string;
   subscriptionPlan: string;
   subscriptionStatus: string;
+  subscriptionStartDate?: string;
+  subscriptionEndDate?: string;
   createdAt: string;
   users: Array<{
     id: string;

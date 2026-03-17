@@ -110,7 +110,7 @@ export default function AnalyticsPage() {
       <div className="flex items-center justify-between">
         <PageHeader
           title="Analytics"
-          description="Comprehensive analytics and insights for all companies"
+          subtitle="Comprehensive analytics and insights for all companies"
         />
         <Button variant="outline" size="sm" onClick={fetchAnalytics}>
           <RefreshCw className="h-4 w-4 mr-2" />

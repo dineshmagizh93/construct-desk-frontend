@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import toast from "react-hot-toast"
 
-export default function TestPaymentPage() {
+function TestPaymentInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const paymentLinkId = searchParams.get("payment_link_id")
@@ -143,5 +143,19 @@ export default function TestPaymentPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function TestPaymentPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-background p-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </div>
+      }
+    >
+      <TestPaymentInner />
+    </React.Suspense>
   )
 }

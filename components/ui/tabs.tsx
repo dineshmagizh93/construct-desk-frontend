@@ -15,19 +15,23 @@ const Tabs = ({
   value,
   onValueChange,
   children,
+  className,
+  ...props
 }: {
   defaultValue?: string
   value?: string
   onValueChange?: (value: string) => void
   children: React.ReactNode
-}) => {
+} & React.HTMLAttributes<HTMLDivElement>) => {
   const [internalValue, setInternalValue] = React.useState(defaultValue || "")
   const currentValue = value !== undefined ? value : internalValue
   const handleValueChange = onValueChange || setInternalValue
 
   return (
     <TabsContext.Provider value={{ value: currentValue, onValueChange: handleValueChange }}>
-      {children}
+      <div className={cn(className)} {...props}>
+        {children}
+      </div>
     </TabsContext.Provider>
   )
 }

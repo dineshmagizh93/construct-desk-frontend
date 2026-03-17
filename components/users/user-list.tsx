@@ -25,11 +25,11 @@ import { Pagination } from "@/components/ui/pagination"
 import { UserForm } from "./user-form"
 import { useUsers } from "@/lib/hooks/use-users"
 import { UserFormSchema } from "@/lib/validations/user"
-import { CreateUserDto, UpdateUserDto } from "@/lib/api/users"
+import { CreateUserDto, UpdateUserDto, UserPermission } from "@/lib/api/users"
 import { useAuth } from "@/lib/hooks/use-auth"
 
 interface UserListProps {
-  onCreateUser?: (data: UserFormSchema) => Promise<any>
+  onCreateUser?: (data: UserFormSchema & { permissions?: UserPermission[] }) => Promise<any>
 }
 
 export function UserList({ onCreateUser }: UserListProps) {
@@ -46,7 +46,7 @@ export function UserList({ onCreateUser }: UserListProps) {
   const [editDialogOpen, setEditDialogOpen] = React.useState(false)
   const [userToEdit, setUserToEdit] = React.useState<User | null>(null)
 
-  const handleCreateUser = async (data: UserFormSchema & { permissions?: any[] }) => {
+  const handleCreateUser = async (data: UserFormSchema & { permissions?: UserPermission[] }) => {
     try {
       if (onCreateUser) {
         await onCreateUser(data)
@@ -70,7 +70,7 @@ export function UserList({ onCreateUser }: UserListProps) {
     }
   }
 
-  const handleEditUser = async (data: UserFormSchema) => {
+  const handleEditUser = async (data: UserFormSchema & { permissions?: UserPermission[] }) => {
     if (!userToEdit) return
 
     const updateData: UpdateUserDto = {
@@ -82,9 +82,7 @@ export function UserList({ onCreateUser }: UserListProps) {
     }
 
     // Include permissions if provided
-    if (data.permissions) {
-      (updateData as any).permissions = data.permissions
-    }
+    if (data.permissions) updateData.permissions = data.permissions
 
     // Only include password if provided
     if ('password' in data && data.password && typeof data.password === 'string' && data.password.trim()) {

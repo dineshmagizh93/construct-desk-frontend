@@ -52,6 +52,7 @@ export function UserPermissions({ permissions, onChange, role, className }: User
   ) => {
     const current = getPermissionMap.get(module) || {
       module,
+      canAccess: false,
       canView: false,
       canEdit: false,
       canDelete: false,
@@ -64,6 +65,8 @@ export function UserPermissions({ permissions, onChange, role, className }: User
       canView: action === "canView" ? checked : current.canView,
       canEdit: action === "canEdit" ? (checked && current.canView) : current.canEdit,
       canDelete: action === "canDelete" ? (checked && current.canView) : current.canDelete,
+      // Keep module visibility aligned with view permission
+      canAccess: action === "canView" ? checked : current.canView,
     }
 
     // If canView is unchecked, uncheck edit and delete
@@ -84,6 +87,7 @@ export function UserPermissions({ permissions, onChange, role, className }: User
   const getPermission = (module: string): UserPermission => {
     return getPermissionMap.get(module) || {
       module,
+      canAccess: false,
       canView: false,
       canEdit: false,
       canDelete: false,
