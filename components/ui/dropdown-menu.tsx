@@ -201,8 +201,8 @@ const DropdownMenuItem = ({
   const context = React.useContext(DropdownMenuContext)
 
   const handleClick = (e: React.MouseEvent) => {
+    // Prevent the click from bubbling up to row/table containers
     e.stopPropagation()
-    e.preventDefault()
     // Close menu first
     context?.setOpen(false)
     // Then call onClick handler (navigation)

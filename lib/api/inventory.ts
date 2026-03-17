@@ -88,7 +88,7 @@ export interface CreateInventoryTransactionDto {
   itemId: string;
   type: TransactionType;
   quantity: number;
-  projectId?: string;
+  projectId: string; // Required for project-based tracking
   reference?: string;
   notes?: string;
   transactionDate?: string;
@@ -164,9 +164,12 @@ export const inventoryApi = {
   },
 
   // Transactions
-  async getAllTransactions(itemId?: string): Promise<InventoryTransaction[]> {
-    const params = itemId ? `?itemId=${itemId}` : '';
-    const data = await apiClient.get<any[]>(`/inventory/transactions${params}`);
+  async getAllTransactions(itemId?: string, projectId?: string): Promise<InventoryTransaction[]> {
+    const params = new URLSearchParams();
+    if (itemId) params.append('itemId', itemId);
+    if (projectId) params.append('projectId', projectId);
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const data = await apiClient.get<any[]>(`/inventory/transactions${queryString}`);
     return data.map(transformTransaction);
   },
 

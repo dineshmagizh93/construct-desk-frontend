@@ -16,6 +16,7 @@ import { DialogFooter } from "@/components/ui/dialog"
 import { X, Image as ImageIcon, Loader2, Upload } from "lucide-react"
 import { uploadApi } from "@/lib/api/upload"
 import toast from "react-hot-toast"
+import { API_BASE_URL } from "@/lib/config"
 
 interface SiteProgressFormProps {
   siteProgress?: SiteProgress
@@ -35,7 +36,19 @@ export function SiteProgressForm({
   const [projects, setProjects] = React.useState<Project[]>([])
   const [photoUrls, setPhotoUrls] = React.useState<string[]>(siteProgress?.photos || [])
   const [newPhotoUrl, setNewPhotoUrl] = React.useState("")
-  const [photoFiles, setPhotoFiles] = React.useState<File[]>([])
+  const [localPreviewUrls, setLocalPreviewUrls] = React.useState<string[]>([])
+
+  const apiOrigin = React.useMemo(() => API_BASE_URL.replace(/\/api\/?$/i, ""), [])
+
+  const toAbsolutePhotoUrl = React.useCallback((url: string) => {
+    const trimmed = (url || "").trim()
+    if (!trimmed) return trimmed
+    if (/^https?:\/\//i.test(trimmed)) return trimmed
+    if (trimmed.startsWith("//")) return `https:${trimmed}`
+    if (trimmed.startsWith("/")) return `${apiOrigin}${trimmed}`
+    // fall back to treating it as relative to backend origin
+    return `${apiOrigin}/${trimmed}`
+  }, [apiOrigin])
 
   React.useEffect(() => {
     const loadProjects = async () => {
@@ -74,9 +87,15 @@ export function SiteProgressForm({
     setValue("photos", photoUrls)
   }, [photoUrls, setValue])
 
+  React.useEffect(() => {
+    return () => {
+      localPreviewUrls.forEach((u) => URL.revokeObjectURL(u))
+    }
+  }, [localPreviewUrls])
+
   const addPhoto = () => {
     if (newPhotoUrl.trim()) {
-      setPhotoUrls([...photoUrls, newPhotoUrl.trim()])
+      setPhotoUrls([...photoUrls, toAbsolutePhotoUrl(newPhotoUrl)])
       setNewPhotoUrl("")
     }
   }
@@ -85,22 +104,39 @@ export function SiteProgressForm({
     const files = Array.from(e.target.files || [])
     if (files.length === 0) return
 
+    // Show instant local previews while upload runs
+    const previews = files.map((f) => URL.createObjectURL(f))
+    setLocalPreviewUrls((prev) => [...prev, ...previews])
+
     setIsUploading(true)
     try {
       const uploadResults = await uploadApi.uploadPhotos(files)
-      const urls = uploadResults.map(result => result.url)
-      setPhotoUrls([...photoUrls, ...urls])
+      const urls = uploadResults.map((result) => toAbsolutePhotoUrl(result.url))
+      setPhotoUrls((prev) => [...prev, ...urls])
+
+      // Clear local previews for this batch (we can safely drop all, since remote URLs now exist)
+      previews.forEach((u) => URL.revokeObjectURL(u))
+      setLocalPreviewUrls((prev) => prev.filter((u) => !previews.includes(u)))
     } catch (error: any) {
       console.error("Photo upload error:", error)
       toast.error(error.message || "Failed to upload photos. Please try again.")
+      // Keep previews so user sees what they selected; they can retry
     } finally {
       setIsUploading(false)
       e.target.value = ""
     }
   }
 
-  const removePhoto = (index: number) => {
-    setPhotoUrls(photoUrls.filter((_, i) => i !== index))
+  const removeRemotePhoto = (index: number) => {
+    setPhotoUrls((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const removeLocalPreview = (index: number) => {
+    setLocalPreviewUrls((prev) => {
+      const url = prev[index]
+      if (url) URL.revokeObjectURL(url)
+      return prev.filter((_, i) => i !== index)
+    })
   }
 
   const onFormSubmit = async (data: SiteProgressFormSchema) => {
@@ -191,8 +227,27 @@ export function SiteProgressForm({
               Add URL
             </Button>
           </div>
-          {photoUrls.length > 0 && (
+          {(localPreviewUrls.length > 0 || photoUrls.length > 0) && (
             <div className="grid grid-cols-3 gap-2 mt-2">
+              {localPreviewUrls.map((url, index) => (
+                <div key={`local-${url}-${index}`} className="relative group">
+                  <img
+                    src={url}
+                    alt={`Selected photo ${index + 1}`}
+                    className="w-full h-24 object-cover rounded-md border"
+                  />
+                  <div className="absolute left-1 top-1 rounded bg-background/80 px-1.5 py-0.5 text-[10px] font-medium border border-border/60">
+                    Uploading…
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeLocalPreview(index)}
+                    className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
               {photoUrls.map((url, index) => (
                 <div key={index} className="relative group">
                   <img
@@ -205,7 +260,7 @@ export function SiteProgressForm({
                   />
                   <button
                     type="button"
-                    onClick={() => removePhoto(index)}
+                    onClick={() => removeRemotePhoto(index)}
                     className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <X className="h-3 w-3" />

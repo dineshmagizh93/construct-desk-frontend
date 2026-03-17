@@ -24,7 +24,6 @@ export default function DocumentDetailsPage() {
           const data = await documentsApi.getById(params.id)
           setDocument(data)
         } catch (error) {
-          console.error("Failed to load document:", error)
         } finally {
           setLoading(false)
         }
@@ -89,15 +88,15 @@ export default function DocumentDetailsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.push("/documents")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{document.name}</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">{document.name}</h1>
+            <p className="text-muted-foreground text-xs mt-0">
               <Link href={`/projects/${document.projectId}`} className="hover:underline">
                 {document.projectName}
               </Link>
@@ -109,13 +108,13 @@ export default function DocumentDetailsPage() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Document Information</CardTitle>
             <CardDescription>Basic document details</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-muted-foreground">Type</span>
               <Badge variant={getTypeBadgeVariant(document.type)}>{document.type}</Badge>
@@ -151,7 +150,7 @@ export default function DocumentDetailsPage() {
             <CardTitle>Project Information</CardTitle>
             <CardDescription>Related project details</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-2">
             <div>
               <p className="text-sm font-medium mb-1">Project</p>
               <Link

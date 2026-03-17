@@ -9,6 +9,8 @@ import { Expense, ExpenseCategory } from "@/types/expense"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
+import { PageHeader } from "@/components/ui/page-header"
+import { FilterBar } from "@/components/ui/filter-bar"
 import {
   Table,
   TableBody,
@@ -19,6 +21,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
 import { Pagination } from "@/components/ui/pagination"
 import { ExpenseForm } from "./expense-form"
 import { useExpenses } from "@/lib/hooks/use-expenses"
@@ -44,6 +47,7 @@ export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [expenseToDelete, setExpenseToDelete] = React.useState<Expense | null>(null)
   const [openDropdownId, setOpenDropdownId] = React.useState<string | null>(null)
+  const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
 
   // Filter expenses
   const filteredExpenses = React.useMemo(() => {
@@ -83,12 +87,19 @@ export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
     setCurrentPage(1)
   }, [projectFilter, searchQuery, categoryFilter, startDate, endDate])
 
-  // Adjust current page if it's out of bounds after filtering
+  // Reset to page 1 when itemsPerPage changes
   React.useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
+    setCurrentPage(1)
+  }, [itemsPerPage])
+
+  // Adjust current page if it's out of bounds after filtering or page size change
+  React.useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
       setCurrentPage(totalPages)
+    } else if (currentPage < 1) {
+      setCurrentPage(1)
     }
-  }, [totalPages, currentPage])
+  }, [totalPages, itemsPerPage])
 
   const handleDelete = async (expense: Expense) => {
     setExpenseToDelete(expense)
@@ -97,7 +108,7 @@ export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
 
   const confirmDelete = async () => {
     if (!expenseToDelete) return
-    
+
     try {
       await deleteExpense(expenseToDelete.id)
       await loadExpenses(projectId, true) // Force refresh
@@ -139,140 +150,162 @@ export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
     return <div className="flex items-center justify-center p-8">Loading expenses...</div>
   }
 
+
   return (
-    <div className="flex flex-col h-full space-y-4">
-      {/* Header and Actions */}
-      <div className="flex items-center justify-between flex-shrink-0">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Expenses</h1>
-          <p className="text-muted-foreground">
-            {projectId ? "Project expenses" : "Track and manage project expenses"}
-          </p>
-        </div>
-        <CreateExpenseButton onCreate={onCreateExpense} projectId={projectId} onRefresh={loadExpenses} />
-      </div>
+    <div className="flex flex-col h-full min-h-0">
+      {/* Header */}
+      <PageHeader
+        title="Expenses"
+        subtitle={projectId ? "Project expenses" : "Track and manage project expenses"}
+        action={{
+          label: "New Expense",
+          icon: Plus,
+          onClick: () => setCreateDialogOpen(true),
+        }}
+      />
 
       {/* Filters */}
-      <div className="flex gap-4 flex-wrap flex-shrink-0">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search by paid to or notes..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        {!projectId && (
-          <Select
-            value={projectFilter}
-            onChange={(e) => setProjectFilter(e.target.value)}
-            className="w-[200px]"
-          >
-            <option value="all">All Projects</option>
-            {projects.map((project) => (
-              <option key={project.id} value={project.id}>
-                {project.name}
-              </option>
-            ))}
-          </Select>
-        )}
-        <Select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value as ExpenseCategory | "all")}
-          className="w-[150px]"
-        >
-          <option value="all">All Categories</option>
-          <option value="Material">Material</option>
-          <option value="Labour">Labour</option>
-          <option value="Transport">Transport</option>
-          <option value="Equipment">Equipment</option>
-          <option value="Other">Other</option>
-        </Select>
-        <div className="flex gap-2">
-          <Input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            placeholder="Start Date"
-            className="w-[150px]"
-          />
-          <Input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            placeholder="End Date"
-            className="w-[150px]"
-          />
-          {(startDate || endDate) && (
-            <Button variant="ghost" size="sm" onClick={() => {
-              setStartDate("")
-              setEndDate("")
-            }}>
-              Clear
-            </Button>
-          )}
-        </div>
-      </div>
+      <FilterBar
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search by paid to or notes..."
+        filters={
+          <>
+            {!projectId && (
+              <Select
+                value={projectFilter}
+                onChange={(e) => setProjectFilter(e.target.value)}
+                className="h-[40px] w-[180px] text-[13px]"
+              >
+                <option value="all">All Projects</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </Select>
+            )}
+            <Select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value as ExpenseCategory | "all")}
+              className="h-[40px] w-[150px] text-[13px]"
+            >
+              <option value="all">All Categories</option>
+              <option value="Material">Material</option>
+              <option value="Labour">Labour</option>
+              <option value="Transport">Transport</option>
+              <option value="Equipment">Equipment</option>
+              <option value="Other">Other</option>
+            </Select>
+            <div className="flex gap-2">
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                placeholder="Start Date"
+                className="h-[40px] w-[140px] text-[13px]"
+              />
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                placeholder="End Date"
+                className="h-[40px] w-[140px] text-[13px]"
+              />
+              {(startDate || endDate) && (
+                <Button variant="ghost" size="sm" className="h-[40px]" onClick={() => {
+                  setStartDate("")
+                  setEndDate("")
+                }}>
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </>
+        }
+      />
 
       {/* Table Container - Takes remaining space */}
-      <div className="flex-1 flex flex-col min-h-0 rounded-md border overflow-hidden bg-card">
-        <div className="flex-1 overflow-y-auto overflow-x-hidden" data-table-scroll-container>
-          <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Project Name</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Paid To</TableHead>
-              <TableHead className="w-[70px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredExpenses.length === 0 ? (
+      <div className="flex-1 flex flex-col min-h-0 rounded-[10px] border border-border/50 overflow-hidden bg-card shadow-sm mt-3">
+        {/* Table Wrapper - Scrollable area that fills space */}
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div
+            className={cn(
+              "flex-1 min-h-0 overflow-x-auto overflow-y-auto"
+            )}
+            data-table-scroll-container
+          >
+            <Table className="border-0 rounded-none min-w-[800px]">
+            <colgroup>
+              <col style={{ width: '22%' }} />
+              <col style={{ width: '15%' }} />
+              <col style={{ width: '15%' }} />
+              <col style={{ width: '15%' }} />
+              <col style={{ width: '27%' }} />
+              <col style={{ width: '6%' }} />
+            </colgroup>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                  No expenses found
-                </TableCell>
+                <TableHead className="w-[22%]">Project Name</TableHead>
+                <TableHead className="w-[15%]">Category</TableHead>
+                <TableHead className="w-[15%]">Amount</TableHead>
+                <TableHead className="w-[15%]">Date</TableHead>
+                <TableHead className="w-[27%]">Paid To</TableHead>
+                <TableHead className="w-[6%] text-center">Actions</TableHead>
               </TableRow>
-            ) : (
-              filteredExpenses.map((expense) => (
-                <TableRow key={expense.id}>
-                  <TableCell className="font-medium">
-                    <Link href={`/projects/${expense.projectId}`} className="hover:underline">
-                      {expense.projectName}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getCategoryBadgeVariant(expense.category)}>
-                      {expense.category}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="font-medium">{formatCurrency(expense.amount)}</TableCell>
-                  <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
-                  <TableCell>{expense.paidTo}</TableCell>
-                  <TableCell>
-                    <ExpenseActionsMenu 
-                      expense={expense} 
-                      onDelete={handleDelete}
-                      isOpen={openDropdownId === expense.id}
-                      onOpenChange={(open) => setOpenDropdownId(open ? expense.id : null)}
-                    />
+            </TableHeader>
+            <TableBody>
+              {filteredExpenses.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    No expenses found
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                paginatedExpenses.map((expense) => (
+                  <TableRow key={expense.id}>
+                    <TableCell className="font-medium w-[22%]">
+                      <span
+                        className="truncate block"
+                        title={expense.projectName}
+                      >
+                        {expense.projectName}
+                      </span>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap w-[15%]">
+                      <Badge variant={getCategoryBadgeVariant(expense.category)}>
+                        {expense.category}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="font-medium whitespace-nowrap w-[15%]">{formatCurrency(expense.amount)}</TableCell>
+                    <TableCell className="whitespace-nowrap w-[15%]">{new Date(expense.date).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}</TableCell>
+                    <TableCell className="w-[27%]">
+                      <span className="truncate block" title={expense.paidTo || "-"}>
+                        {expense.paidTo || "-"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="relative text-center w-[6%]">
+                      <ExpenseActionsMenu
+                        expense={expense}
+                        onDelete={handleDelete}
+                        isOpen={openDropdownId === expense.id}
+                        onOpenChange={(open) => setOpenDropdownId(open ? expense.id : null)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+          </div>
         </div>
-        
+
         {/* Summary */}
         {filteredExpenses.length > 0 && (
-          <div className="flex justify-end px-4 py-3 border-t">
-            <div className="text-sm">
+          <div className="flex justify-end gap-4 text-[13px] px-4 py-2.5 border-t border-border/40 bg-muted/30 flex-shrink-0">
+            <div>
               <span className="text-muted-foreground">Total Expenses: </span>
-              <span className="font-semibold text-lg">
+              <span className="font-semibold">
                 {formatCurrency(
                   filteredExpenses.reduce((sum, e) => sum + e.amount, 0)
                 )}
@@ -281,26 +314,35 @@ export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
           </div>
         )}
 
-        {/* Pagination - Fixed at bottom */}
-        {filteredExpenses.length > 0 && (
-          <div className="flex-shrink-0 border-t bg-card">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              itemsPerPage={itemsPerPage}
-              totalItems={filteredExpenses.length}
-              onPageChange={setCurrentPage}
-              onItemsPerPageChange={setItemsPerPage}
-            />
-          </div>
-        )}
+        {/* Pagination - Pinned to bottom of viewport */}
+        <div className="flex-shrink-0 border-t border-border/40 bg-muted/30">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            itemsPerPage={itemsPerPage}
+            totalItems={filteredExpenses.length}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={setItemsPerPage}
+          />
+        </div>
       </div>
+
+      {/* Create Expense Dialog */}
+      {createDialogOpen && (
+        <CreateExpenseDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          onCreate={onCreateExpense}
+          projectId={projectId}
+          onRefresh={loadExpenses}
+        />
+      )}
 
       {/* Delete Confirmation Dialog */}
       {deleteDialogOpen && (
         <>
           <div className="fixed inset-0 z-50 bg-black/50" onClick={() => setDeleteDialogOpen(false)} />
-          <div 
+          <div
             className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-md translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg"
             onClick={(e) => e.stopPropagation()}
           >
@@ -310,9 +352,9 @@ export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
               "{expenseToDelete?.paidTo}"? This action cannot be undone.
             </p>
             <div className="flex justify-end gap-2">
-              <Button 
+              <Button
                 type="button"
-                variant="outline" 
+                variant="outline"
                 onClick={(e) => {
                   e.stopPropagation()
                   setDeleteDialogOpen(false)
@@ -320,9 +362,9 @@ export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 type="button"
-                variant="destructive" 
+                variant="destructive"
                 onClick={(e) => {
                   e.stopPropagation()
                   confirmDelete()
@@ -335,6 +377,85 @@ export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
         </>
       )}
     </div>
+  )
+}
+
+function CreateExpenseDialog({
+  open,
+  onOpenChange,
+  onCreate,
+  projectId,
+  onRefresh,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onCreate: (data: Omit<Expense, "id" | "createdAt" | "updatedAt">) => Promise<void>
+  projectId?: string
+  onRefresh?: () => Promise<void>
+}) {
+  const [error, setError] = React.useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  const handleSubmit = async (data: ExpenseFormSchema) => {
+    try {
+      setIsSubmitting(true)
+      setError(null)
+      const finalProjectId = data.projectId || projectId || ""
+
+      if (!finalProjectId) {
+        setError("Please select a project")
+        return
+      }
+
+      const project = await projectsApi.getById(finalProjectId)
+
+      await onCreate({
+        ...data,
+        projectId: finalProjectId,
+        projectName: project?.name || "",
+        amount: typeof data.amount === "string" ? parseFloat(data.amount) : data.amount,
+        notes: data.notes || undefined,
+        attachment: data.attachment || undefined,
+      } as Omit<Expense, "id" | "createdAt" | "updatedAt">)
+
+      onOpenChange(false)
+      if (onRefresh) {
+        await onRefresh()
+      }
+    } catch (err: any) {
+      setError(err?.message || "Failed to create expense. Please try again.")
+      console.error("Error creating expense:", err)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (!open) return null
+
+  return (
+    <>
+      <div className="fixed inset-0 z-50 bg-black/50" onClick={() => !isSubmitting && onOpenChange(false)} />
+      <div className="fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Create New Expense</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => !isSubmitting && onOpenChange(false)}
+            className="h-6 w-6"
+            disabled={isSubmitting}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+        {error && (
+          <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+        <ExpenseForm onSubmit={handleSubmit} onCancel={() => !isSubmitting && onOpenChange(false)} projectId={projectId} />
+      </div>
+    </>
   )
 }
 
@@ -396,7 +517,7 @@ function CreateExpenseButton({
       setIsSubmitting(true)
       setError(null)
       const finalProjectId = data.projectId || projectId || ""
-      
+
       if (!finalProjectId) {
         setError("Please select a project")
         return
@@ -412,7 +533,7 @@ function CreateExpenseButton({
         notes: data.notes || undefined,
         attachment: data.attachment || undefined,
       } as Omit<Expense, "id" | "createdAt" | "updatedAt">)
-      
+
       setOpen(false)
       // Immediately refresh the list to show the new expense
       if (onRefresh) {
@@ -438,10 +559,10 @@ function CreateExpenseButton({
           <div className="fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Create New Expense</h2>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => !isSubmitting && setOpen(false)} 
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => !isSubmitting && setOpen(false)}
                 className="h-6 w-6"
                 disabled={isSubmitting}
               >
@@ -453,10 +574,10 @@ function CreateExpenseButton({
                 {error}
               </div>
             )}
-            <ExpenseForm 
-              onSubmit={handleSubmit} 
-              onCancel={() => !isSubmitting && setOpen(false)} 
-              projectId={projectId} 
+            <ExpenseForm
+              onSubmit={handleSubmit}
+              onCancel={() => !isSubmitting && setOpen(false)}
+              projectId={projectId}
             />
           </div>
         </>

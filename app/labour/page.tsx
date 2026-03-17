@@ -26,7 +26,6 @@ export default function LabourPage() {
         notes: data.notes || undefined,
       } as Omit<Labour, "id" | "createdAt" | "updatedAt">)
     } catch (error) {
-      console.error("Error fetching project:", error)
       throw error
     }
   }

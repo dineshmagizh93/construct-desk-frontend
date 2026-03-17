@@ -5,6 +5,8 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { DashboardCard } from "@/components/ui/dashboard-card"
+import { PageHeader } from "@/components/ui/page-header"
 import { 
   TrendingUp, 
   TrendingDown,
@@ -29,12 +31,15 @@ import { useExpenses } from "@/lib/hooks/use-expenses"
 import { usePayments } from "@/lib/hooks/use-payments"
 import { useLeads } from "@/lib/hooks/use-leads"
 import { useInventoryItems, useLowStockItems } from "@/lib/hooks/use-inventory"
+import { usePlanUsage } from "@/lib/hooks/use-plan-usage"
 import { formatCurrency } from "@/lib/utils/currency"
 import { Project } from "@/types/project"
 import { Payment } from "@/types/payment"
 import { Expense } from "@/types/expense"
 import { Lead } from "@/types/lead"
 import { InventoryItem } from "@/lib/api/inventory"
+import { UsageWarningBanner } from "@/components/subscription/usage-warning-banner"
+import { UsageTracker } from "@/components/subscription/usage-tracker"
 
 export default function DashboardPage() {
   const { projects, loading: projectsLoading } = useProjects()
@@ -43,6 +48,7 @@ export default function DashboardPage() {
   const { leads, loading: leadsLoading } = useLeads()
   const { items: inventoryItems, loading: inventoryLoading } = useInventoryItems()
   const { items: lowStockItems, loading: lowStockLoading } = useLowStockItems()
+  const { usage: planUsage } = usePlanUsage()
 
   const loading = projectsLoading || expensesLoading || paymentsLoading || leadsLoading || inventoryLoading
 
@@ -163,437 +169,320 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col h-full min-h-0">
+      {/* Usage Warning Banner */}
+      {planUsage && <UsageWarningBanner usage={planUsage} />}
+      
       {/* Page Header */}
-      <div className="pb-4 border-b border-border/40">
-        <h1 className="text-4xl lg:text-5xl font-bold tracking-tight bg-gradient-to-r from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent">
-          Dashboard
-        </h1>
-        <p className="text-muted-foreground mt-2 text-lg">
-          Welcome back! Here's an overview of your construction business.
-        </p>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        subtitle="Welcome back! Here's an overview of your construction business."
+      />
 
-      {/* Key Metrics Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 animate-in">
-        {/* Total Projects */}
-        <Card className="group hover:border-primary/20 transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Projects</CardTitle>
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-              <FolderKanban className="h-5 w-5 text-primary" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold tracking-tight">{projectMetrics.total}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {projectMetrics.inProgress} in progress
-            </p>
-          </CardContent>
-        </Card>
+      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto pr-1">
+        {/* Primary Metrics Grid */}
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4 mb-4 flex-shrink-0">
+          <DashboardCard
+            title="Total Projects"
+            value={projectMetrics.total}
+            secondaryInfo={`${projectMetrics.inProgress} in progress`}
+            icon={FolderKanban}
+            iconColor="text-primary"
+            iconBgColor="bg-primary/10"
+          />
+          <DashboardCard
+            title="Total Revenue"
+            value={formatCurrency(financialMetrics.totalPayments)}
+            secondaryInfo={`${formatCurrency(financialMetrics.pendingPayments)} pending`}
+            icon={TrendingUp}
+            iconColor="text-green-600"
+            iconBgColor="bg-green-500/10"
+          />
+          <DashboardCard
+            title="Total Expenses"
+            value={formatCurrency(financialMetrics.totalExpenses)}
+            secondaryInfo={`${expenses.length} expense entries`}
+            icon={Receipt}
+            iconColor="text-red-600"
+            iconBgColor="bg-red-500/10"
+          />
+          <DashboardCard
+            title="Net Profit"
+            value={formatCurrency(financialMetrics.netProfit)}
+            secondaryInfo="Revenue - Expenses"
+            icon={financialMetrics.netProfit >= 0 ? TrendingUp : TrendingDown}
+            iconColor={financialMetrics.netProfit >= 0 ? "text-green-600" : "text-red-600"}
+            iconBgColor={financialMetrics.netProfit >= 0 ? "bg-green-500/10" : "bg-red-500/10"}
+            className={financialMetrics.netProfit >= 0 ? "" : ""}
+          />
+        </div>
 
-        {/* Total Revenue */}
-        <Card className="group hover:border-green-500/20 transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Revenue</CardTitle>
-            <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
-              <TrendingUp className="h-5 w-5 text-green-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold tracking-tight">{formatCurrency(financialMetrics.totalPayments)}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {formatCurrency(financialMetrics.pendingPayments)} pending
-            </p>
-          </CardContent>
-        </Card>
+        {/* Secondary Metrics Grid */}
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4 mb-4 flex-shrink-0">
+          <DashboardCard
+            title="Active Projects"
+            value={projectMetrics.inProgress}
+            secondaryInfo={`${projectMetrics.avgProgress}% avg progress`}
+            icon={FolderKanban}
+            iconColor="text-blue-600"
+            iconBgColor="bg-blue-500/10"
+          />
+          <DashboardCard
+            title="Leads & Clients"
+            value={leadsMetrics.totalLeads + leadsMetrics.totalClients}
+            secondaryInfo={`${leadsMetrics.totalLeads} leads, ${leadsMetrics.totalClients} clients`}
+            icon={Users}
+            iconColor="text-purple-600"
+            iconBgColor="bg-purple-500/10"
+          />
+          <DashboardCard
+            title="Inventory Value"
+            value={formatCurrency(inventoryValue)}
+            secondaryInfo={`${inventoryItems.length} items`}
+            icon={Package}
+            iconColor="text-orange-600"
+            iconBgColor="bg-orange-500/10"
+          />
+          <DashboardCard
+            title="Low Stock Items"
+            value={lowStockItems.length}
+            secondaryInfo="Items below minimum stock"
+            icon={AlertTriangle}
+            iconColor="text-yellow-600"
+            iconBgColor="bg-yellow-500/10"
+          />
+        </div>
 
-        {/* Total Expenses */}
-        <Card className="group hover:border-red-500/20 transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Expenses</CardTitle>
-            <div className="h-10 w-10 rounded-lg bg-red-500/10 flex items-center justify-center group-hover:bg-red-500/20 transition-colors">
-              <Receipt className="h-5 w-5 text-red-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold tracking-tight">{formatCurrency(financialMetrics.totalExpenses)}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {expenses.length} expense entries
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Net Profit */}
-        <Card className={`group transition-all duration-300 ${financialMetrics.netProfit >= 0 ? 'hover:border-green-500/20' : 'hover:border-red-500/20'}`}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Net Profit</CardTitle>
-            <div className={`h-10 w-10 rounded-lg flex items-center justify-center transition-colors ${financialMetrics.netProfit >= 0 ? 'bg-green-500/10 group-hover:bg-green-500/20' : 'bg-red-500/10 group-hover:bg-red-500/20'}`}>
-              {financialMetrics.netProfit >= 0 ? (
-                <TrendingUp className="h-5 w-5 text-green-600" />
-              ) : (
-                <TrendingDown className="h-5 w-5 text-red-600" />
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className={`text-3xl font-bold tracking-tight ${financialMetrics.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatCurrency(financialMetrics.netProfit)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Revenue - Expenses
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Secondary Metrics Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 animate-in" style={{ animationDelay: '0.1s' }}>
-        {/* Active Projects */}
-        <Card className="group hover:border-blue-500/20 transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active Projects</CardTitle>
-            <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
-              <FolderKanban className="h-5 w-5 text-blue-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold tracking-tight">{projectMetrics.inProgress}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {projectMetrics.avgProgress}% avg progress
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Leads & Clients */}
-        <Card className="group hover:border-purple-500/20 transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Leads & Clients</CardTitle>
-            <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-colors">
-              <Users className="h-5 w-5 text-purple-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold tracking-tight">{leadsMetrics.totalLeads + leadsMetrics.totalClients}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {leadsMetrics.totalLeads} leads, {leadsMetrics.totalClients} clients
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Inventory Value */}
-        <Card className="group hover:border-orange-500/20 transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Inventory Value</CardTitle>
-            <div className="h-10 w-10 rounded-lg bg-orange-500/10 flex items-center justify-center group-hover:bg-orange-500/20 transition-colors">
-              <Package className="h-5 w-5 text-orange-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold tracking-tight">{formatCurrency(inventoryValue)}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {inventoryItems.length} items
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Low Stock Alerts */}
-        <Card className="group hover:border-yellow-500/20 transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Low Stock Items</CardTitle>
-            <div className="h-10 w-10 rounded-lg bg-yellow-500/10 flex items-center justify-center group-hover:bg-yellow-500/20 transition-colors">
-              <AlertTriangle className="h-5 w-5 text-yellow-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold tracking-tight">{lowStockItems.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Items below minimum stock
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        {/* Recent Projects */}
-        <Card className="col-span-4">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Recent Projects</CardTitle>
-              <CardDescription>Your most recent construction projects</CardDescription>
-            </div>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/projects">
-                View All <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentProjects.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">No projects found</p>
-              ) : (
-                recentProjects.map((project, index) => (
-                  <Link key={project.id} href={`/projects/${project.id}`}>
-                    <div 
-                      className="flex items-center justify-between p-4 rounded-lg border hover:bg-accent hover:border-primary/20 transition-all duration-200 group"
-                      style={{ animationDelay: `${index * 0.05}s` }}
-                    >
-                      <div className="space-y-1 flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold leading-none group-hover:text-primary transition-colors">{project.name}</p>
-                          <Badge variant="outline" className="text-xs">
-                            {project.status}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {project.clientName || "No client"}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="w-24 bg-secondary rounded-full h-2 overflow-hidden">
-                          <div
-                            className="bg-primary h-2 rounded-full transition-all duration-500 group-hover:bg-primary/80"
-                            style={{ width: `${project.progress}%` }}
-                          />
-                        </div>
-                        <span className="text-sm font-medium text-muted-foreground w-12 text-right">
-                          {project.progress}%
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Financial Summary */}
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Financial Summary</CardTitle>
-            <CardDescription>Revenue and expenses overview</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Total Revenue</span>
-                <span className="text-sm font-semibold text-green-600">
-                  {formatCurrency(financialMetrics.totalPayments)}
-                </span>
+        {/* Main Content Grid - Expands to fill remaining space */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mb-4">
+          {/* Recent Projects */}
+          <Card className="col-span-4">
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <div>
+                <CardTitle className="text-base">Recent Projects</CardTitle>
+                <CardDescription className="text-xs">Your most recent construction projects</CardDescription>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Total Expenses</span>
-                <span className="text-sm font-semibold text-red-600">
-                  {formatCurrency(financialMetrics.totalExpenses)}
-                </span>
-              </div>
-              <div className="h-px bg-border my-2" />
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Net Profit</span>
-                <span className={`text-sm font-bold ${financialMetrics.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {formatCurrency(financialMetrics.netProfit)}
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-2 pt-2 border-t">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Pending Payments</span>
-                <span className="text-sm font-semibold">
-                  {formatCurrency(financialMetrics.pendingPayments)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Overdue Payments</span>
-                <span className="text-sm font-semibold text-red-600">
-                  {formatCurrency(financialMetrics.overduePayments)}
-                </span>
-              </div>
-            </div>
-
-            <div className="pt-4 space-y-2">
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <Link href="/payments">
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  View Payments
+              <Button variant="ghost" size="sm" className="h-8" asChild>
+                <Link href="/projects">
+                  View All <ArrowRight className="ml-2 h-3.5 w-3.5" />
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <Link href="/expenses">
-                  <Receipt className="mr-2 h-4 w-4" />
-                  View Expenses
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-2">
+                {recentProjects.length === 0 ? (
+                  <p className="text-[13px] text-muted-foreground text-center py-3">No projects found</p>
+                ) : (
+                  recentProjects.map((project) => (
+                    <Link key={project.id} href={`/projects/${project.id}`}>
+                      <div className="flex items-center justify-between p-2.5 rounded-[8px] border border-border/50 hover:bg-accent/50 hover:border-primary/30 transition-all duration-150 group">
+                        <div className="space-y-0.5 flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-[13px] font-semibold truncate group-hover:text-primary transition-colors">{project.name}</p>
+                            <Badge variant="outline" className="text-[11px] h-5 px-1.5">
+                              {project.status}
+                            </Badge>
+                          </div>
+                          <p className="text-[12px] text-muted-foreground truncate">
+                            {project.clientName || "No client"}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3 ml-3">
+                          <div className="w-20 bg-secondary rounded-full h-1.5 overflow-hidden">
+                            <div
+                              className="bg-primary h-1.5 rounded-full transition-all duration-300"
+                              style={{ width: `${project.progress}%` }}
+                            />
+                          </div>
+                          <span className="text-[13px] font-medium text-muted-foreground w-10 text-right">
+                            {project.progress}%
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Financial Summary */}
+          <Card className="col-span-3">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Financial Summary</CardTitle>
+              <CardDescription className="text-xs">Revenue and expenses overview</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0 space-y-3">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] text-muted-foreground">Total Revenue</span>
+                  <span className="text-[13px] font-semibold text-green-600">
+                    {formatCurrency(financialMetrics.totalPayments)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] text-muted-foreground">Total Expenses</span>
+                  <span className="text-[13px] font-semibold text-red-600">
+                    {formatCurrency(financialMetrics.totalExpenses)}
+                  </span>
+                </div>
+                <div className="h-px bg-border my-1.5" />
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] font-semibold">Net Profit</span>
+                  <span className={`text-[13px] font-bold ${financialMetrics.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {formatCurrency(financialMetrics.netProfit)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-2 border-t">
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] text-muted-foreground">Pending Payments</span>
+                  <span className="text-[13px] font-semibold">
+                    {formatCurrency(financialMetrics.pendingPayments)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] text-muted-foreground">Overdue Payments</span>
+                  <span className="text-[13px] font-semibold text-red-600">
+                    {formatCurrency(financialMetrics.overduePayments)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-2 space-y-1.5">
+                <Button variant="outline" className="w-full justify-start h-8 text-[13px]" asChild>
+                  <Link href="/payments">
+                    <CreditCard className="mr-2 h-3.5 w-3.5" />
+                    View Payments
+                  </Link>
+                </Button>
+                <Button variant="outline" className="w-full justify-start h-8 text-[13px]" asChild>
+                  <Link href="/expenses">
+                    <Receipt className="mr-2 h-3.5 w-3.5" />
+                    View Expenses
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Additional Sections */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-4">
+          {/* Recent Leads */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <div>
+                <CardTitle className="text-base">Recent Leads</CardTitle>
+                <CardDescription className="text-xs">Latest lead entries</CardDescription>
+              </div>
+              <Button variant="ghost" size="sm" className="h-8" asChild>
+                <Link href="/leads">
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Additional Sections */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {/* Recent Leads */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Recent Leads</CardTitle>
-              <CardDescription>Latest lead entries</CardDescription>
-            </div>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/leads">
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {recentLeads.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-2">No leads found</p>
-              ) : (
-                recentLeads.map((lead) => (
-                  <Link key={lead.id} href={`/leads/${lead.id}`}>
-                    <div className="flex items-center justify-between p-2 rounded-lg border hover:bg-accent transition-colors">
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">{lead.name}</p>
-                        <p className="text-xs text-muted-foreground">{lead.phone}</p>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-2">
+                {recentLeads.length === 0 ? (
+                  <p className="text-[13px] text-muted-foreground text-center py-2">No leads found</p>
+                ) : (
+                  recentLeads.map((lead) => (
+                    <Link key={lead.id} href={`/leads/${lead.id}`}>
+                      <div className="flex items-center justify-between p-2 rounded-[8px] border border-border/50 hover:bg-accent/50 transition-colors">
+                        <div className="space-y-0.5 min-w-0 flex-1">
+                          <p className="text-[13px] font-semibold truncate">{lead.name}</p>
+                          <p className="text-[12px] text-muted-foreground truncate">{lead.phone}</p>
+                        </div>
+                        <Badge variant={lead.type === "CLIENT" ? "default" : "outline"} className="text-[11px] h-5 ml-2 flex-shrink-0">
+                          {lead.type}
+                        </Badge>
                       </div>
-                      <Badge variant={lead.type === "CLIENT" ? "default" : "outline"}>
-                        {lead.type}
-                      </Badge>
-                    </div>
-                  </Link>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                    </Link>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* Low Stock Items */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Low Stock Alerts</CardTitle>
-              <CardDescription>Items below minimum stock</CardDescription>
-            </div>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/inventory">
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {lowStockItems.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-2">All items in stock</p>
-              ) : (
-                lowStockItems.slice(0, 5).map((item) => (
-                  <Link key={item.id} href={`/inventory/${item.id}`}>
-                    <div className="flex items-center justify-between p-2 rounded-lg border hover:bg-accent transition-colors">
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">{item.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {item.currentStock} {item.unit} / {item.minStock} {item.unit}
-                        </p>
+          {/* Low Stock Items */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <div>
+                <CardTitle className="text-base">Low Stock Alerts</CardTitle>
+                <CardDescription className="text-xs">Items below minimum stock</CardDescription>
+              </div>
+              <Button variant="ghost" size="sm" className="h-8" asChild>
+                <Link href="/inventory">
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </Button>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-2">
+                {lowStockItems.length === 0 ? (
+                  <p className="text-[13px] text-muted-foreground text-center py-2">All items in stock</p>
+                ) : (
+                  lowStockItems.slice(0, 5).map((item) => (
+                    <Link key={item.id} href={`/inventory/${item.id}`}>
+                      <div className="flex items-center justify-between p-2 rounded-[8px] border border-border/50 hover:bg-accent/50 transition-colors">
+                        <div className="space-y-0.5 min-w-0 flex-1">
+                          <p className="text-[13px] font-semibold truncate">{item.name}</p>
+                          <p className="text-[12px] text-muted-foreground">
+                            {item.currentStock} {item.unit} / {item.minStock} {item.unit}
+                          </p>
+                        </div>
+                        <AlertTriangle className="h-4 w-4 text-yellow-600 ml-2 flex-shrink-0" />
                       </div>
-                      <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                    </div>
-                  </Link>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                    </Link>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* Project Status Breakdown */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Project Status</CardTitle>
-            <CardDescription>Distribution by status</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-blue-500" />
-                  <span className="text-sm">In Progress</span>
+          {/* Project Status Breakdown */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Project Status</CardTitle>
+              <CardDescription className="text-xs">Distribution by status</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                    <span className="text-[13px]">In Progress</span>
+                  </div>
+                  <span className="text-[13px] font-semibold">{projectMetrics.inProgress}</span>
                 </div>
-                <span className="text-sm font-semibold">{projectMetrics.inProgress}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-green-500" />
-                  <span className="text-sm">Completed</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
+                    <span className="text-[13px]">Completed</span>
+                  </div>
+                  <span className="text-[13px] font-semibold">{projectMetrics.completed}</span>
                 </div>
-                <span className="text-sm font-semibold">{projectMetrics.completed}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-gray-500" />
-                  <span className="text-sm">Planning</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-gray-500" />
+                    <span className="text-[13px]">Planning</span>
+                  </div>
+                  <span className="text-[13px] font-semibold">{projectMetrics.planning}</span>
                 </div>
-                <span className="text-sm font-semibold">{projectMetrics.planning}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                  <span className="text-sm">On Hold</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
+                    <span className="text-[13px]">On Hold</span>
+                  </div>
+                  <span className="text-[13px] font-semibold">{projectMetrics.onHold}</span>
                 </div>
-                <span className="text-sm font-semibold">{projectMetrics.onHold}</span>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Common tasks and shortcuts</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-            <Button variant="outline" className="h-auto flex flex-col items-start p-5 text-left hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 group" asChild>
-              <Link href="/projects" className="flex flex-col items-start gap-2 w-full">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <FolderKanban className="h-5 w-5 text-primary" />
-                </div>
-                <span className="font-semibold block text-base">New Project</span>
-                <span className="text-xs text-muted-foreground block leading-relaxed">Start a new project</span>
-              </Link>
-            </Button>
-            <Button variant="outline" className="h-auto flex flex-col items-start p-5 text-left hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 group" asChild>
-              <Link href="/leads" className="flex flex-col items-start gap-2 w-full">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <UserPlus className="h-5 w-5 text-primary" />
-                </div>
-                <span className="font-semibold block text-base">Add Lead</span>
-                <span className="text-xs text-muted-foreground block leading-relaxed">Register a new lead</span>
-              </Link>
-            </Button>
-            <Button variant="outline" className="h-auto flex flex-col items-start p-5 text-left hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 group" asChild>
-              <Link href="/payments" className="flex flex-col items-start gap-2 w-full">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <CreditCard className="h-5 w-5 text-primary" />
-                </div>
-                <span className="font-semibold block text-base">Record Payment</span>
-                <span className="text-xs text-muted-foreground block leading-relaxed">Log payment transaction</span>
-              </Link>
-            </Button>
-            <Button variant="outline" className="h-auto flex flex-col items-start p-5 text-left hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 group" asChild>
-              <Link href="/inventory" className="flex flex-col items-start gap-2 w-full">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <Package className="h-5 w-5 text-primary" />
-                </div>
-                <span className="font-semibold block text-base">Manage Inventory</span>
-                <span className="text-xs text-muted-foreground block leading-relaxed">View inventory items</span>
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }

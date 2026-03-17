@@ -19,7 +19,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Pagination } from "@/components/ui/pagination"
-import { Plus, Search, Calendar, User, Clock, Edit, Trash2, MoreVertical, Eye } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Plus, Search, Calendar, User, Clock, Edit, Trash2, MoreVertical, Eye, LayoutGrid, List } from "lucide-react"
 import { useProjects } from "@/lib/hooks/use-projects"
 import { useUsers } from "@/lib/hooks/use-users"
 import { TaskFilters } from "@/lib/api/tasks"
@@ -27,7 +28,12 @@ import { format } from "date-fns"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
-export function TaskList() {
+interface TaskListProps {
+  viewMode?: "kanban" | "list"
+  setViewMode?: (mode: "kanban" | "list") => void
+}
+
+export function TaskList({ viewMode, setViewMode }: TaskListProps = {}) {
   const { projects } = useProjects()
   const { users } = useUsers()
   const [filters, setFilters] = React.useState<TaskFilters>({})
@@ -42,7 +48,7 @@ export function TaskList() {
 
   // Pagination
   const [currentPage, setCurrentPage] = React.useState(1)
-  const [itemsPerPage, setItemsPerPage] = React.useState(25)
+  const [itemsPerPage, setItemsPerPage] = React.useState(10)
 
   // Filtering
   const [statusFilter, setStatusFilter] = React.useState<string>("all")
@@ -73,9 +79,24 @@ export function TaskList() {
     currentPage * itemsPerPage
   )
 
+  // Reset to page 1 when filters change
   React.useEffect(() => {
     setCurrentPage(1)
   }, [statusFilter, priorityFilter, assignedFilter, projectFilter, searchQuery])
+
+  // Reset to page 1 when itemsPerPage changes
+  React.useEffect(() => {
+    setCurrentPage(1)
+  }, [itemsPerPage])
+
+  // Adjust current page if it's out of bounds after filtering or page size change
+  React.useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    } else if (currentPage < 1) {
+      setCurrentPage(1)
+    }
+  }, [totalPages, itemsPerPage])
 
   const handleCreateTask = async (data: any) => {
     try {
@@ -112,7 +133,7 @@ export function TaskList() {
 
   const handleDeleteTask = async () => {
     if (!taskToDelete) return
-    
+
     try {
       await deleteTask(taskToDelete.id)
       await loadTasks() // Force refresh
@@ -197,22 +218,47 @@ export function TaskList() {
     )
   }
 
+
   return (
-    <div className="flex flex-col h-full space-y-4">
+    <div className="flex flex-col h-full min-h-0 gap-1">
       {/* Header */}
-      <div className="flex items-center justify-between flex-shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 flex-shrink-0 pt-4 sm:pt-6 pb-4 border-b border-border/40">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">All Tasks</h1>
-          <p className="text-muted-foreground">View and manage all tasks in a list format</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">All Tasks</h1>
+          <p className="text-muted-foreground mt-1 text-sm">View and manage all tasks in a list format</p>
         </div>
-        <Button onClick={() => setCreateDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Task
-        </Button>
+        <div className="flex items-center gap-2">
+          {setViewMode && (
+            <div className="inline-flex rounded-md border" role="group">
+              <Button
+                variant={viewMode === "kanban" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("kanban")}
+                className="rounded-r-none"
+              >
+                <LayoutGrid className="h-4 w-4 mr-1.5" />
+                Kanban
+              </Button>
+              <Button
+                variant={viewMode === "list" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("list")}
+                className="rounded-l-none border-l"
+              >
+                <List className="h-4 w-4 mr-1.5" />
+                List
+              </Button>
+            </div>
+          )}
+          <Button onClick={() => setCreateDialogOpen(true)} size="sm">
+            <Plus className="mr-1.5 h-4 w-4" />
+            New Task
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-4 flex-wrap flex-shrink-0">
+      <div className="flex gap-4 flex-col sm:flex-row flex-shrink-0 my-2">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -272,19 +318,25 @@ export function TaskList() {
       </div>
 
       {/* Table Container */}
-      <div className="flex-1 flex flex-col min-h-0 rounded-md border overflow-hidden">
-        <div className="flex-1 overflow-auto">
-          <Table>
+      <div className="flex-1 flex flex-col min-h-0 rounded-md border overflow-hidden bg-card">
+        <div
+          className={cn(
+            "flex-1 min-h-0 overflow-x-auto", // Horizontal scroll on mobile
+            "overflow-y-auto" // Always allow vertical scroll for table content
+          )}
+          data-table-scroll-container
+        >
+          <Table className="border-0 rounded-none min-w-[900px]">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[300px]">Task</TableHead>
+                <TableHead>Task</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Priority</TableHead>
                 <TableHead>Project</TableHead>
                 <TableHead>Assignee</TableHead>
                 <TableHead>Due Date</TableHead>
                 <TableHead>Estimated</TableHead>
-                <TableHead className="w-[70px]">Actions</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -300,25 +352,26 @@ export function TaskList() {
                     <TableCell>
                       <div className="space-y-1">
                         <div
-                          className="font-medium cursor-pointer hover:text-primary"
+                          className="font-medium cursor-pointer hover:text-primary truncate"
                           onClick={() => setSelectedTask(task)}
+                          title={task.title}
                         >
                           {task.title}
                         </div>
                         {task.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-1">
+                          <p className="text-xs text-muted-foreground line-clamp-1 truncate">
                             {task.description}
                           </p>
                         )}
                         {task.labels && (
                           <div className="flex flex-wrap gap-1 mt-1">
                             {task.labels.split(",").slice(0, 3).map((label, idx) => (
-                              <Badge key={idx} variant="outline" className="text-xs">
+                              <Badge key={idx} variant="outline" className="text-[10px] px-1 py-0">
                                 {label.trim()}
                               </Badge>
                             ))}
                             {task.labels.split(",").length > 3 && (
-                              <Badge variant="outline" className="text-xs">
+                              <Badge variant="outline" className="text-[10px] px-1 py-0">
                                 +{task.labels.split(",").length - 3}
                               </Badge>
                             )}
@@ -326,62 +379,64 @@ export function TaskList() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap">
                       <Badge className={getStatusColor(task.status)}>{task.status}</Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap">
                       <Badge className={getPriorityColor(task.priority)}>{task.priority}</Badge>
                     </TableCell>
                     <TableCell>
                       {task.project ? (
-                        <span className="text-sm">{task.project.name}</span>
+                        <span className="truncate block" title={task.project.name}>
+                          {task.project.name}
+                        </span>
                       ) : (
-                        <span className="text-sm text-muted-foreground">No project</span>
+                        <span className="text-muted-foreground">No project</span>
                       )}
                     </TableCell>
                     <TableCell>
                       {task.assignee ? (
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-6 w-6">
-                            <AvatarFallback className="text-xs">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <Avatar className="h-4 w-4 flex-shrink-0">
+                            <AvatarFallback className="text-[10px]">
                               {getInitials(task.assignee)}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="text-sm">
+                          <span className="truncate">
                             {task.assignee.firstName} {task.assignee.lastName}
                           </span>
                         </div>
                       ) : (
-                        <span className="text-sm text-muted-foreground flex items-center gap-1">
-                          <User className="h-4 w-4" />
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          <User className="h-3 w-3" />
                           Unassigned
                         </span>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap">
                       {task.dueDate ? (
-                        <div className={`flex items-center gap-1 text-sm ${isOverdue(task) ? "text-destructive" : ""}`}>
-                          <Calendar className="h-4 w-4" />
-                          {format(new Date(task.dueDate), "MMM d, yyyy")}
+                        <div className={`flex items-center gap-1 ${isOverdue(task) ? "text-destructive" : ""}`}>
+                          <Calendar className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">{format(new Date(task.dueDate), "MMM d, yyyy")}</span>
                           {isOverdue(task) && (
-                            <span className="text-xs text-destructive ml-1">(Overdue)</span>
+                            <span className="text-[10px] text-destructive ml-1 flex-shrink-0">(Overdue)</span>
                           )}
                         </div>
                       ) : (
-                        <span className="text-sm text-muted-foreground">No due date</span>
+                        <span className="text-muted-foreground">No due date</span>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap">
                       {task.estimatedHours ? (
-                        <div className="flex items-center gap-1 text-sm">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3 text-muted-foreground" />
                           {task.estimatedHours}h
                         </div>
                       ) : (
-                        <span className="text-sm text-muted-foreground">-</span>
+                        <span className="text-muted-foreground">-</span>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="relative text-center">
                       <DropdownMenu
                         open={openDropdownId === task.id}
                         onOpenChange={(open) => setOpenDropdownId(open ? task.id : null)}
@@ -426,18 +481,16 @@ export function TaskList() {
         </div>
 
         {/* Pagination */}
-        {filteredTasks.length > 0 && (
-          <div className="flex-shrink-0 border-t bg-card">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              itemsPerPage={itemsPerPage}
-              totalItems={filteredTasks.length}
-              onPageChange={setCurrentPage}
-              onItemsPerPageChange={setItemsPerPage}
-            />
-          </div>
-        )}
+        <div className="flex-shrink-0 border-t border-border/50 -mt-px">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            itemsPerPage={itemsPerPage}
+            totalItems={filteredTasks.length}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={setItemsPerPage}
+          />
+        </div>
       </div>
 
       {/* Create Task Dialog */}
@@ -494,9 +547,9 @@ export function TaskList() {
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-end gap-2 mt-4">
-              <Button 
+              <Button
                 type="button"
-                variant="outline" 
+                variant="outline"
                 onClick={(e) => {
                   e.stopPropagation()
                   setDeleteDialogOpen(false)
@@ -504,9 +557,9 @@ export function TaskList() {
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 type="button"
-                variant="destructive" 
+                variant="destructive"
                 onClick={(e) => {
                   e.stopPropagation()
                   handleDeleteTask()

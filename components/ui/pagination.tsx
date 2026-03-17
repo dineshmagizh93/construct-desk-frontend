@@ -86,14 +86,14 @@ export function Pagination({
   }
 
   return (
-    <div className={cn("flex flex-col sm:flex-row items-center justify-between gap-4 w-full px-4 py-4 border-t bg-background", className)}>
+    <div className={cn("flex flex-col sm:flex-row items-center justify-between gap-3 w-full px-4 py-3 bg-background", className)}>
       <div className="flex items-center gap-4 flex-wrap">
         <div className="text-sm text-muted-foreground whitespace-nowrap">
           Showing <span className="font-medium text-foreground">{startItem}</span> -{" "}
           <span className="font-medium text-foreground">{endItem}</span> of{" "}
           <span className="font-medium text-foreground">{totalItems}</span> results
         </div>
-        
+
         {showPageSizeSelector && onItemsPerPageChange && (
           <div className="flex items-center gap-2">
             <label htmlFor="page-size" className="text-sm text-muted-foreground whitespace-nowrap">
@@ -116,7 +116,7 @@ export function Pagination({
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 flex-wrap justify-center">
           <Button
             variant="outline"
             size="sm"

@@ -26,7 +26,6 @@ export default function EditLeadPage() {
           const data = await leadsApi.getById(params.id)
           setLead(data)
         } catch (error) {
-          console.error("Failed to load lead:", error)
         } finally {
           setLoading(false)
         }
@@ -68,14 +67,16 @@ export default function EditLeadPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => router.push("/leads")}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Edit Lead/Client</h1>
-          <p className="text-muted-foreground">Update lead or client information</p>
+          <h1 className="text-2xl font-bold tracking-tight">Edit Lead/Client</h1>
+          <p className="text-muted-foreground text-xs mt-0">Update lead or client information</p>
         </div>
+      </div>
       </div>
 
       <Card>

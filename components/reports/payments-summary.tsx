@@ -166,7 +166,7 @@ export function PaymentsSummary() {
                 <CheckCircle className="h-4 w-4 text-green-600" />
                 <p className="text-sm font-medium text-muted-foreground">Paid</p>
               </div>
-              <p className="text-2xl font-bold">{formatCurrency(summary.paid.amount)}</p>
+              <p className="text-xl font-bold">{formatCurrency(summary.paid.amount)}</p>
               <p className="text-xs text-muted-foreground mt-1">{summary.paid.count} payments</p>
             </div>
 
@@ -175,7 +175,7 @@ export function PaymentsSummary() {
                 <Clock className="h-4 w-4 text-yellow-600" />
                 <p className="text-sm font-medium text-muted-foreground">Pending</p>
               </div>
-              <p className="text-2xl font-bold">{formatCurrency(summary.pending.amount)}</p>
+              <p className="text-xl font-bold">{formatCurrency(summary.pending.amount)}</p>
               <p className="text-xs text-muted-foreground mt-1">{summary.pending.count} payments</p>
             </div>
 
@@ -184,7 +184,7 @@ export function PaymentsSummary() {
                 <AlertCircle className="h-4 w-4 text-red-600" />
                 <p className="text-sm font-medium text-muted-foreground">Overdue</p>
               </div>
-              <p className="text-2xl font-bold">{formatCurrency(summary.overdue.amount)}</p>
+              <p className="text-xl font-bold">{formatCurrency(summary.overdue.amount)}</p>
               <p className="text-xs text-muted-foreground mt-1">{summary.overdue.count} payments</p>
             </div>
 
@@ -193,7 +193,7 @@ export function PaymentsSummary() {
                 <CreditCard className="h-4 w-4 text-blue-600" />
                 <p className="text-sm font-medium text-muted-foreground">Total</p>
               </div>
-              <p className="text-2xl font-bold">{formatCurrency(summary.total.amount)}</p>
+              <p className="text-xl font-bold">{formatCurrency(summary.total.amount)}</p>
               <p className="text-xs text-muted-foreground mt-1">{summary.total.count} payments</p>
             </div>
           </div>

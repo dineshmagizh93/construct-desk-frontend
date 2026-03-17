@@ -40,74 +40,75 @@ export function TaskCard({ task, onDragStart, onClick, isDragging }: TaskCardPro
       draggable
       onDragStart={onDragStart}
       onClick={onClick}
-      className={`cursor-pointer hover:shadow-md transition-all ${
+      className={`cursor-pointer hover:shadow-md transition-all w-full ${
         isDragging ? "opacity-50" : ""
       } ${isOverdue ? "border-destructive" : ""}`}
     >
-      <div className="p-4 space-y-3">
+      <div className="p-2 space-y-1.5">
         {/* Priority Indicator */}
         <div className="flex items-start justify-between">
-          <div className={`w-1 h-6 rounded-full ${priorityColors[task.priority] || "bg-gray-500"}`} />
+          <div className={`w-0.5 h-4 rounded-full ${priorityColors[task.priority] || "bg-gray-500"}`} />
           {isOverdue && (
-            <AlertCircle className="h-4 w-4 text-destructive" />
+            <AlertCircle className="h-3 w-3 text-destructive" />
           )}
         </div>
 
         {/* Title */}
-        <h4 className="font-semibold text-sm line-clamp-2">{task.title}</h4>
+        <h4 className="font-semibold text-xs line-clamp-2 leading-tight">{task.title}</h4>
 
         {/* Description */}
         {task.description && (
-          <p className="text-xs text-muted-foreground line-clamp-2">{task.description}</p>
+          <p className="text-xs text-muted-foreground line-clamp-2 leading-tight">{task.description}</p>
         )}
 
         {/* Labels */}
         {task.labels && (
-          <div className="flex flex-wrap gap-1">
-            {task.labels.split(",").map((label, idx) => (
-              <Badge key={idx} variant="outline" className="text-xs">
+          <div className="flex flex-wrap gap-0.5">
+            {task.labels.split(",").slice(0, 2).map((label, idx) => (
+              <Badge key={idx} variant="outline" className="text-[10px] px-1 py-0">
                 {label.trim()}
               </Badge>
             ))}
+            {task.labels.split(",").length > 2 && (
+              <Badge variant="outline" className="text-[10px] px-1 py-0">
+                +{task.labels.split(",").length - 2}
+              </Badge>
+            )}
           </div>
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-2 border-t">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between pt-1 border-t">
+          <div className="flex items-center gap-1.5 min-w-0 flex-1">
             {task.assignee ? (
-              <Avatar className="h-6 w-6">
-                <AvatarFallback className="text-xs">
+              <Avatar className="h-5 w-5 flex-shrink-0">
+                <AvatarFallback className="text-[10px]">
                   {getInitials(task.assignee)}
                 </AvatarFallback>
               </Avatar>
             ) : (
-              <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center">
-                <User className="h-3 w-3 text-muted-foreground" />
+              <div className="h-5 w-5 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                <User className="h-2.5 w-2.5 text-muted-foreground" />
               </div>
             )}
             {task.project && (
-              <span className="text-xs text-muted-foreground truncate max-w-[100px]">
+              <span className="text-[10px] text-muted-foreground truncate">
                 {task.project.name}
               </span>
             )}
           </div>
-          {task.dueDate && (
-            <div className={`flex items-center gap-1 text-xs ${isOverdue ? "text-destructive" : "text-muted-foreground"}`}>
-              <Calendar className="h-3 w-3" />
-              {format(new Date(task.dueDate), "MMM d")}
-            </div>
-          )}
-        </div>
-
-        {/* Counts */}
-        {(task._count?.comments || task._count?.activities) && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            {task._count.comments > 0 && (
-              <span>💬 {task._count.comments}</span>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {(task._count?.comments ?? 0) > 0 && (
+              <span className="text-[10px] text-muted-foreground">💬 {task._count?.comments}</span>
+            )}
+            {task.dueDate && (
+              <div className={`flex items-center gap-0.5 text-[10px] ${isOverdue ? "text-destructive" : "text-muted-foreground"}`}>
+                <Calendar className="h-2.5 w-2.5" />
+                {format(new Date(task.dueDate), "MMM d")}
+              </div>
             )}
           </div>
-        )}
+        </div>
       </div>
     </Card>
   )

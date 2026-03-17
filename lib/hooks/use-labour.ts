@@ -7,7 +7,7 @@ import { ApiError } from "@/lib/api/client"
 
 // Simple cache to prevent unnecessary refetches
 let labourCache: { data: Labour[]; timestamp: number; projectId?: string } | null = null
-const CACHE_DURATION = 30000 // 30 seconds
+const CACHE_DURATION = 120000 // 2 minutes
 
 export function useLabour() {
   // Initialize with cache if available to prevent loading state
@@ -63,7 +63,6 @@ export function useLabour() {
     }
   }, [])
 
-  // Only load if no cached data
   useEffect(() => {
     const now = Date.now()
     if (!labourCache || (now - labourCache.timestamp) >= CACHE_DURATION) {

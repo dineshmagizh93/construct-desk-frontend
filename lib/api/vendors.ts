@@ -7,6 +7,9 @@ export interface CreateVendorDto {
   phone?: string;
   email?: string;
   address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
   type?: string; // Backend uses 'type' field
   notes?: string;
   status?: string;
@@ -18,6 +21,9 @@ export interface UpdateVendorDto {
   phone?: string;
   email?: string;
   address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
   type?: string; // Backend uses 'type' field
   notes?: string;
   status?: string;
@@ -32,6 +38,9 @@ const transformVendor = (data: any): Vendor => {
     phone: data.phone || '',
     email: data.email || undefined,
     address: data.address || undefined,
+    city: data.city || undefined,
+    state: data.state || undefined,
+    country: data.country || undefined,
     notes: data.notes || undefined,
     status: (data.status || 'Active') as Vendor['status'],
     createdAt: data.createdAt,

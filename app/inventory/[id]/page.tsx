@@ -26,7 +26,6 @@ export default function InventoryItemDetailsPage() {
         const data = await inventoryApi.getItemById(itemId)
         setItem(data)
       } catch (error) {
-        console.error("Error loading item:", error)
       } finally {
         setLoading(false)
       }
@@ -35,16 +34,19 @@ export default function InventoryItemDetailsPage() {
   }, [itemId])
 
   if (loading) {
-    return <div className="flex items-center justify-center p-8">Loading item details...</div>
+    return <div className="flex items-center justify-center p-8">Loading inventory item...</div>
   }
 
   if (!item) {
     return (
-      <div className="flex flex-col items-center justify-center p-8">
-        <p className="text-muted-foreground mb-4">Item not found</p>
-        <Button asChild>
-          <Link href="/inventory">Back to Inventory</Link>
+      <div className="space-y-4">
+        <Button variant="ghost" onClick={() => router.push("/inventory")}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Inventory
         </Button>
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Item not found</p>
+        </div>
       </div>
     )
   }
@@ -53,17 +55,15 @@ export default function InventoryItemDetailsPage() {
   const stockValue = item.unitPrice ? item.currentStock * item.unitPrice : 0
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/inventory">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
+          <Button variant="ghost" size="icon" onClick={() => router.push("/inventory")}>
+            <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{item.name}</h1>
-            <p className="text-muted-foreground">{item.description || "No description"}</p>
+            <h1 className="text-2xl font-bold tracking-tight">{item.name}</h1>
+            <p className="text-muted-foreground text-xs mt-0">{item.description || "No description"}</p>
           </div>
         </div>
         <Button asChild>
@@ -74,14 +74,14 @@ export default function InventoryItemDetailsPage() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Current Stock</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl font-bold">
               {item.currentStock} {item.unit}
             </div>
             {isLowStock && (
@@ -99,7 +99,7 @@ export default function InventoryItemDetailsPage() {
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl font-bold">
               {item.minStock} {item.unit}
             </div>
           </CardContent>
@@ -111,7 +111,7 @@ export default function InventoryItemDetailsPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl font-bold">
               {item.unitPrice ? formatCurrency(item.unitPrice) : "-"}
             </div>
           </CardContent>
@@ -123,19 +123,19 @@ export default function InventoryItemDetailsPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl font-bold">
               {stockValue > 0 ? formatCurrency(stockValue) : "-"}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Item Details</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-2">
             <div>
               <p className="text-sm text-muted-foreground">Category</p>
               <Badge variant="outline">{item.category}</Badge>
@@ -172,7 +172,7 @@ export default function InventoryItemDetailsPage() {
             ) : transactions.length === 0 ? (
               <p className="text-sm text-muted-foreground">No transactions yet</p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {transactions.slice(0, 10).map((transaction) => (
                   <div key={transaction.id} className="flex items-center justify-between border-b pb-2">
                     <div className="flex items-center gap-2">

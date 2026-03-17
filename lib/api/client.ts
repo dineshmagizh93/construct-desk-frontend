@@ -20,12 +20,20 @@ export class ApiClient {
     const token = getAuthToken();
     // Ensure endpoint starts with / if it doesn't already
     const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-    const url = `${this.baseURL}${normalizedEndpoint}`;
     
-    // Debug: Log the URL in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[API Client] Request URL:', url);
+    // Ensure baseURL is set correctly
+    if (!this.baseURL || this.baseURL === '' || this.baseURL === 'undefined') {
+      console.error('[API Client] ERROR: baseURL is not set!', { baseURL: this.baseURL, API_BASE_URL });
+      throw new Error('API base URL is not configured. Please check your environment variables.');
     }
+    
+    // Prevent requests to frontend port (3000) - they should go to backend (3001)
+    if (this.baseURL.includes('localhost:3000') || this.baseURL.includes(':3000/api')) {
+      console.error('[API Client] ERROR: baseURL is pointing to frontend port (3000)!', { baseURL: this.baseURL });
+      throw new Error('API base URL is incorrectly configured. Backend should run on port 3001, not 3000.');
+    }
+    
+    const url = `${this.baseURL}${normalizedEndpoint}`;
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -129,6 +137,18 @@ export class ApiClient {
           } as ApiError;
         }
 
+        // Handle plan limit errors (400 Bad Request with specific error codes)
+        if (response.status === 400) {
+          const errorMessage = data.message || '';
+          if (errorMessage === 'PLAN_LIMIT_USERS' || errorMessage === 'PLAN_LIMIT_PROJECTS' || errorMessage === 'PLAN_LIMIT_STORAGE') {
+            throw {
+              message: errorMessage,
+              statusCode: 400,
+              error: 'Plan Limit Exceeded',
+            } as ApiError;
+          }
+        }
+
         const error: ApiError = {
           message: data.message || 'An error occurred',
           statusCode: response.status,
@@ -149,8 +169,21 @@ export class ApiClient {
     }
   }
 
-  async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' });
+  async get<T>(endpoint: string, options?: { params?: Record<string, any> }): Promise<T> {
+    let url = endpoint;
+    if (options?.params) {
+      const searchParams = new URLSearchParams();
+      Object.entries(options.params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      });
+      const queryString = searchParams.toString();
+      if (queryString) {
+        url += (url.includes('?') ? '&' : '?') + queryString;
+      }
+    }
+    return this.request<T>(url, { method: 'GET' });
   }
 
   async post<T>(endpoint: string, data?: any): Promise<T> {

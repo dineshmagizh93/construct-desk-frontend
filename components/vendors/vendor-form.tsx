@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { vendorFormSchema, VendorFormSchema } from "@/lib/validations/vendor"
 import { Vendor } from "@/types/vendor"
@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { DialogFooter } from "@/components/ui/dialog"
+import { CountrySelector, StateSelector } from "@/components/ui/country-state-selector"
 
 interface VendorFormProps {
   vendor?: Vendor
@@ -24,6 +25,7 @@ export function VendorForm({ vendor, onSubmit, onCancel }: VendorFormProps) {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
     setValue,
     watch,
@@ -36,6 +38,9 @@ export function VendorForm({ vendor, onSubmit, onCancel }: VendorFormProps) {
           phone: vendor.phone,
           email: vendor.email || "",
           address: vendor.address || "",
+          city: vendor.city || "",
+          state: vendor.state || "",
+          country: vendor.country || "",
           notes: vendor.notes || "",
           status: vendor.status,
         }
@@ -45,6 +50,9 @@ export function VendorForm({ vendor, onSubmit, onCancel }: VendorFormProps) {
           phone: "",
           email: "",
           address: "",
+          city: "",
+          state: "",
+          country: "",
           notes: "",
           status: "Active",
         },
@@ -52,6 +60,7 @@ export function VendorForm({ vendor, onSubmit, onCancel }: VendorFormProps) {
 
   const selectedType = watch("type")
   const selectedStatus = watch("status")
+  const selectedCountry = watch("country")
 
   const onFormSubmit = async (data: VendorFormSchema) => {
     try {
@@ -135,9 +144,51 @@ export function VendorForm({ vendor, onSubmit, onCancel }: VendorFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="address">Address</Label>
-        <Input id="address" {...register("address")} placeholder="Enter address (optional)" />
+        <Label htmlFor="address">Street Address</Label>
+        <Input id="address" {...register("address")} placeholder="Enter street address (optional)" />
         {errors.address && <p className="text-sm text-destructive">{errors.address.message}</p>}
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="city">City</Label>
+          <Input id="city" {...register("city")} placeholder="City (optional)" />
+          {errors.city && <p className="text-sm text-destructive">{errors.city.message}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="state">State / Province</Label>
+          <Controller
+            name="state"
+            control={control}
+            render={({ field }) => (
+              <StateSelector
+                countryName={selectedCountry}
+                value={field.value}
+                onChange={field.onChange}
+              />
+            )}
+          />
+          {errors.state && <p className="text-sm text-destructive">{errors.state.message}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="country">Country</Label>
+          <Controller
+            name="country"
+            control={control}
+            render={({ field }) => (
+              <CountrySelector
+                value={field.value}
+                onChange={(val) => {
+                  field.onChange(val)
+                  setValue('state', '') // Reset state when country changes
+                }}
+              />
+            )}
+          />
+          {errors.country && <p className="text-sm text-destructive">{errors.country.message}</p>}
+        </div>
       </div>
 
       <div className="space-y-2">

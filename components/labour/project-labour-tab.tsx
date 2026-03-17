@@ -78,7 +78,7 @@ export function ProjectLabourTab({ projectId }: ProjectLabourTabProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{totalHeadcount}</p>
+            <p className="text-xl font-bold">{totalHeadcount}</p>
             <p className="text-sm text-muted-foreground mt-1">
               {projectLabour.length} labour entr{projectLabour.length !== 1 ? "ies" : "y"} recorded
             </p>
@@ -92,7 +92,7 @@ export function ProjectLabourTab({ projectId }: ProjectLabourTabProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{formatCurrency(totalCost)}</p>
+            <p className="text-xl font-bold">{formatCurrency(totalCost)}</p>
             <p className="text-sm text-muted-foreground mt-1">Total cost across all entries</p>
           </CardContent>
         </Card>

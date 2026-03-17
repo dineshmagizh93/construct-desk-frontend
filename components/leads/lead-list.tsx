@@ -8,6 +8,8 @@ import { Lead, LeadType, LeadStatus } from "@/types/lead"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
+import { PageHeader } from "@/components/ui/page-header"
+import { FilterBar } from "@/components/ui/filter-bar"
 import {
   Table,
   TableBody,
@@ -18,6 +20,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
 import { Pagination } from "@/components/ui/pagination"
 import { LeadForm } from "./lead-form"
 import { useLeads } from "@/lib/hooks/use-leads"
@@ -74,12 +77,19 @@ export function LeadList({ onCreateLead }: LeadListProps) {
     setCurrentPage(1)
   }, [activeTab, searchQuery, statusFilter])
 
-  // Adjust current page if it's out of bounds after filtering
+  // Reset to page 1 when itemsPerPage changes
   React.useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
+    setCurrentPage(1)
+  }, [itemsPerPage])
+
+  // Adjust current page if it's out of bounds after filtering or page size change
+  React.useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
       setCurrentPage(totalPages)
+    } else if (currentPage < 1) {
+      setCurrentPage(1)
     }
-  }, [totalPages, currentPage])
+  }, [totalPages, itemsPerPage])
 
   const handleDelete = async (lead: Lead) => {
     setLeadToDelete(lead)
@@ -88,7 +98,7 @@ export function LeadList({ onCreateLead }: LeadListProps) {
 
   const confirmDelete = async () => {
     if (!leadToDelete) return
-    
+
     try {
       await deleteLead(leadToDelete.id)
       await loadLeads() // Force refresh
@@ -152,117 +162,135 @@ export function LeadList({ onCreateLead }: LeadListProps) {
     }
   }
 
+  const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
+
   if (loading) {
     return <div className="flex items-center justify-center p-8">Loading leads...</div>
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] space-y-6">
-      {/* Header and Actions */}
-      <div className="flex items-center justify-between flex-shrink-0">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Leads & Clients</h1>
-          <p className="text-muted-foreground">Manage your leads and clients</p>
-        </div>
-        <CreateLeadButton onCreate={async (data) => { await createLead(data); await loadLeads(); }} onRefresh={loadLeads} />
-      </div>
+    <div className="flex flex-col h-full min-h-0">
+      {/* Header */}
+      <PageHeader
+        title="Leads & Clients"
+        subtitle="Manage your leads and clients"
+        action={{
+          label: "New Lead",
+          icon: UserPlus,
+          onClick: () => setCreateDialogOpen(true),
+        }}
+      />
 
       {/* Tabs */}
-      <div className="flex-shrink-0">
+      <div className="flex-shrink-0 mb-2">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)}>
-          <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="leads">Leads</TabsTrigger>
-            <TabsTrigger value="clients">Clients</TabsTrigger>
+          <TabsList className="h-9">
+            <TabsTrigger value="all" className="text-[13px]">All</TabsTrigger>
+            <TabsTrigger value="leads" className="text-[13px]">Leads</TabsTrigger>
+            <TabsTrigger value="clients" className="text-[13px]">Clients</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-4 flex-shrink-0">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search by name or phone..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <Select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as LeadStatus | "all")}
-          className="w-[180px]"
-        >
-          <option value="all">All Status</option>
-          <option value="New">New</option>
-          <option value="Contacted">Contacted</option>
-          <option value="Qualified">Qualified</option>
-          <option value="Converted">Converted</option>
-          <option value="Lost">Lost</option>
-        </Select>
-      </div>
+      <FilterBar
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search by name or phone..."
+        filters={
+          <Select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as LeadStatus | "all")}
+            className="h-[40px] w-[160px] text-[13px]"
+          >
+            <option value="all">All Status</option>
+            <option value="New">New</option>
+            <option value="Contacted">Contacted</option>
+            <option value="Qualified">Qualified</option>
+            <option value="Converted">Converted</option>
+            <option value="Lost">Lost</option>
+          </Select>
+        }
+      />
 
       {/* Table Container - Takes remaining space */}
-      <div className="flex-1 flex flex-col min-h-0 rounded-md border overflow-hidden bg-card">
-        <div className="flex-1 overflow-y-auto overflow-x-hidden" data-table-scroll-container>
-          <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Source</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Assigned To</TableHead>
-              <TableHead>Created Date</TableHead>
-              <TableHead className="w-[70px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredLeads.length === 0 ? (
+      <div className="flex-1 flex flex-col min-h-0 rounded-[10px] border border-border/50 overflow-hidden bg-card shadow-sm mt-3">
+        {/* Table Wrapper - Scrollable area that fills space */}
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div
+            className={cn(
+              "flex-1 min-h-0 overflow-x-auto overflow-y-auto"
+            )}
+            data-table-scroll-container
+          >
+            <Table className="border-0 rounded-none min-w-[700px]">
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                  No leads or clients found
-                </TableCell>
+                <TableHead>Name</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Source</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Assigned To</TableHead>
+                <TableHead>Created Date</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
               </TableRow>
-            ) : (
-              paginatedLeads.map((lead) => (
-                <TableRow key={lead.id}>
-                  <TableCell className="font-medium">
-                    <Link href={`/leads/${lead.id}`} className="hover:underline">
-                      {lead.name}
-                    </Link>
-                    {lead.type === "CLIENT" && (
-                      <Badge variant="outline" className="ml-2 text-xs">
-                        Client
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>{lead.phone}</TableCell>
-                  <TableCell>
-                    <Badge variant={getSourceBadgeVariant(lead.source)}>{lead.source}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusBadgeVariant(lead.status)}>{lead.status}</Badge>
-                  </TableCell>
-                  <TableCell>{lead.assignedTo || "Unassigned"}</TableCell>
-                  <TableCell>{new Date(lead.createdAt).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <LeadActionsMenu
-                      lead={lead}
-                      onDelete={handleDelete}
-                      onConvert={handleConvert}
-                    />
+            </TableHeader>
+            <TableBody>
+              {filteredLeads.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    No leads or clients found
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                paginatedLeads.map((lead) => (
+                  <TableRow key={lead.id}>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <Link
+                          href={`/leads/${lead.id}`}
+                          className="hover:underline truncate block flex-1 min-w-0"
+                          title={lead.name}
+                        >
+                          {lead.name}
+                        </Link>
+                        {lead.type === "CLIENT" && (
+                          <Badge variant="outline" className="text-xs flex-shrink-0 whitespace-nowrap">
+                            Client
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">{lead.phone}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      <Badge variant={getSourceBadgeVariant(lead.source)}>{lead.source}</Badge>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      <Badge variant={getStatusBadgeVariant(lead.status)}>{lead.status}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <span className="truncate block" title={lead.assignedTo || "Unassigned"}>
+                        {lead.assignedTo || "Unassigned"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">{new Date(lead.createdAt).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}</TableCell>
+                    <TableCell className="relative text-center">
+                      <LeadActionsMenu
+                        lead={lead}
+                        onDelete={handleDelete}
+                        onConvert={handleConvert}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+          </div>
         </div>
-        
-        {/* Pagination - Always at bottom */}
-        <div className="flex-shrink-0 border-t bg-card">
+
+        {/* Pagination - Pinned to bottom of viewport */}
+        <div className="flex-shrink-0 border-t border-border/40 bg-muted/30">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -274,11 +302,23 @@ export function LeadList({ onCreateLead }: LeadListProps) {
         </div>
       </div>
 
+      {/* Create Lead Dialog */}
+      {createDialogOpen && (
+        <CreateLeadDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          onCreate={async (data) => {
+            await createLead(data)
+            await loadLeads()
+          }}
+        />
+      )}
+
       {/* Delete Confirmation Dialog */}
       {deleteDialogOpen && (
         <>
           <div className="fixed inset-0 z-50 bg-black/50" onClick={() => setDeleteDialogOpen(false)} />
-          <div 
+          <div
             className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-md translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg"
             onClick={(e) => e.stopPropagation()}
           >
@@ -287,9 +327,9 @@ export function LeadList({ onCreateLead }: LeadListProps) {
               Are you sure you want to delete "{leadToDelete?.name}"? This action cannot be undone.
             </p>
             <div className="flex justify-end gap-2">
-              <Button 
+              <Button
                 type="button"
-                variant="outline" 
+                variant="outline"
                 onClick={(e) => {
                   e.stopPropagation()
                   setDeleteDialogOpen(false)
@@ -297,9 +337,9 @@ export function LeadList({ onCreateLead }: LeadListProps) {
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 type="button"
-                variant="destructive" 
+                variant="destructive"
                 onClick={(e) => {
                   e.stopPropagation()
                   confirmDelete()
@@ -310,6 +350,18 @@ export function LeadList({ onCreateLead }: LeadListProps) {
             </div>
           </div>
         </>
+      )}
+
+      {/* Create Lead Dialog */}
+      {createDialogOpen && (
+        <CreateLeadDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          onCreate={async (data) => {
+            await createLead(data)
+            await loadLeads()
+          }}
+        />
       )}
 
       {/* Convert Confirmation Dialog */}
@@ -335,6 +387,67 @@ export function LeadList({ onCreateLead }: LeadListProps) {
         </>
       )}
     </div>
+  )
+}
+
+function CreateLeadDialog({
+  open,
+  onOpenChange,
+  onCreate,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onCreate: (data: LeadFormSchema) => Promise<void>
+}) {
+  const [error, setError] = React.useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  const handleSubmit = async (data: LeadFormSchema) => {
+    try {
+      setIsSubmitting(true)
+      setError(null)
+      await onCreate({
+        ...data,
+        type: "LEAD",
+        email: data.email || undefined,
+        assignedTo: data.assignedTo || undefined,
+        notes: data.notes || undefined,
+      } as Omit<Lead, "id" | "createdAt" | "updatedAt">)
+      onOpenChange(false)
+    } catch (err: any) {
+      setError(err?.message || "Failed to create lead. Please try again.")
+      console.error("Error creating lead:", err)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (!open) return null
+
+  return (
+    <>
+      <div className="fixed inset-0 z-50 bg-black/50" onClick={() => !isSubmitting && onOpenChange(false)} />
+      <div className="fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Create New Lead</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => !isSubmitting && onOpenChange(false)}
+            className="h-6 w-6"
+            disabled={isSubmitting}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+        {error && (
+          <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+        <LeadForm onSubmit={handleSubmit} onCancel={() => !isSubmitting && onOpenChange(false)} />
+      </div>
+    </>
   )
 }
 
@@ -386,10 +499,10 @@ function LeadActionsMenu({
   )
 }
 
-function CreateLeadButton({ 
-  onCreate, 
-  onRefresh 
-}: { 
+function CreateLeadButton({
+  onCreate,
+  onRefresh
+}: {
   onCreate: (data: LeadFormSchema) => Promise<void>
   onRefresh?: () => Promise<void>
 }) {
@@ -433,10 +546,10 @@ function CreateLeadButton({
           <div className="fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Create New Lead</h2>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => !isSubmitting && setOpen(false)} 
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => !isSubmitting && setOpen(false)}
                 className="h-6 w-6"
                 disabled={isSubmitting}
               >

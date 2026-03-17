@@ -7,7 +7,7 @@ import { ApiError } from "@/lib/api/client"
 
 // Simple cache to prevent unnecessary refetches
 let usersCache: { data: User[]; timestamp: number } | null = null
-const CACHE_DURATION = 30000 // 30 seconds
+const CACHE_DURATION = 120000 // 2 minutes
 
 export function useUsers() {
   // Initialize with cache if available to prevent loading state
@@ -64,8 +64,14 @@ export function useUsers() {
   }, [])
 
   useEffect(() => {
-    loadUsers()
-  }, [loadUsers])
+    const now = Date.now()
+    if (!usersCache || (now - usersCache.timestamp) >= CACHE_DURATION) {
+      loadUsers(false, false).catch(err => {
+        console.error('Failed to load users in useEffect:', err)
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Only run once on mount
 
   const createUser = useCallback(async (user: CreateUserDto) => {
     try {

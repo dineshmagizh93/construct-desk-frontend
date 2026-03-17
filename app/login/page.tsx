@@ -59,7 +59,6 @@ function LoginPageContent() {
       if (response.mustChangePassword) {
         // Store email in sessionStorage for change password page
         sessionStorage.setItem('changePasswordEmail', data.email)
-        sessionStorage.setItem('changePasswordTempToken', data.password) // Store temporarily for verification
         // Redirect to change password page
         router.push("/change-password")
         return
@@ -78,40 +77,34 @@ function LoginPageContent() {
         ? err.message.join(', ') 
         : err.message || "Login failed. Please check your credentials."
       
-      // Check if it's an approval pending error
-      if (errorMessage.includes('pending approval') || errorMessage.includes('approval')) {
-        alert(errorMessage)
-      }
-      
       setError(errorMessage)
-      console.error("Login error:", err)
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 px-4 py-12">
+    <div className="flex h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 px-4 overflow-hidden">
       <div className="w-full max-w-md">
         {/* Logo/Brand Section */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-            <Building2 className="h-8 w-8 text-primary" />
+        <div className="text-center mb-4">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-2">
+            <Building2 className="h-6 w-6 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Construction CRM</h1>
-          <p className="text-muted-foreground">Manage your construction projects efficiently</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">ConstructDesk</h1>
+          <p className="text-xs text-muted-foreground">Manage your construction projects efficiently</p>
         </div>
 
         <Card className="shadow-xl border-2">
-          <CardHeader className="space-y-1 text-center pb-4">
-            <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-              <LogIn className="h-5 w-5 text-primary" />
+          <CardHeader className="space-y-1 text-center pb-3">
+            <div className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+              <LogIn className="h-4 w-4 text-primary" />
             </div>
-            <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-            <CardDescription>Enter your credentials to access your account</CardDescription>
+            <CardTitle className="text-xl font-bold">Welcome Back</CardTitle>
+            <CardDescription className="text-xs">Enter your credentials to access your account</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
               {successMessage && (
                 <div className="rounded-md bg-green-50 p-3 text-sm text-green-800 border border-green-200 flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
@@ -130,7 +123,7 @@ function LoginPageContent() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@construction.com"
+                  placeholder="you@company.com"
                   {...register("email")}
                   className="h-11"
                 />
@@ -193,7 +186,7 @@ function LoginPageContent() {
 
         {/* Footer */}
         <div className="text-center mt-6 text-sm text-muted-foreground">
-          <p>© 2024 Construction CRM. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} ConstructDesk. All rights reserved.</p>
         </div>
       </div>
     </div>

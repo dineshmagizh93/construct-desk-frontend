@@ -51,7 +51,7 @@ interface ProfileFormProps {
 
 export function ProfileForm({ user }: ProfileFormProps) {
   const router = useRouter()
-  const { checkAuth } = useAuth()
+  const { checkAuth, user: authUser } = useAuth()
   const [isLoading, setIsLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [success, setSuccess] = React.useState<string | null>(null)

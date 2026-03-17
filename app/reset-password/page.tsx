@@ -71,7 +71,6 @@ function ResetPasswordPageContent() {
         ? err.message.join(', ')
         : err.message || "Failed to reset password. Please try again."
       setError(errorMessage)
-      console.error("Reset password error:", err)
     } finally {
       setIsLoading(false)
     }
@@ -85,7 +84,7 @@ function ResetPasswordPageContent() {
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
               <Lock className="h-6 w-6 text-destructive" />
             </div>
-            <CardTitle className="text-2xl font-bold">Invalid Reset Link</CardTitle>
+            <CardTitle className="text-lg font-semibold">Invalid Reset Link</CardTitle>
             <CardDescription>
               This password reset link is invalid or has expired.
             </CardDescription>
@@ -115,7 +114,7 @@ function ResetPasswordPageContent() {
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
               <CheckCircle2 className="h-6 w-6 text-green-600" />
             </div>
-            <CardTitle className="text-2xl font-bold text-green-600">Password Reset Successful!</CardTitle>
+            <CardTitle className="text-lg font-semibold text-green-600">Password Reset Successful!</CardTitle>
             <CardDescription>
               Your password has been reset successfully. Redirecting to login...
             </CardDescription>
@@ -132,7 +131,7 @@ function ResetPasswordPageContent() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
             <Lock className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold">Reset Your Password</CardTitle>
+          <CardTitle className="text-lg font-semibold">Reset Your Password</CardTitle>
           <CardDescription>
             Enter your new password below
           </CardDescription>
@@ -198,7 +197,7 @@ export default function ResetPasswordPage() {
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
               <Lock className="h-6 w-6 text-primary animate-pulse" />
             </div>
-            <CardTitle className="text-2xl font-bold">Loading...</CardTitle>
+            <CardTitle className="text-lg font-semibold">Loading...</CardTitle>
           </CardHeader>
         </Card>
       </div>

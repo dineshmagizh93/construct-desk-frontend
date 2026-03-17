@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const { withSentryConfig } = require("@sentry/nextjs")
+
 const nextConfig = {
   reactStrictMode: true,
   // Optimize for faster navigation
@@ -50,5 +52,26 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig
+// Wrap with Sentry if DSN is configured
+const sentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN || process.env.SENTRY_DSN
+
+if (sentryDsn) {
+  module.exports = withSentryConfig(
+    nextConfig,
+    {
+      silent: true,
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+    },
+    {
+      widenClientFileUpload: true,
+      transpileClientSDK: true,
+      tunnelRoute: "/monitoring",
+      hideSourceMaps: true,
+      disableLogger: true,
+    }
+  )
+} else {
+  module.exports = nextConfig
+}
 

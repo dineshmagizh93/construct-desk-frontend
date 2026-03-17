@@ -16,6 +16,7 @@ import { ProjectExpensesTab } from "@/components/expenses/project-expenses-tab"
 import { ProjectPaymentsTab } from "@/components/payments/project-payments-tab"
 import { ProjectLabourTab } from "@/components/labour/project-labour-tab"
 import { ProjectDocumentsTab } from "@/components/documents/project-documents-tab"
+import { ProjectInventoryTab } from "@/components/inventory/project-inventory-tab"
 
 export default function ProjectDetailsPage() {
   const params = useParams()
@@ -35,7 +36,6 @@ export default function ProjectDetailsPage() {
         } catch (err) {
           const apiError = err as ApiError
           setError(apiError.message as string || "Failed to load project")
-          console.error("Failed to load project:", err)
         } finally {
           setLoading(false)
         }
@@ -88,15 +88,15 @@ export default function ProjectDetailsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-3 pt-4 sm:pt-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.push("/projects")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
-            <p className="text-muted-foreground">{project.clientName}</p>
+            <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
+            <p className="text-muted-foreground text-xs mt-0">{project.clientName}</p>
           </div>
         </div>
         <Badge variant={getStatusBadgeVariant(project.status)} className="text-sm px-3 py-1">
@@ -108,7 +108,7 @@ export default function ProjectDetailsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Project Progress</CardTitle>
-            <span className="text-2xl font-bold">{project.progress}%</span>
+            <span className="text-xl font-bold">{project.progress}%</span>
           </div>
         </CardHeader>
         <CardContent>
@@ -127,17 +127,18 @@ export default function ProjectDetailsPage() {
           <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="progress">Site Progress</TabsTrigger>
           <TabsTrigger value="expenses">Expenses</TabsTrigger>
+          <TabsTrigger value="inventory">Inventory</TabsTrigger>
           <TabsTrigger value="labour">Labour</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
+        <TabsContent value="overview" className="space-y-2">
+          <div className="grid gap-3 md:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle>Project Information</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-2">
                 <div className="flex items-start gap-3">
                   <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
@@ -188,13 +189,13 @@ export default function ProjectDetailsPage() {
               <CardDescription>Project milestones and key dates</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div className="flex gap-4">
                   <div className="flex flex-col items-center">
                     <div className="w-2 h-2 rounded-full bg-primary" />
                     <div className="w-px h-full bg-border min-h-[40px]" />
                   </div>
-                  <div className="flex-1 pb-4">
+                  <div className="flex-1 pb-3">
                     <p className="text-sm font-medium">Project Started</p>
                     <p className="text-sm text-muted-foreground">
                       {new Date(project.startDate).toLocaleDateString()}
@@ -206,7 +207,7 @@ export default function ProjectDetailsPage() {
                     <div className="w-2 h-2 rounded-full bg-muted" />
                     <div className="w-px h-full bg-border min-h-[40px]" />
                   </div>
-                  <div className="flex-1 pb-4">
+                  <div className="flex-1 pb-3">
                     <p className="text-sm font-medium">Expected Completion</p>
                     <p className="text-sm text-muted-foreground">
                       {new Date(project.endDate).toLocaleDateString()}
@@ -241,6 +242,10 @@ export default function ProjectDetailsPage() {
 
         <TabsContent value="expenses">
           <ProjectExpensesTab projectId={project.id} />
+        </TabsContent>
+
+        <TabsContent value="inventory">
+          <ProjectInventoryTab projectId={project.id} />
         </TabsContent>
 
         <TabsContent value="labour">

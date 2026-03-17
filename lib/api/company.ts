@@ -1,9 +1,33 @@
-import { apiClient } from './client';
+import { apiClient } from './client'
+
+export interface PlanUsageStats {
+  users: {
+    current: number
+    limit: number
+    percentage: number
+  }
+  projects: {
+    current: number
+    limit: number
+    percentage: number
+  }
+  storage: {
+    current: number
+    limit: number
+    percentage: number
+  }
+  plan: {
+    users: number
+    projects: number
+    storageGB: number
+    [key: string]: any
+  }
+}
 
 export interface Company {
   id: string;
   name: string;
-  email: string;
+  email?: string;
   phone?: string;
   address?: string;
   city?: string;
@@ -33,13 +57,14 @@ export interface UpdateCompanyDto {
 
 export const companyApi = {
   async getMe(): Promise<Company> {
-    const data = await apiClient.get<any>('/company/me');
-    return data;
+    return apiClient.get<Company>('/company/me');
   },
 
-  async update(updateData: UpdateCompanyDto): Promise<Company> {
-    const data = await apiClient.patch<any>('/company/me', updateData);
-    return data;
+  async update(data: UpdateCompanyDto): Promise<Company> {
+    return apiClient.put<Company>('/company', data);
   },
-};
 
+  async getUsageStats(): Promise<PlanUsageStats> {
+    return apiClient.get<PlanUsageStats>('/company/usage');
+  },
+}

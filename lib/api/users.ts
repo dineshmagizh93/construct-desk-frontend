@@ -1,5 +1,13 @@
 import { apiClient } from './client';
 
+export interface UserPermission {
+  module: string;
+  canAccess: boolean; // Enable/disable module visibility
+  canView: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+}
+
 export interface User {
   id: string;
   name?: string;
@@ -8,6 +16,7 @@ export interface User {
   email: string;
   role: 'admin' | 'user';
   isActive?: boolean;
+  permissions?: UserPermission[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -18,6 +27,7 @@ export interface CreateUserDto {
   email: string;
   role?: 'admin' | 'user';
   phone?: string;
+  permissions?: UserPermission[];
 }
 
 export interface UpdateUserDto {
@@ -28,6 +38,7 @@ export interface UpdateUserDto {
   role?: 'admin' | 'user';
   isActive?: boolean;
   phone?: string;
+  permissions?: UserPermission[];
 }
 
 // Transform backend response to frontend User type
@@ -40,6 +51,7 @@ const transformUser = (data: any): User => {
     email: data.email,
     role: data.role,
     isActive: data.isActive !== undefined ? data.isActive : true,
+    permissions: data.permissions || [],
     createdAt: data.createdAt,
     updatedAt: data.updatedAt,
   };
@@ -74,6 +86,11 @@ export const usersApi = {
 
   async delete(id: string): Promise<void> {
     await apiClient.delete(`/user/${id}`);
+  },
+
+  async updatePermissions(userId: string, permissions: UserPermission[]): Promise<User> {
+    const data = await apiClient.patch<any>(`/user/${userId}/permissions`, { permissions });
+    return transformUser(data);
   },
 };
 

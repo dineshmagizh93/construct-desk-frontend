@@ -48,27 +48,36 @@ export function CategoriesSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Tag className="h-5 w-5" />
-          Categories
+        <CardTitle className="flex items-center gap-2 text-xl">
+          <Tag className="h-5 w-5 text-primary" />
+          System Categories
         </CardTitle>
-        <CardDescription>System categories and classifications (read-only)</CardDescription>
+        <CardDescription>View system classifications and category counts</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+      <CardContent className="pt-0 pb-6 px-6">
+        <div className="space-y-3">
           {categories.map((category, index) => (
             <div
               key={index}
-              className="flex items-start justify-between rounded-lg border bg-card p-4 hover:bg-accent transition-colors"
+              className="group relative flex flex-col justify-center rounded-xl border border-border/50 bg-card p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200"
             >
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h4 className="font-medium">{category.name}</h4>
-                  <Badge variant="outline">{category.count} items</Badge>
+              <div className="flex items-start justify-between mb-1.5">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 bg-primary/10 text-primary rounded-lg group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-200">
+                    <Tag className="h-4 w-4" />
+                  </div>
+                  <h4 className="font-semibold tracking-tight">{category.name}</h4>
                 </div>
-                <p className="text-sm text-muted-foreground">{category.description}</p>
+                <div className="flex items-center gap-3">
+                  <Badge variant="secondary" className="font-medium bg-secondary/50">
+                    {category.count}
+                  </Badge>
+                  <Lock className="h-4 w-4 text-muted-foreground/50 flex-shrink-0" />
+                </div>
               </div>
-              <Lock className="h-4 w-4 text-muted-foreground flex-shrink-0 ml-4" />
+              <p className="text-sm text-muted-foreground leading-relaxed ml-11 line-clamp-2">
+                {category.description}
+              </p>
             </div>
           ))}
         </div>

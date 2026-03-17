@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
 import { Pagination } from "@/components/ui/pagination"
 import { LabourForm } from "./labour-form"
 import { useLabour } from "@/lib/hooks/use-labour"
@@ -85,16 +86,23 @@ export function LabourList({ projectId, onCreateLabour }: LabourListProps) {
     setCurrentPage(1)
   }, [projectFilter, searchQuery, categoryFilter, startDate, endDate])
 
-  // Adjust current page if it's out of bounds after filtering
+  // Reset to page 1 when itemsPerPage changes
   React.useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
+    setCurrentPage(1)
+  }, [itemsPerPage])
+
+  // Adjust current page if it's out of bounds after filtering or page size change
+  React.useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
       setCurrentPage(totalPages)
+    } else if (currentPage < 1) {
+      setCurrentPage(1)
     }
-  }, [totalPages, currentPage])
+  }, [totalPages, itemsPerPage])
 
   const handleDelete = async () => {
     if (!labourToDelete) return
-    
+
     try {
       await deleteLabour(labourToDelete.id)
       await loadLabour() // Force refresh
@@ -160,8 +168,7 @@ export function LabourList({ projectId, onCreateLabour }: LabourListProps) {
       // Immediately refresh to ensure the list updates
       await loadLabour()
     } catch (error: any) {
-      console.error("Error updating labour entry:", error)
-      alert(error?.message || "Failed to update labour entry. Please try again.")
+      toast.error(error?.message || "Failed to update labour entry. Please try again.")
     }
   }
 
@@ -172,13 +179,14 @@ export function LabourList({ projectId, onCreateLabour }: LabourListProps) {
     return <div className="flex items-center justify-center p-8">Loading...</div>
   }
 
+
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] space-y-6">
+    <div className="flex flex-col h-full min-h-0">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between flex-shrink-0">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between flex-shrink-0 pb-3 border-b border-border/40 mb-4 mt-6">
         <div>
-          <h2 className="text-2xl font-bold">Labour Entries</h2>
-          <p className="text-muted-foreground">Manage labour entries and track costs</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Labour Entries</h1>
+          <p className="text-muted-foreground mt-1 text-sm">Manage labour entries and track costs</p>
         </div>
         {!projectId && (
           <Button onClick={() => setCreateDialogOpen(true)}>
@@ -190,13 +198,13 @@ export function LabourList({ projectId, onCreateLabour }: LabourListProps) {
 
       {/* Summary Cards */}
       {filteredLabour.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2 flex-shrink-0">
+        <div className="grid gap-2 md:grid-cols-2 flex-shrink-0 mb-3">
           <div className="rounded-lg border bg-card p-4">
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">Total Headcount</p>
-                <p className="text-2xl font-bold">{totalHeadcount}</p>
+                <p className="text-xl font-bold">{totalHeadcount}</p>
               </div>
             </div>
           </div>
@@ -205,7 +213,7 @@ export function LabourList({ projectId, onCreateLabour }: LabourListProps) {
               <DollarSign className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">Total Labour Cost</p>
-                <p className="text-2xl font-bold">{formatCurrency(totalCost)}</p>
+                <p className="text-xl font-bold">{formatCurrency(totalCost)}</p>
               </div>
             </div>
           </div>
@@ -213,8 +221,8 @@ export function LabourList({ projectId, onCreateLabour }: LabourListProps) {
       )}
 
       {/* Filters */}
-      <div className="flex flex-col gap-4 rounded-lg border bg-card p-4 flex-shrink-0">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="flex flex-col gap-4 rounded-lg border border-transparent sm:border-border sm:bg-card sm:p-2 flex-shrink-0 my-2">
+        <div className="grid gap-4 sm:gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -285,44 +293,54 @@ export function LabourList({ projectId, onCreateLabour }: LabourListProps) {
       </div>
 
       {/* Table Container - Takes remaining space */}
-      <div className="flex-1 flex flex-col min-h-0 rounded-md border overflow-hidden bg-card">
-        {filteredLabour.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center p-8 text-center">
-            <div>
-              <Users className="mx-auto h-12 w-12 text-muted-foreground" />
-              <p className="mt-4 text-lg font-semibold">No labour entries found</p>
-              <p className="text-muted-foreground">Get started by adding a new labour entry</p>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="flex-1 overflow-y-auto overflow-x-hidden" data-table-scroll-container>
-              <Table>
-              <TableHeader>
+      <div className="flex-1 flex flex-col min-h-0 rounded-[10px] border border-border/50 overflow-hidden bg-card shadow-sm mt-3">
+        {/* Table Wrapper - Scrollable area that fills space */}
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div
+            className={cn(
+              "flex-1 min-h-0 overflow-x-auto overflow-y-auto"
+            )}
+            data-table-scroll-container
+          >
+            <Table className="border-0 rounded-none min-w-[900px]">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Project Name</TableHead>
+                <TableHead>Labour Category</TableHead>
+                <TableHead>Headcount</TableHead>
+                <TableHead>Cost Per Day</TableHead>
+                <TableHead>Total Cost</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredLabour.length === 0 ? (
                 <TableRow>
-                  <TableHead>Project Name</TableHead>
-                  <TableHead>Labour Category</TableHead>
-                  <TableHead>Headcount</TableHead>
-                  <TableHead>Cost Per Day</TableHead>
-                  <TableHead>Total Cost</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="w-[70px]">Actions</TableHead>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <div className="flex flex-col items-center justify-center py-4">
+                      <Users className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
+                      <p className="text-lg font-semibold text-foreground">No labour entries found</p>
+                      <p className="text-muted-foreground">Get started by adding a new labour entry</p>
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedLabour.map((entry) => (
+              ) : (
+                paginatedLabour.map((entry) => (
                   <TableRow key={entry.id}>
-                    <TableCell className="font-medium">{entry.projectName}</TableCell>
-                    <TableCell>
+                    <TableCell className="font-medium">
+                      <span className="truncate block" title={entry.projectName}>{entry.projectName}</span>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
                       <Badge variant="outline">{entry.category}</Badge>
                     </TableCell>
-                    <TableCell>{entry.headcount}</TableCell>
-                    <TableCell>{formatCurrency(entry.costPerDay)}</TableCell>
-                    <TableCell className="font-semibold">
+                    <TableCell className="whitespace-nowrap">{entry.headcount}</TableCell>
+                    <TableCell className="whitespace-nowrap">{formatCurrency(entry.costPerDay)}</TableCell>
+                    <TableCell className="font-semibold whitespace-nowrap">
                       {formatCurrency(entry.headcount * entry.costPerDay)}
                     </TableCell>
-                    <TableCell>{new Date(entry.date).toLocaleDateString()}</TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap">{new Date(entry.date).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}</TableCell>
+                    <TableCell className="relative text-center">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
@@ -359,24 +377,24 @@ export function LabourList({ projectId, onCreateLabour }: LabourListProps) {
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            </div>
-            
-            {/* Pagination - Always at bottom */}
-            <div className="flex-shrink-0 border-t bg-card">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                itemsPerPage={itemsPerPage}
-                totalItems={filteredLabour.length}
-                onPageChange={setCurrentPage}
-                onItemsPerPageChange={setItemsPerPage}
-              />
-            </div>
-          </>
-        )}
+                ))
+              )}
+            </TableBody>
+          </Table>
+          </div>
+        </div>
+
+        {/* Pagination - Pinned to bottom of viewport */}
+        <div className="flex-shrink-0 border-t border-border/40 bg-muted/30">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            itemsPerPage={itemsPerPage}
+            totalItems={filteredLabour.length}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={setItemsPerPage}
+          />
+        </div>
       </div>
 
       {/* Create Dialog */}
@@ -424,9 +442,9 @@ export function LabourList({ projectId, onCreateLabour }: LabourListProps) {
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
-            <Button 
+            <Button
               type="button"
-              variant="outline" 
+              variant="outline"
               onClick={(e) => {
                 e.stopPropagation()
                 setDeleteDialogOpen(false)
@@ -434,9 +452,9 @@ export function LabourList({ projectId, onCreateLabour }: LabourListProps) {
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               type="button"
-              variant="destructive" 
+              variant="destructive"
               onClick={(e) => {
                 e.stopPropagation()
                 if (labourToDelete) {

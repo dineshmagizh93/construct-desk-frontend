@@ -59,15 +59,6 @@ export default function ChangePasswordPage() {
       setIsLoading(true)
       setError(null)
 
-      // Get current password from sessionStorage (temporary token)
-      const tempPassword = sessionStorage.getItem('changePasswordTempToken')
-      if (!tempPassword) {
-        setError("Session expired. Please login again.")
-        toast.error("Session expired. Please login again.")
-        setTimeout(() => router.push("/login"), 2000)
-        return
-      }
-
       if (!email) {
         setError("Email not found. Please login again.")
         toast.error("Email not found. Please login again.")
@@ -75,21 +66,15 @@ export default function ChangePasswordPage() {
         return
       }
 
-      console.log("Changing password for:", email)
-      console.log("Using temp password from session")
-
-      // Call change password API
-      const response = await apiClient.post("/auth/change-password", {
+      // Call change password API - user provides current password in the form
+      await apiClient.post("/auth/change-password", {
         email: email,
-        currentPassword: tempPassword,
+        currentPassword: data.currentPassword,
         newPassword: data.newPassword,
       })
 
-      console.log("Change password response:", response)
-
       // Clear session storage
       sessionStorage.removeItem('changePasswordEmail')
-      sessionStorage.removeItem('changePasswordTempToken')
 
       // Show success message and redirect to login
       toast.success("Password changed successfully! Please login with your new password.")
@@ -97,7 +82,6 @@ export default function ChangePasswordPage() {
         router.push("/login")
       }, 2000)
     } catch (err: any) {
-      console.error("Change password error:", err)
       // Show the actual backend error message
       const errorMessage = Array.isArray(err.message) 
         ? err.message.join(', ') 
@@ -142,6 +126,22 @@ export default function ChangePasswordPage() {
               <p className="text-xs text-muted-foreground">
                 This is your login email address
               </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="currentPassword">
+                Current Password <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="currentPassword"
+                type="password"
+                placeholder="Enter your current password"
+                {...register("currentPassword")}
+                required
+              />
+              {errors.currentPassword && (
+                <p className="text-sm text-destructive">{errors.currentPassword.message}</p>
+              )}
             </div>
 
             <div className="space-y-2">

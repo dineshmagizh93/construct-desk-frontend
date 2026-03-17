@@ -16,6 +16,9 @@ export const vendorFormSchema = z.object({
   phone: z.string().trim().min(1, "Phone is required").regex(/^[\d\s\-\+\(\)]+$/, "Invalid phone number format"),
   email: z.string().email("Invalid email address").optional().or(z.literal("")),
   address: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  country: z.string().optional(),
   notes: z.string().optional(),
   status: z.enum(["Active", "Inactive"], {
     required_error: "Status is required",

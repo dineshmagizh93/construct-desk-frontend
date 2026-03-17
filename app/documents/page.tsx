@@ -29,7 +29,6 @@ export default function DocumentsPage() {
         uploadedAt: new Date().toISOString(),
       } as Omit<Document, "id" | "createdAt" | "updatedAt">)
     } catch (error) {
-      console.error("Error fetching project:", error)
       throw error
     }
   }

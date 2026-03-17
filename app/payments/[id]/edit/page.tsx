@@ -27,7 +27,6 @@ export default function EditPaymentPage() {
           const data = await paymentsApi.getById(params.id)
           setPayment(data)
         } catch (error) {
-          console.error("Failed to load payment:", error)
         } finally {
           setLoading(false)
         }
@@ -71,14 +70,16 @@ export default function EditPaymentPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => router.push("/payments")}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Edit Payment</h1>
-          <p className="text-muted-foreground">Update payment information</p>
+          <h1 className="text-2xl font-bold tracking-tight">Edit Payment</h1>
+          <p className="text-muted-foreground text-sm mt-1">Update payment information</p>
         </div>
+      </div>
       </div>
 
       <Card>

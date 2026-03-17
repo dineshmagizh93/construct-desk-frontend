@@ -8,6 +8,8 @@ import { Project, ProjectStatus } from "@/types/project"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
+import { PageHeader } from "@/components/ui/page-header"
+import { FilterBar } from "@/components/ui/filter-bar"
 import {
   Table,
   TableBody,
@@ -20,6 +22,7 @@ import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Pagination } from "@/components/ui/pagination"
+import { cn } from "@/lib/utils"
 import { ProjectForm } from "./project-form"
 import { useProjects } from "@/lib/hooks/use-projects"
 import { ProjectFormSchema } from "@/lib/validations/project"
@@ -41,12 +44,8 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
   const [projectToDelete, setProjectToDelete] = React.useState<Project | null>(null)
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
   const [openDropdownId, setOpenDropdownId] = React.useState<string | null>(null)
-  
-  // Debug: Track dialog state changes
-  React.useEffect(() => {
-    console.log("🔍 deleteDialogOpen changed to:", deleteDialogOpen)
-    console.log("🔍 projectToDelete:", projectToDelete)
-  }, [deleteDialogOpen, projectToDelete])
+
+
 
   // Filter projects
   const filteredProjects = React.useMemo(() => {
@@ -70,33 +69,30 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
     setCurrentPage(1)
   }, [searchQuery, statusFilter])
 
-  // Adjust current page if it's out of bounds after filtering
+  // Reset to page 1 when itemsPerPage changes
   React.useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
+    setCurrentPage(1)
+  }, [itemsPerPage])
+
+  // Adjust current page if it's out of bounds after filtering or page size change
+  React.useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
       setCurrentPage(totalPages)
+    } else if (currentPage < 1) {
+      setCurrentPage(1)
     }
-  }, [totalPages, currentPage])
+  }, [totalPages, itemsPerPage])
 
   const handleDelete = async (project: Project) => {
-    console.log("=== handleDelete CALLED ===", project)
     setProjectToDelete(project)
     setDeleteDialogOpen(true)
-    console.log("Dialog should be opening now, deleteDialogOpen:", true)
   }
 
   const confirmDelete = React.useCallback(async () => {
-    console.log("=== confirmDelete CALLED ===")
-    if (!projectToDelete) {
-      console.error("projectToDelete is null in confirmDelete!")
-      return
-    }
-    
-    console.log("Delete button clicked, deleting project:", projectToDelete.id)
-    
+    if (!projectToDelete) return
+
     try {
-      console.log("Calling deleteProject API...")
       await deleteProject(projectToDelete.id)
-      console.log("Delete API call successful, refreshing list...")
       await loadProjects(true) // Force refresh
       toast.success("Project deleted successfully")
       setDeleteDialogOpen(false)
@@ -107,7 +103,6 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
         setCurrentPage(newTotalPages)
       }
     } catch (error: any) {
-      console.error("Failed to delete project:", error)
       const errorMessage = error?.message || "Failed to delete project. Please try again."
       toast.error(errorMessage)
       // Keep dialog open on error so user can retry
@@ -135,8 +130,8 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
-            <p className="text-muted-foreground">Manage your construction projects</p>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Projects</h1>
+            <p className="text-muted-foreground text-xs">Manage your construction projects</p>
           </div>
           <div className="h-10 w-32 bg-muted animate-pulse rounded-md" />
         </div>
@@ -150,8 +145,8 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
-            <p className="text-muted-foreground">Manage your construction projects</p>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Projects</h1>
+            <p className="text-muted-foreground text-xs">Manage your construction projects</p>
           </div>
         </div>
         <div className="rounded-lg border border-destructive bg-destructive/10 p-8 text-center">
@@ -166,117 +161,137 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] space-y-6">
-      {/* Header and Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 flex-shrink-0 pb-2 border-b border-border/40">
-        <div>
-          <h1 className="text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-            Projects
-          </h1>
-          <p className="text-muted-foreground mt-1.5">Manage your construction projects</p>
-        </div>
-        {isAdmin && <CreateProjectButton onCreate={onCreateProject} onRefresh={loadProjects} />}
-      </div>
+    <div className="flex flex-col flex-1 h-full w-full min-h-0">
+      {/* Header */}
+      <PageHeader
+        title="Projects"
+        subtitle="Manage your construction projects"
+        action={
+          isAdmin
+            ? {
+                label: "New Project",
+                icon: Plus,
+                onClick: () => setCreateDialogOpen(true),
+              }
+            : undefined
+        }
+      />
 
       {/* Filters */}
-      <div className="flex gap-4 flex-shrink-0">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search by project name or client..."
-            value={searchQuery}
+      <FilterBar
+        searchValue={searchQuery}
+        onSearchChange={(value) => {
+          setSearchQuery(value)
+          setCurrentPage(1)
+        }}
+        searchPlaceholder="Search by project name or client..."
+        filters={
+          <Select
+            value={statusFilter}
             onChange={(e) => {
-              setSearchQuery(e.target.value)
+              setStatusFilter(e.target.value as ProjectStatus | "all")
               setCurrentPage(1)
             }}
-            className="pl-9"
-          />
-        </div>
-        <Select
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value as ProjectStatus | "all")
-            setCurrentPage(1)
-          }}
-          className="w-[180px]"
-        >
-          <option value="all">All Status</option>
-          <option value="Planning">Planning</option>
-          <option value="In Progress">In Progress</option>
-          <option value="On Hold">On Hold</option>
-          <option value="Completed">Completed</option>
-        </Select>
-      </div>
+            className="h-[40px] w-[160px] text-[13px]"
+          >
+            <option value="all">All Status</option>
+            <option value="Planning">Planning</option>
+            <option value="In Progress">In Progress</option>
+            <option value="On Hold">On Hold</option>
+            <option value="Completed">Completed</option>
+          </Select>
+        }
+      />
 
       {/* Table Container - Takes remaining space */}
-      <div className="flex-1 flex flex-col min-h-0 rounded-md border overflow-hidden bg-card">
-        <div className="flex-1 overflow-y-auto overflow-x-hidden" data-table-scroll-container>
-          <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Project Name</TableHead>
-              <TableHead>Client</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Progress</TableHead>
-              <TableHead>Start Date</TableHead>
-              <TableHead>End Date</TableHead>
-              <TableHead className="w-[70px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredProjects.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                  {projects.length === 0 
-                    ? "No projects found. Create your first project to get started."
-                    : "No projects match your filters."}
-                </TableCell>
-              </TableRow>
-            ) : (
-              paginatedProjects.map((project) => (
-                <TableRow key={project.id}>
-                  <TableCell className="font-medium">
-                    <Link href={`/projects/${project.id}`} className="hover:underline">
-                      {project.name}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{project.clientName}</TableCell>
-                  <TableCell>{project.location}</TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusBadgeVariant(project.status)}>{project.status}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="w-24 bg-secondary rounded-full h-2">
-                        <div
-                          className="bg-primary h-2 rounded-full"
-                          style={{ width: `${project.progress}%` }}
-                        />
-                      </div>
-                      <span className="text-sm text-muted-foreground">{project.progress}%</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{new Date(project.startDate).toLocaleDateString()}</TableCell>
-                  <TableCell>{new Date(project.endDate).toLocaleDateString()}</TableCell>
-                  <TableCell className="relative" style={{ zIndex: openDropdownId === project.id ? 9999 : 1 }}>
-                    <ProjectActionsMenu 
-                      project={project} 
-                      onDelete={handleDelete}
-                      isOpen={openDropdownId === project.id}
-                      onOpenChange={(open) => setOpenDropdownId(open ? project.id : null)}
-                      isAdmin={isAdmin}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))
+      <div className="flex-1 flex flex-col min-h-0 rounded-[10px] border border-border/50 overflow-hidden bg-card shadow-sm mt-3">
+        {/* Table Wrapper - Scrollable area that fills space */}
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div
+            className={cn(
+              "flex-1 min-h-0 overflow-x-auto overflow-y-auto"
             )}
-          </TableBody>
-        </Table>
+            data-table-scroll-container
+          >
+            <Table className="border-0 rounded-none min-w-[800px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Project Name</TableHead>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Progress</TableHead>
+                  <TableHead>Start Date</TableHead>
+                  <TableHead>End Date</TableHead>
+                  <TableHead className="text-center px-2">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredProjects.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      {projects.length === 0
+                        ? "No projects found. Create your first project to get started."
+                        : "No projects match your filters."}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  paginatedProjects.map((project) => (
+                    <TableRow key={project.id}>
+                      <TableCell className="font-medium">
+                        <Link
+                          href={`/projects/${project.id}`}
+                          className="hover:underline"
+                          title={project.name}
+                        >
+                          {project.name}
+                        </Link>
+                      </TableCell>
+                      <TableCell title={project.clientName || "-"}>
+                        {project.clientName || "-"}
+                      </TableCell>
+                      <TableCell title={project.location || "-"}>
+                        {project.location || "-"}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <Badge variant={getStatusBadgeVariant(project.status)}>{project.status}</Badge>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-12 bg-secondary rounded-full h-1.5 flex-shrink-0">
+                            <div
+                              className="bg-primary h-1.5 rounded-full"
+                              style={{ width: `${project.progress}%` }}
+                            />
+                          </div>
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">{project.progress}%</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {new Date(project.startDate).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {new Date(project.endDate).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}
+                      </TableCell>
+                      <TableCell className="relative text-center px-2" style={{ zIndex: openDropdownId === project.id ? 9999 : 1 }}>
+                        <ProjectActionsMenu
+                          project={project}
+                          onDelete={handleDelete}
+                          isOpen={openDropdownId === project.id}
+                          onOpenChange={(open) => setOpenDropdownId(open ? project.id : null)}
+                          isAdmin={isAdmin}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
-        
-        {/* Pagination - Always at bottom */}
-        <div className="flex-shrink-0 border-t bg-card">
+
+        {/* Pagination - Pinned to bottom of viewport */}
+        <div className="flex-shrink-0 border-t border-border/40 bg-muted/30">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -288,69 +303,102 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      {deleteDialogOpen && projectToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div 
-            className="fixed inset-0 bg-black/50"
-            onClick={() => {
-              console.log("Overlay clicked, closing dialog")
-              setDeleteDialogOpen(false)
+      {/* Create Project Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Create New Project</DialogTitle>
+            <DialogDescription>Add a new construction project to your system</DialogDescription>
+          </DialogHeader>
+          <CreateProjectForm
+            onSubmit={async (data) => {
+              try {
+                await onCreateProject(data)
+                setCreateDialogOpen(false)
+                await loadProjects()
+              } catch (error: any) {
+                // Error is handled by the form
+                throw error
+              }
             }}
+            onCancel={() => setCreateDialogOpen(false)}
           />
-          <div 
-            className="relative z-50 w-full max-w-md rounded-lg border bg-background p-6 shadow-lg"
-            onClick={(e) => {
-              e.stopPropagation()
-              console.log("Dialog content clicked")
-            }}
-          >
-            <h2 className="text-lg font-semibold mb-2">Delete Project</h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Are you sure you want to delete "{projectToDelete.name}"? This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-2 mt-4">
-              <Button 
-                type="button"
-                variant="outline" 
-                onClick={(e) => {
-                  console.log("Cancel button clicked")
-                  e.preventDefault()
-                  e.stopPropagation()
-                  setDeleteDialogOpen(false)
-                }}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="button"
-                variant="destructive" 
-                onClick={(e) => {
-                  console.log("=== DELETE BUTTON CLICKED ===")
-                  e.preventDefault()
-                  e.stopPropagation()
-                  console.log("Delete button clicked in dialog, calling confirmDelete...")
-                  console.log("projectToDelete:", projectToDelete)
-                  confirmDelete()
-                }}
-              >
-                Delete
-              </Button>
-            </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Project</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete &ldquo;{projectToDelete?.name}&rdquo;? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => confirmDelete()}
+            >
+              Delete
+            </Button>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
 
-function ProjectActionsMenu({ 
-  project, 
+function CreateProjectForm({
+  onSubmit,
+  onCancel,
+}: {
+  onSubmit: (data: ProjectFormSchema) => Promise<void>
+  onCancel: () => void
+}) {
+  const [error, setError] = React.useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  const handleSubmit = async (data: ProjectFormSchema) => {
+    try {
+      setIsSubmitting(true)
+      setError(null)
+      await onSubmit(data)
+    } catch (err: any) {
+      const errorMessage = err?.message || "Failed to create project. Please try again."
+      setError(errorMessage)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <>
+      {error && (
+        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+      <ProjectForm onSubmit={handleSubmit} onCancel={onCancel} />
+    </>
+  )
+}
+
+function ProjectActionsMenu({
+  project,
   onDelete,
   isOpen,
   onOpenChange,
   isAdmin
-}: { 
+}: {
   project: Project
   onDelete: (project: Project) => void
   isOpen?: boolean
@@ -379,15 +427,14 @@ function ProjectActionsMenu({
                 Edit
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem 
+            <DropdownMenuItem
               onClick={(e) => {
-                console.log("=== DELETE MENU ITEM CLICKED ===", project)
                 if (e) {
                   e.preventDefault()
                   e.stopPropagation()
                 }
                 onDelete(project)
-              }} 
+              }}
               className="text-destructive"
             >
               <Trash2 className="mr-2 h-4 w-4" />
@@ -400,10 +447,10 @@ function ProjectActionsMenu({
   )
 }
 
-function CreateProjectButton({ 
+function CreateProjectButton({
   onCreate,
   onRefresh
-}: { 
+}: {
   onCreate: (data: ProjectFormSchema) => Promise<any>
   onRefresh?: () => Promise<void>
 }) {
@@ -422,7 +469,6 @@ function CreateProjectButton({
         await onRefresh()
       }
     } catch (error: any) {
-      console.error("Error creating project:", error)
       const errorMessage = error?.message || "Failed to create project. Please try again."
       setError(errorMessage)
     } finally {

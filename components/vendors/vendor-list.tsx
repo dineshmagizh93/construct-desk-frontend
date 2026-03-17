@@ -19,6 +19,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { Pagination } from "@/components/ui/pagination"
+import { cn } from "@/lib/utils"
 import { VendorForm } from "./vendor-form"
 import { useVendors } from "@/lib/hooks/use-vendors"
 import { VendorFormSchema } from "@/lib/validations/vendor"
@@ -70,12 +71,19 @@ export function VendorList({ onCreateVendor }: VendorListProps) {
     setCurrentPage(1)
   }, [searchQuery, typeFilter, statusFilter])
 
-  // Adjust current page if it's out of bounds after filtering
+  // Reset to page 1 when itemsPerPage changes
   React.useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
+    setCurrentPage(1)
+  }, [itemsPerPage])
+
+  // Adjust current page if it's out of bounds after filtering or page size change
+  React.useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
       setCurrentPage(totalPages)
+    } else if (currentPage < 1) {
+      setCurrentPage(1)
     }
-  }, [totalPages, currentPage])
+  }, [totalPages, itemsPerPage])
 
   const handleDelete = async (vendor: Vendor) => {
     setVendorToDelete(vendor)
@@ -84,7 +92,7 @@ export function VendorList({ onCreateVendor }: VendorListProps) {
 
   const confirmDelete = async () => {
     if (!vendorToDelete) return
-    
+
     try {
       await deleteVendor(vendorToDelete.id)
       await loadVendors() // Force refresh
@@ -140,19 +148,20 @@ export function VendorList({ onCreateVendor }: VendorListProps) {
     return <div className="flex items-center justify-center p-8">Loading vendors...</div>
   }
 
+
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] space-y-6">
+    <div className="flex flex-col h-full min-h-0">
       {/* Header and Actions */}
-      <div className="flex items-center justify-between flex-shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 flex-shrink-0 pb-3 border-b border-border/40 mb-4 mt-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Vendors</h1>
-          <p className="text-muted-foreground">Manage your vendors and suppliers</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Vendors</h1>
+          <p className="text-muted-foreground mt-1 text-sm">Manage your vendors and suppliers</p>
         </div>
-        <CreateVendorButton onCreate={async () => {}} onRefresh={loadVendors} />
+        <CreateVendorButton onCreate={async () => { }} onRefresh={loadVendors} />
       </div>
 
       {/* Filters */}
-      <div className="flex gap-4 flex-shrink-0">
+      <div className="flex flex-col sm:flex-row gap-4 flex-shrink-0 mb-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -188,60 +197,72 @@ export function VendorList({ onCreateVendor }: VendorListProps) {
       </div>
 
       {/* Table Container - Takes remaining space */}
-      <div className="flex-1 flex flex-col min-h-0 rounded-md border overflow-hidden bg-card">
-        <div className="flex-1 overflow-y-auto overflow-x-hidden" data-table-scroll-container>
-          <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Vendor Name</TableHead>
-              <TableHead>Vendor Type</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[70px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredVendors.length === 0 ? (
+      <div className="flex-1 flex flex-col min-h-0 rounded-[10px] border border-border/50 overflow-hidden bg-card shadow-sm mt-3">
+        {/* Table Wrapper - Scrollable area that fills space */}
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div
+            className={cn(
+              "flex-1 min-h-0 overflow-x-auto overflow-y-auto"
+            )}
+            data-table-scroll-container
+          >
+            <Table className="border-0 rounded-none min-w-[700px]">
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                  No vendors found
-                </TableCell>
+                <TableHead>Vendor Name</TableHead>
+                <TableHead>Vendor Type</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
               </TableRow>
-            ) : (
-              paginatedVendors.map((vendor) => (
-                <TableRow key={vendor.id}>
-                  <TableCell className="font-medium">
-                    <Link href={`/vendors/${vendor.id}`} className="hover:underline">
-                      {vendor.name}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getTypeBadgeVariant(vendor.type)}>{vendor.type}</Badge>
-                  </TableCell>
-                  <TableCell>{vendor.phone}</TableCell>
-                  <TableCell>
-                    <Badge variant={vendor.status === "Active" ? "success" : "destructive"}>
-                      {vendor.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <VendorActionsMenu
-                      vendor={vendor}
-                      onDelete={handleDelete}
-                      onToggleStatus={handleToggleStatus}
-                      isOpen={openDropdownId === vendor.id}
-                      onOpenChange={(open) => setOpenDropdownId(open ? vendor.id : null)}
-                    />
+            </TableHeader>
+            <TableBody>
+              {filteredVendors.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    No vendors found
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                paginatedVendors.map((vendor) => (
+                  <TableRow key={vendor.id}>
+                    <TableCell className="font-medium">
+                      <Link
+                        href={`/vendors/${vendor.id}`}
+                        className="hover:underline truncate block"
+                        title={vendor.name}
+                      >
+                        {vendor.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      <Badge variant={getTypeBadgeVariant(vendor.type)}>{vendor.type}</Badge>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">{vendor.phone}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      <Badge variant={vendor.status === "Active" ? "success" : "destructive"}>
+                        {vendor.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="relative text-center">
+                      <VendorActionsMenu
+                        vendor={vendor}
+                        onDelete={handleDelete}
+                        onToggleStatus={handleToggleStatus}
+                        isOpen={openDropdownId === vendor.id}
+                        onOpenChange={(open) => setOpenDropdownId(open ? vendor.id : null)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+          </div>
         </div>
-        
-        {/* Pagination - Always at bottom */}
-        <div className="flex-shrink-0 border-t bg-card">
+
+        {/* Pagination - Pinned to bottom of viewport */}
+        <div className="flex-shrink-0 border-t border-border/40 bg-muted/30">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -257,7 +278,7 @@ export function VendorList({ onCreateVendor }: VendorListProps) {
       {deleteDialogOpen && (
         <>
           <div className="fixed inset-0 z-50 bg-black/50" onClick={() => setDeleteDialogOpen(false)} />
-          <div 
+          <div
             className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-md translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg"
             onClick={(e) => e.stopPropagation()}
           >
@@ -266,9 +287,9 @@ export function VendorList({ onCreateVendor }: VendorListProps) {
               Are you sure you want to delete "{vendorToDelete?.name}"? This action cannot be undone.
             </p>
             <div className="flex justify-end gap-2">
-              <Button 
+              <Button
                 type="button"
-                variant="outline" 
+                variant="outline"
                 onClick={(e) => {
                   e.stopPropagation()
                   setDeleteDialogOpen(false)
@@ -276,9 +297,9 @@ export function VendorList({ onCreateVendor }: VendorListProps) {
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 type="button"
-                variant="destructive" 
+                variant="destructive"
                 onClick={(e) => {
                   e.stopPropagation()
                   confirmDelete()
@@ -373,10 +394,10 @@ function VendorActionsMenu({
   )
 }
 
-function CreateVendorButton({ 
-  onCreate, 
-  onRefresh 
-}: { 
+function CreateVendorButton({
+  onCreate,
+  onRefresh
+}: {
   onCreate: (data: VendorFormSchema) => Promise<void>
   onRefresh?: () => Promise<void>
 }) {
@@ -392,6 +413,9 @@ function CreateVendorButton({
         ...data,
         email: data.email || undefined,
         address: data.address || undefined,
+        city: data.city || undefined,
+        state: data.state || undefined,
+        country: data.country || undefined,
         notes: data.notes || undefined,
       } as Omit<Vendor, "id" | "createdAt" | "updatedAt">)
       setOpen(false)
@@ -419,10 +443,10 @@ function CreateVendorButton({
           <div className="fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Create New Vendor</h2>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => !isSubmitting && setOpen(false)} 
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => !isSubmitting && setOpen(false)}
                 className="h-6 w-6"
                 disabled={isSubmitting}
               >

@@ -6,6 +6,7 @@ import { MoreVertical, Eye, Edit, Trash2, Search, Plus, X, UserPlus } from "luci
 import { User as UserIcon } from "lucide-react"
 import toast from "react-hot-toast"
 import { User } from "@/types/user"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
@@ -45,7 +46,7 @@ export function UserList({ onCreateUser }: UserListProps) {
   const [editDialogOpen, setEditDialogOpen] = React.useState(false)
   const [userToEdit, setUserToEdit] = React.useState<User | null>(null)
 
-  const handleCreateUser = async (data: UserFormSchema) => {
+  const handleCreateUser = async (data: UserFormSchema & { permissions?: any[] }) => {
     try {
       if (onCreateUser) {
         await onCreateUser(data)
@@ -56,6 +57,7 @@ export function UserList({ onCreateUser }: UserListProps) {
           email: data.email,
           role: data.role,
           phone: data.phone,
+          permissions: data.permissions,
         }
         await createUser(userData)
         // Force refresh the user list immediately to show new user
@@ -79,6 +81,11 @@ export function UserList({ onCreateUser }: UserListProps) {
       phone: data.phone,
     }
 
+    // Include permissions if provided
+    if (data.permissions) {
+      (updateData as any).permissions = data.permissions
+    }
+
     // Only include password if provided
     if ('password' in data && data.password && typeof data.password === 'string' && data.password.trim()) {
       updateData.password = data.password
@@ -87,7 +94,7 @@ export function UserList({ onCreateUser }: UserListProps) {
     await updateUser(userToEdit.id, updateData)
     setEditDialogOpen(false)
     setUserToEdit(null)
-    // Refresh the list to show updated role
+    // Refresh the list to show updated role and permissions
     await loadUsers(false, true)
   }
 
@@ -99,7 +106,7 @@ export function UserList({ onCreateUser }: UserListProps) {
         email: user.email,
         role: newRole,
       }
-      
+
       // Add phone if it exists
       if ('phone' in user && user.phone) {
         updateData.phone = user.phone as string
@@ -120,7 +127,7 @@ export function UserList({ onCreateUser }: UserListProps) {
 
   const confirmDelete = async () => {
     if (!userToDelete) return
-    
+
     try {
       await deleteUser(userToDelete.id)
       await loadUsers(false, true) // Force refresh
@@ -173,6 +180,20 @@ export function UserList({ onCreateUser }: UserListProps) {
     setCurrentPage(1)
   }, [searchQuery, roleFilter])
 
+  // Reset to page 1 when itemsPerPage changes
+  React.useEffect(() => {
+    setCurrentPage(1)
+  }, [itemsPerPage])
+
+  // Adjust current page if it's out of bounds after filtering or page size change
+  React.useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    } else if (currentPage < 1) {
+      setCurrentPage(1)
+    }
+  }, [totalPages, itemsPerPage])
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -189,8 +210,8 @@ export function UserList({ onCreateUser }: UserListProps) {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Users</h1>
-            <p className="text-muted-foreground">Manage your company users</p>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Users</h1>
+            <p className="text-muted-foreground text-xs">Manage your company users</p>
           </div>
         </div>
         <div className="rounded-lg border border-destructive bg-destructive/10 p-8 text-center">
@@ -204,21 +225,12 @@ export function UserList({ onCreateUser }: UserListProps) {
     )
   }
 
+
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] space-y-6">
-      {/* Header and Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 flex-shrink-0 pb-2 border-b border-border/40">
-        <div>
-          <h1 className="text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-            Users
-          </h1>
-          <p className="text-muted-foreground mt-1.5">Manage your company users</p>
-        </div>
-        {isAdmin && <CreateUserButton onCreate={handleCreateUser} />}
-      </div>
+    <div className="flex flex-col h-full min-h-0">
 
       {/* Filters */}
-      <div className="flex gap-4 flex-shrink-0">
+      <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0 mb-2 mt-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -240,58 +252,74 @@ export function UserList({ onCreateUser }: UserListProps) {
       </div>
 
       {/* Table Container - Takes remaining space */}
-      <div className="flex-1 flex flex-col min-h-0 rounded-md border overflow-hidden bg-card">
-        <div className="flex-1 overflow-y-auto overflow-x-hidden" data-table-scroll-container>
-          <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredUsers.length === 0 ? (
+      <div className="flex-1 flex flex-col min-h-0 rounded-[10px] border border-border/50 overflow-hidden bg-card shadow-sm mt-3">
+        {/* Table Wrapper - Scrollable area that fills space */}
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div
+            className={cn(
+              "flex-1 min-h-0 overflow-x-auto overflow-y-auto"
+            )}
+            data-table-scroll-container
+          >
+            <Table className="border-0 rounded-none min-w-[600px]">
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                  No users found
-                </TableCell>
+                <TableHead className="w-[30%]">Name</TableHead>
+                <TableHead className="w-[40%]">Email</TableHead>
+                <TableHead className="w-[10%]">Role</TableHead>
+                <TableHead className="w-[10%]">Status</TableHead>
+                <TableHead className="text-center w-[10%]">Actions</TableHead>
               </TableRow>
-            ) : (
-              paginatedUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">
-                    {user.name || `${user.firstName} ${user.lastName}`.trim()}
-                  </TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <Badge variant={getRoleBadgeVariant(user.role)}>{user.role}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={user.isActive !== false ? "default" : "secondary"}>
-                      {user.isActive !== false ? "Active" : "Inactive"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="relative" style={{ zIndex: 'auto' }}>
-                    <UserActionsMenu 
-                      user={user} 
-                      onEdit={handleEdit} 
-                      onDelete={handleDelete}
-                      onRoleChange={handleRoleChange}
-                      isAdmin={isAdmin}
-                    />
+            </TableHeader>
+            <TableBody>
+              {filteredUsers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    No users found
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                paginatedUsers.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium py-1">
+                      <span className="truncate block" title={user.name || `${user.firstName} ${user.lastName}`.trim()}>
+                        {user.name || `${user.firstName} ${user.lastName}`.trim()}
+                      </span>
+                    </TableCell>
+                    <TableCell className="py-1">
+                      <span className="truncate block" title={user.email}>
+                        {user.email}
+                      </span>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap py-1">
+                      <Badge variant={getRoleBadgeVariant(user.role)} className="capitalize">
+                        {user.role}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap py-1">
+                      <Badge variant={user.isActive !== false ? "default" : "secondary"}>
+                        {user.isActive !== false ? "Active" : "Inactive"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center py-1">
+                      <UserActionsMenu
+                        user={user}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        onRoleChange={handleRoleChange}
+                        isAdmin={isAdmin}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+          </div>
         </div>
-        
-        {/* Pagination - Always at bottom */}
-        <div className="flex-shrink-0 border-t bg-card">
+
+        {/* Pagination - Pinned to bottom of viewport */}
+        <div className="flex-shrink-0 border-t border-border/40 bg-muted/30">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -305,12 +333,14 @@ export function UserList({ onCreateUser }: UserListProps) {
 
       {/* Create User Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Add New User</DialogTitle>
-            <DialogDescription>Add a new user to your company</DialogDescription>
+            <DialogDescription>Add a new user to your company and set their permissions</DialogDescription>
           </DialogHeader>
-          <UserForm onSubmit={handleCreateUser} onCancel={() => setCreateDialogOpen(false)} />
+          <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+            <UserForm onSubmit={handleCreateUser} onCancel={() => setCreateDialogOpen(false)} />
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -319,21 +349,23 @@ export function UserList({ onCreateUser }: UserListProps) {
         setEditDialogOpen(open)
         if (!open) setUserToEdit(null)
       }}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription>Update user information</DialogDescription>
+            <DialogDescription>Update user information and permissions</DialogDescription>
           </DialogHeader>
-          {userToEdit && (
-            <UserForm
-              user={userToEdit}
-              onSubmit={handleEditUser}
-              onCancel={() => {
-                setEditDialogOpen(false)
-                setUserToEdit(null)
-              }}
-            />
-          )}
+          <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+            {userToEdit && (
+              <UserForm
+                user={userToEdit}
+                onSubmit={handleEditUser}
+                onCancel={() => {
+                  setEditDialogOpen(false)
+                  setUserToEdit(null)
+                }}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -347,9 +379,9 @@ export function UserList({ onCreateUser }: UserListProps) {
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2 mt-4">
-            <Button 
+            <Button
               type="button"
-              variant="outline" 
+              variant="outline"
               onClick={(e) => {
                 e.stopPropagation()
                 setDeleteDialogOpen(false)
@@ -357,9 +389,9 @@ export function UserList({ onCreateUser }: UserListProps) {
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               type="button"
-              variant="destructive" 
+              variant="destructive"
               onClick={(e) => {
                 e.stopPropagation()
                 confirmDelete()
@@ -394,7 +426,7 @@ function UserActionsMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" className="h-8 w-8">
           <MoreVertical className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -403,7 +435,7 @@ function UserActionsMenu({
           <Edit className="mr-2 h-4 w-4" />
           Edit
         </DropdownMenuItem>
-        <DropdownMenuItem 
+        <DropdownMenuItem
           onClick={() => onRoleChange(user, user.role === "admin" ? "user" : "admin")}
         >
           {user.role === "admin" ? (
@@ -427,7 +459,7 @@ function UserActionsMenu({
   )
 }
 
-function CreateUserButton({ onCreate }: { onCreate: (data: UserFormSchema) => Promise<any> }) {
+export function CreateUserButton({ onCreate }: { onCreate: (data: UserFormSchema) => Promise<any> }) {
   const [open, setOpen] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
@@ -438,7 +470,7 @@ function CreateUserButton({ onCreate }: { onCreate: (data: UserFormSchema) => Pr
       setOpen(false)
     } catch (error: any) {
       console.error("Error creating user:", error)
-      const errorMessage = Array.isArray(error?.message) 
+      const errorMessage = Array.isArray(error?.message)
         ? error.message.join(', ')
         : error?.message || "Failed to create user. Please check all fields and try again."
       setError(errorMessage)

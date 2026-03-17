@@ -2,25 +2,37 @@
 // Use environment variable with fallback for development
 // In production, NEXT_PUBLIC_API_URL must be set in Vercel environment variables
 const getApiBaseUrl = () => {
-  // Check if we're in production and have the env var set
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL;
+  // Hardcode for development to ensure it always works
+  const DEFAULT_API_URL = 'http://localhost:3001/api';
+  
+  // Check if we're in browser
+  if (typeof window !== 'undefined') {
+    // In browser, check for NEXT_PUBLIC_API_URL first (available at build time)
+    const envUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (envUrl && envUrl.trim() !== '') {
+      return envUrl.trim();
+    }
+    
+    // Fallback to localhost for development
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return DEFAULT_API_URL;
+    }
+    
+    // If in production but no env var, show error
+    if (process.env.NODE_ENV === 'production') {
+      console.error(
+        '❌ NEXT_PUBLIC_API_URL is not set! ' +
+        'Please set it in Vercel environment variables to your Render backend URL.'
+      );
+      return DEFAULT_API_URL; // Still return default to prevent empty URL
+    }
+    
+    // Final fallback
+    return DEFAULT_API_URL;
   }
   
-  // Fallback to localhost for development
-  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-    return 'http://localhost:3001/api';
-  }
-  
-  // If in production but no env var, show error
-  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
-    console.error(
-      '❌ NEXT_PUBLIC_API_URL is not set! ' +
-      'Please set it in Vercel environment variables to your Render backend URL.'
-    );
-  }
-  
-  return 'http://localhost:3001/api';
+  // Server-side: use env var or fallback
+  return process.env.NEXT_PUBLIC_API_URL?.trim() || DEFAULT_API_URL;
 };
 
 export const API_BASE_URL = getApiBaseUrl();

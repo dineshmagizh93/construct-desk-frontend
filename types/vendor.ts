@@ -16,6 +16,9 @@ export interface Vendor {
   phone: string
   email?: string
   address?: string
+  city?: string
+  state?: string
+  country?: string
   notes?: string
   status: VendorStatus
   createdAt: string
@@ -28,6 +31,9 @@ export interface VendorFormData {
   phone: string
   email?: string
   address?: string
+  city?: string
+  state?: string
+  country?: string
   notes?: string
   status: VendorStatus
 }

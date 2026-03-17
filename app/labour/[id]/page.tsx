@@ -24,7 +24,6 @@ export default function LabourDetailsPage() {
           const data = await labourApi.getById(params.id)
           setLabour(data)
         } catch (error) {
-          console.error("Failed to load labour:", error)
         } finally {
           setLoading(false)
         }
@@ -54,15 +53,15 @@ export default function LabourDetailsPage() {
   const totalCost = labour.headcount * labour.costPerDay
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.push("/labour")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Labour Entry Details</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">Labour Entry Details</h1>
+            <p className="text-muted-foreground text-xs mt-0">
               <Link href={`/projects/${labour.projectId}`} className="hover:underline">
                 {labour.projectName}
               </Link>
@@ -82,19 +81,19 @@ export default function LabourDetailsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-4xl font-bold">${totalCost.toLocaleString()}</p>
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className="text-xl font-bold">${totalCost.toLocaleString()}</p>
+          <p className="text-sm text-muted-foreground mt-1.5">
             {labour.headcount} workers × ${labour.costPerDay.toLocaleString()} per day
           </p>
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Labour Details</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-2">
             <div className="flex items-start gap-3">
               <Users className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
@@ -139,7 +138,7 @@ export default function LabourDetailsPage() {
           <CardHeader>
             <CardTitle>Project Information</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-2">
             <div>
               <p className="text-sm font-medium mb-1">Project</p>
               <Link

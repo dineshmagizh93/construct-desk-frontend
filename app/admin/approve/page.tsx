@@ -36,7 +36,6 @@ function AdminApprovePageContent() {
         // In production, you'd want to add an admin auth check here
         setUserData({ userId, companyId })
       } catch (error) {
-        console.error("Failed to fetch user details:", error)
       } finally {
         setFetching(false)
       }
@@ -70,7 +69,6 @@ function AdminApprovePageContent() {
         router.push("/login")
       }, 2000)
     } catch (error: any) {
-      console.error("Approval error:", error)
       toast.error(error.message || "Failed to process approval. Please try again.")
     } finally {
       setLoading(false)

@@ -8,11 +8,13 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { companyApi, UpdateCompanyDto } from "@/lib/api/company"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { ApiError } from "@/lib/api/client"
+import { companyApi, UpdateCompanyDto } from "@/lib/api/company"
 import { setCurrency, Currency, CURRENCY_NAMES } from "@/lib/utils/currency"
 import { Select } from "@/components/ui/select"
+import { CountrySelector, StateSelector } from "@/components/ui/country-state-selector"
+import { Controller } from "react-hook-form"
 
 interface CompanyProfileData {
   companyName: string
@@ -28,6 +30,7 @@ interface CompanyProfileData {
   currency: Currency
 }
 
+
 export function CompanyProfileForm() {
   const { user, checkAuth } = useAuth()
   const [isSaving, setIsSaving] = React.useState(false)
@@ -38,6 +41,7 @@ export function CompanyProfileForm() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
     reset,
     setValue,
@@ -59,29 +63,30 @@ export function CompanyProfileForm() {
   })
 
   const selectedCurrency = watch("currency")
+  const selectedCountry = watch("country")
 
   // Load company data
   React.useEffect(() => {
     const loadCompany = async () => {
       try {
         setLoading(true)
-        const company = await companyApi.getMe()
+        const data = await fetch('/api/company').then(res => res.json())
         reset({
-          companyName: company.name || "",
-          email: company.email || "",
-          phone: company.phone || "",
-          address: company.address || "",
-          city: company.city || "",
-          state: company.state || "",
-          zipCode: company.zipCode || "",
-          country: company.country || "",
-          taxId: company.taxId || "",
-          website: company.website || "",
-          currency: (company.currency as Currency) || "USD",
+          companyName: data.name || "",
+          email: data.email || "",
+          phone: data.phone || "",
+          address: data.address || "",
+          city: data.city || "",
+          state: data.state || "",
+          zipCode: data.zipCode || "",
+          country: data.country || "",
+          taxId: data.taxId || "",
+          website: data.website || "",
+          currency: (data.currency as Currency) || "USD",
         })
         // Store currency in localStorage for quick access
-        if (company.currency) {
-          setCurrency(company.currency as Currency)
+        if (data.currency) {
+          setCurrency(data.currency as Currency)
         }
       } catch (err) {
         console.error("Failed to load company:", err)
@@ -156,155 +161,121 @@ export function CompanyProfileForm() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Building2 className="h-5 w-5" />
+    <Card className="border-0 shadow-none bg-transparent">
+      <CardHeader className="pb-4 px-0">
+        <CardTitle className="flex items-center gap-2 text-2xl">
+          <Building2 className="h-6 w-6 text-primary" />
           Company Profile
         </CardTitle>
-        <CardDescription>Manage your company information and details</CardDescription>
+        <CardDescription className="text-base">Manage your company information, location, and regional preferences</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-0">
         {loading ? (
           <div className="flex items-center justify-center p-8">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             <span className="ml-2 text-muted-foreground">Loading company profile...</span>
           </div>
         ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="pb-4">
             {error && (
-              <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+              <div className="rounded-lg bg-destructive/10 p-4 mb-4 text-sm text-destructive border border-destructive/20 flex items-center">
                 {error}
               </div>
             )}
-          {/* Company Name and Email */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="companyName">
-                Company Name <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="companyName"
-                {...register("companyName", { required: "Company name is required" })}
-                placeholder="Enter company name"
-              />
-              {errors.companyName && (
-                <p className="text-sm text-destructive">{errors.companyName.message}</p>
-              )}
+            
+            {/* 3-Column Main Form Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4">
+              
+              {/* Left Column */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="companyName" className="font-medium">
+                    Company Name <span className="text-destructive">*</span>
+                  </Label>
+                  <Input id="companyName" {...register("companyName", { required: "Company name is required" })} placeholder="Enter company name" className="h-9" />
+                  {errors.companyName && <p className="text-sm text-destructive font-medium">{errors.companyName.message}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="font-medium">
+                    Email Address <span className="text-destructive">*</span>
+                  </Label>
+                  <Input id="email" type="email" {...register("email", { required: "Email is required", pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: "Invalid email" }})} placeholder="contact@company.com" className="h-9" />
+                  {errors.email && <p className="text-sm text-destructive font-medium">{errors.email.message}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="font-medium">Phone Number</Label>
+                  <Input id="phone" type="tel" {...register("phone")} placeholder="+1 (555) 123-4567" className="h-9" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="website" className="font-medium">Website</Label>
+                  <Input id="website" type="url" {...register("website")} placeholder="https://www.company.com" className="h-9" />
+                </div>
+              </div>
+
+              {/* Middle Column */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="address" className="font-medium">Street Address</Label>
+                  <Input id="address" {...register("address")} placeholder="123 Builder St, Suite 100" className="h-9" />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="city" className="font-medium">City</Label>
+                  <Input id="city" {...register("city")} placeholder="City" className="h-9" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="state" className="font-medium">State / Province</Label>
+                  <Controller name="state" control={control} render={({ field }) => <StateSelector countryName={selectedCountry} value={field.value} onChange={field.onChange} className="h-9" />} />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="zipCode" className="font-medium">Postal / Zip</Label>
+                  <Input id="zipCode" {...register("zipCode")} placeholder="Zip Code" className="h-9" />
+                </div>
+              </div>
+
+              {/* Right Column */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="country" className="font-medium">Country</Label>
+                  <Controller name="country" control={control} render={({ field }) => <CountrySelector value={field.value} onChange={(val) => { field.onChange(val); setValue('state', '') }} className="h-9" />} />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="taxId" className="font-medium">Tax ID / VAT Number</Label>
+                  <Input id="taxId" {...register("taxId")} placeholder="Tax Identification Number" className="h-9" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="currency" className="font-medium">
+                    Default Currency <span className="text-destructive">*</span>
+                  </Label>
+                  <Select id="currency" value={selectedCurrency} onChange={(e) => setValue("currency", e.target.value as Currency)} className="h-9 w-full">
+                    <option value="USD">{CURRENCY_NAMES.USD} (USD)</option>
+                    <option value="INR">{CURRENCY_NAMES.INR} (INR)</option>
+                  </Select>
+                </div>
+              </div>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">
-                Email <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                {...register("email", {
-                  required: "Email is required",
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: "Invalid email address",
-                  },
-                })}
-                placeholder="contact@company.com"
-              />
-              {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
-            </div>
-          </div>
-
-          {/* Phone and Website */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                type="tel"
-                {...register("phone")}
-                placeholder="+1 (555) 123-4567"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="website">Website</Label>
-              <Input
-                id="website"
-                type="url"
-                {...register("website")}
-                placeholder="https://www.company.com"
-              />
-            </div>
-          </div>
-
-          {/* Address */}
-          <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
-            <Input id="address" {...register("address")} placeholder="Street address" />
-          </div>
-
-          {/* City, State, Zip */}
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
-              <Input id="city" {...register("city")} placeholder="City" />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="state">State</Label>
-              <Input id="state" {...register("state")} placeholder="State" />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="zipCode">Zip Code</Label>
-              <Input id="zipCode" {...register("zipCode")} placeholder="Zip Code" />
-            </div>
-          </div>
-
-          {/* Country and Tax ID */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
-              <Input id="country" {...register("country")} placeholder="Country" />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="taxId">Tax ID</Label>
-              <Input id="taxId" {...register("taxId")} placeholder="Tax Identification Number" />
-            </div>
-          </div>
-
-          {/* Currency Selection */}
-          <div className="space-y-2 pt-4 border-t">
-            <Label htmlFor="currency">
-              Currency <span className="text-destructive">*</span>
-            </Label>
-            <Select
-              id="currency"
-              value={selectedCurrency}
-              onChange={(e) => setValue("currency", e.target.value as Currency)}
-            >
-              <option value="USD">{CURRENCY_NAMES.USD} (USD)</option>
-              <option value="INR">{CURRENCY_NAMES.INR} (INR)</option>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              This currency will be used throughout the application for all monetary values.
-            </p>
-          </div>
 
           {/* Save Button */}
-            <div className="flex items-center justify-between pt-4 border-t">
-              <p className="text-sm text-muted-foreground">
-                {isSaved && <span className="text-green-600 dark:text-green-400">Changes saved successfully!</span>}
+            <div className="flex items-center justify-between pt-4 mt-6 border-t border-border/60">
+              <p className="text-sm font-medium">
+                {isSaved && <span className="text-green-600 dark:text-green-400 bg-green-500/10 px-3 py-1.5 rounded-full inline-flex items-center"><Save className="w-3 h-3 mr-1"/> Changes saved successfully!</span>}
               </p>
-              <Button type="submit" disabled={isSaving}>
+              <Button type="submit" disabled={isSaving} size="lg" className="shadow-sm">
                 {isSaving ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                     Saving...
                   </>
                 ) : (
                   <>
-                    <Save className="mr-2 h-4 w-4" />
+                    <Save className="mr-2 h-5 w-5" />
                     Save Changes
                   </>
                 )}

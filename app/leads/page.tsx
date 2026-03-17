@@ -1,9 +1,15 @@
 "use client"
 
-import { LeadList } from "@/components/leads/lead-list"
+import * as React from "react"
 import { useLeads } from "@/lib/hooks/use-leads"
 import { LeadFormSchema } from "@/lib/validations/lead"
 import { Lead } from "@/types/lead"
+import { TableSkeleton } from "@/components/ui/loading-skeleton"
+
+// Lazy load heavy component to speed up navigation
+const LeadList = React.lazy(() => 
+  import("@/components/leads/lead-list").then(module => ({ default: module.LeadList }))
+)
 
 export default function LeadsPage() {
   const { createLead, loadLeads } = useLeads()
@@ -21,11 +27,14 @@ export default function LeadsPage() {
       // Immediately refresh to ensure LeadList component sees the update
       await loadLeads()
     } catch (error) {
-      console.error("Error creating lead:", error)
       throw error // Re-throw to let the form handle the error
     }
   }
 
-  return <LeadList onCreateLead={() => {}} />
+  return (
+    <React.Suspense fallback={<TableSkeleton />}>
+      <LeadList onCreateLead={() => {}} />
+    </React.Suspense>
+  )
 }
 

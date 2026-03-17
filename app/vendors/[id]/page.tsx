@@ -29,7 +29,6 @@ export default function VendorDetailsPage() {
           const data = await vendorsApi.getById(params.id)
           setVendor(data)
         } catch (error) {
-          console.error("Failed to load vendor:", error)
         } finally {
           setLoading(false)
         }
@@ -90,15 +89,15 @@ export default function VendorDetailsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.push("/vendors")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{vendor.name}</h1>
-            <div className="flex items-center gap-2 mt-1">
+            <h1 className="text-2xl font-bold tracking-tight">{vendor.name}</h1>
+            <div className="flex items-center gap-2 mt-0">
               <Badge variant={getTypeBadgeVariant(vendor.type)}>{vendor.type}</Badge>
               <Badge variant={vendor.status === "Active" ? "success" : "destructive"}>
                 {vendor.status}
@@ -130,12 +129,12 @@ export default function VendorDetailsPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Contact Information</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-2">
             <div className="flex items-start gap-3">
               <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
@@ -168,7 +167,7 @@ export default function VendorDetailsPage() {
           <CardHeader>
             <CardTitle>Details</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-2">
             <div>
               <p className="text-sm font-medium mb-1">Vendor Type</p>
               <Badge variant={getTypeBadgeVariant(vendor.type)}>{vendor.type}</Badge>
@@ -241,7 +240,7 @@ export default function VendorDetailsPage() {
         <>
           <div className="fixed inset-0 z-50 bg-black/50" onClick={() => setStatusDialogOpen(false)} />
           <div className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-md translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg">
-            <h2 className="text-lg font-semibold">
+            <h2 className="text-base font-semibold">
               {vendor.status === "Active" ? "Deactivate" : "Activate"} Vendor
             </h2>
             <p className="text-sm text-muted-foreground">

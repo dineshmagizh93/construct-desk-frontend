@@ -172,7 +172,7 @@ export function TaskDetail({ taskId, open, onOpenChange, onUpdate }: TaskDetailP
           <DialogHeader>
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <DialogTitle className="text-2xl mb-2">{task.title}</DialogTitle>
+                <DialogTitle className="text-lg mb-2">{task.title}</DialogTitle>
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge className={getStatusColor(task.status)}>{task.status}</Badge>
                   <Badge className={getPriorityColor(task.priority)}>{task.priority}</Badge>

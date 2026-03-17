@@ -4,17 +4,40 @@ import { useState, useEffect, useCallback } from "react"
 import { InventoryItem, InventoryTransaction, inventoryApi, CreateInventoryItemDto, UpdateInventoryItemDto, CreateInventoryTransactionDto } from "@/lib/api/inventory"
 import { ApiError } from "@/lib/api/client"
 
+// Simple cache to prevent unnecessary refetches
+let inventoryItemsCache: { data: InventoryItem[]; timestamp: number; category?: string } | null = null
+const CACHE_DURATION = 120000 // 2 minutes
+
 export function useInventoryItems(category?: string) {
-  const [items, setItems] = useState<InventoryItem[]>([])
-  const [loading, setLoading] = useState(true)
+  const [items, setItems] = useState<InventoryItem[]>(() => {
+    const now = Date.now()
+    if (inventoryItemsCache && (now - inventoryItemsCache.timestamp) < CACHE_DURATION && inventoryItemsCache.category === category) {
+      return inventoryItemsCache.data
+    }
+    return []
+  })
+  const [loading, setLoading] = useState(() => {
+    const now = Date.now()
+    return !(inventoryItemsCache && (now - inventoryItemsCache.timestamp) < CACHE_DURATION && inventoryItemsCache.category === category)
+  })
   const [error, setError] = useState<string | null>(null)
 
-  const loadItems = useCallback(async () => {
+  const loadItems = useCallback(async (force = false) => {
+    const now = Date.now()
+    if (!force && inventoryItemsCache && (now - inventoryItemsCache.timestamp) < CACHE_DURATION && inventoryItemsCache.category === category) {
+      setItems(inventoryItemsCache.data)
+      setLoading(false)
+      return
+    }
+
     try {
-      setLoading(true)
+      if (!inventoryItemsCache || force || inventoryItemsCache.category !== category) {
+        setLoading(true)
+      }
       setError(null)
       const data = await inventoryApi.getAllItems(category)
       setItems(data)
+      inventoryItemsCache = { data, timestamp: Date.now(), category }
     } catch (err) {
       const apiError = err as ApiError
       let errorMessage = apiError.message as string || "Failed to load inventory items"
@@ -35,8 +58,11 @@ export function useInventoryItems(category?: string) {
   }, [category])
 
   useEffect(() => {
-    loadItems()
-  }, [loadItems])
+    const now = Date.now()
+    if (!inventoryItemsCache || (now - inventoryItemsCache.timestamp) >= CACHE_DURATION || inventoryItemsCache.category !== category) {
+      loadItems()
+    }
+  }, [loadItems, category])
 
   const createItem = useCallback(async (item: CreateInventoryItemDto) => {
     try {
@@ -90,16 +116,16 @@ export function useInventoryItems(category?: string) {
   }
 }
 
-export function useInventoryTransactions(itemId?: string) {
+export function useInventoryTransactions(itemId?: string, projectId?: string) {
   const [transactions, setTransactions] = useState<InventoryTransaction[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const loadTransactions = useCallback(async () => {
+  const loadTransactions = useCallback(async (itemIdParam?: string, projectIdParam?: string) => {
     try {
       setLoading(true)
       setError(null)
-      const data = await inventoryApi.getAllTransactions(itemId)
+      const data = await inventoryApi.getAllTransactions(itemIdParam || itemId, projectIdParam || projectId)
       setTransactions(data)
     } catch (err) {
       const apiError = err as ApiError
@@ -118,7 +144,7 @@ export function useInventoryTransactions(itemId?: string) {
     } finally {
       setLoading(false)
     }
-  }, [itemId])
+  }, [itemId, projectId])
 
   useEffect(() => {
     loadTransactions()
@@ -161,17 +187,39 @@ export function useInventoryTransactions(itemId?: string) {
   }
 }
 
+// Cache for low stock items
+let lowStockCache: { data: InventoryItem[]; timestamp: number } | null = null
+
 export function useLowStockItems() {
-  const [items, setItems] = useState<InventoryItem[]>([])
-  const [loading, setLoading] = useState(true)
+  const [items, setItems] = useState<InventoryItem[]>(() => {
+    const now = Date.now()
+    if (lowStockCache && (now - lowStockCache.timestamp) < CACHE_DURATION) {
+      return lowStockCache.data
+    }
+    return []
+  })
+  const [loading, setLoading] = useState(() => {
+    const now = Date.now()
+    return !(lowStockCache && (now - lowStockCache.timestamp) < CACHE_DURATION)
+  })
   const [error, setError] = useState<string | null>(null)
 
-  const loadLowStockItems = useCallback(async () => {
+  const loadLowStockItems = useCallback(async (force = false) => {
+    const now = Date.now()
+    if (!force && lowStockCache && (now - lowStockCache.timestamp) < CACHE_DURATION) {
+      setItems(lowStockCache.data)
+      setLoading(false)
+      return
+    }
+
     try {
-      setLoading(true)
+      if (!lowStockCache || force) {
+        setLoading(true)
+      }
       setError(null)
       const data = await inventoryApi.getLowStockItems()
       setItems(data)
+      lowStockCache = { data, timestamp: Date.now() }
     } catch (err) {
       const apiError = err as ApiError
       let errorMessage = apiError.message as string || "Failed to load low stock items"
@@ -183,7 +231,10 @@ export function useLowStockItems() {
   }, [])
 
   useEffect(() => {
-    loadLowStockItems()
+    const now = Date.now()
+    if (!lowStockCache || (now - lowStockCache.timestamp) >= CACHE_DURATION) {
+      loadLowStockItems()
+    }
   }, [loadLowStockItems])
 
   return {

@@ -31,7 +31,6 @@ export default function EditProjectPage() {
         } catch (err) {
           const apiError = err as ApiError
           setError(apiError.message as string || "Failed to load project")
-          console.error("Failed to load project:", err)
         } finally {
           setLoading(false)
         }
@@ -84,13 +83,15 @@ export default function EditProjectPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push("/projects")}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Edit Project</h1>
-          <p className="text-muted-foreground">Update project information</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.push("/projects")}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Edit Project</h1>
+            <p className="text-muted-foreground text-sm mt-1">Update project information</p>
+          </div>
         </div>
       </div>
 

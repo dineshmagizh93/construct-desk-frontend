@@ -38,16 +38,9 @@ export default function ForgotPasswordPage() {
       setIsLoading(true)
       setError(null)
 
-      console.log('📧 Requesting password reset for:', data.email)
-      console.log('📧 API endpoint: /auth/request-password-reset')
-
-      const result = await authApi.requestPasswordReset(data.email)
-      
-      console.log('✅ Password reset request successful:', result)
+      await authApi.requestPasswordReset(data.email)
       setSuccess(true)
     } catch (err: any) {
-      console.error("❌ Request password reset error:", err)
-      console.error("   Error details:", JSON.stringify(err, null, 2))
       const errorMessage = Array.isArray(err.message)
         ? err.message.join(', ')
         : err.message || "Failed to send reset email. Please try again."

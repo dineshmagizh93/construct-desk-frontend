@@ -37,16 +37,15 @@ export default function ProfilePage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 pt-4 sm:pt-6 pb-4 border-b border-border/40">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <User className="h-8 w-8" />
+          <h1 className="text-2xl font-bold tracking-tight">
             My Profile
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-muted-foreground mt-0 text-xs">
             Manage your personal information and account settings
           </p>
         </div>

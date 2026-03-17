@@ -1,3 +1,5 @@
+import { UserPermission } from "@/lib/api/users"
+
 export type UserRole = "admin" | "user"
 
 export interface User {
@@ -8,6 +10,7 @@ export interface User {
   email: string
   role: UserRole
   isActive?: boolean
+  permissions?: UserPermission[]
   createdAt?: string
   updatedAt?: string
 }

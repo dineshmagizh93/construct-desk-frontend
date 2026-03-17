@@ -8,6 +8,7 @@ import { InventoryItem, InventoryCategory, inventoryApi } from "@/lib/api/invent
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
+import { FilterBar } from "@/components/ui/filter-bar"
 import {
   Table,
   TableBody,
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Pagination } from "@/components/ui/pagination"
 import { InventoryItemForm } from "./inventory-item-form"
@@ -26,9 +28,11 @@ import { formatCurrency } from "@/lib/utils/currency"
 
 interface InventoryItemListProps {
   onCreateItem?: () => void
+  onAddClick?: boolean
+  onAddClickClear?: () => void
 }
 
-export function InventoryItemList({ onCreateItem }: InventoryItemListProps) {
+export function InventoryItemList({ onCreateItem, onAddClick, onAddClickClear }: InventoryItemListProps) {
   const { items, loading, deleteItem, loadItems } = useInventoryItems()
   const [searchQuery, setSearchQuery] = React.useState("")
   const [categoryFilter, setCategoryFilter] = React.useState<InventoryCategory | "all">("all")
@@ -38,6 +42,13 @@ export function InventoryItemList({ onCreateItem }: InventoryItemListProps) {
   const [itemToDelete, setItemToDelete] = React.useState<InventoryItem | null>(null)
   const [formDialogOpen, setFormDialogOpen] = React.useState(false)
   const [editingItem, setEditingItem] = React.useState<InventoryItem | undefined>(undefined)
+
+  React.useEffect(() => {
+    if (onAddClick) {
+      handleCreate()
+      if (onAddClickClear) onAddClickClear()
+    }
+  }, [onAddClick, onAddClickClear])
 
   // Filter items
   const filteredItems = React.useMemo(() => {
@@ -66,12 +77,19 @@ export function InventoryItemList({ onCreateItem }: InventoryItemListProps) {
     setCurrentPage(1)
   }, [searchQuery, categoryFilter])
 
-  // Adjust current page if it's out of bounds after filtering
+  // Reset to page 1 when itemsPerPage changes
   React.useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
+    setCurrentPage(1)
+  }, [itemsPerPage])
+
+  // Adjust current page if it's out of bounds after filtering or page size change
+  React.useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
       setCurrentPage(totalPages)
+    } else if (currentPage < 1) {
+      setCurrentPage(1)
     }
-  }, [totalPages, currentPage])
+  }, [totalPages, itemsPerPage])
 
   const handleDelete = async (item: InventoryItem) => {
     setItemToDelete(item)
@@ -80,7 +98,7 @@ export function InventoryItemList({ onCreateItem }: InventoryItemListProps) {
 
   const confirmDelete = async () => {
     if (!itemToDelete) return
-    
+
     try {
       await deleteItem(itemToDelete.id)
       await loadItems() // Force refresh
@@ -148,132 +166,127 @@ export function InventoryItemList({ onCreateItem }: InventoryItemListProps) {
     return <div className="flex items-center justify-center p-8">Loading inventory items...</div>
   }
 
-  return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] space-y-6">
-      {/* Header and Actions */}
-      <div className="flex items-center justify-between flex-shrink-0">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Inventory</h1>
-          <p className="text-muted-foreground">Manage your inventory items and stock levels</p>
-        </div>
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Item
-        </Button>
-      </div>
 
+  return (
+    <div className="flex flex-col h-full min-h-0">
       {/* Filters */}
-      <div className="flex gap-4 flex-wrap flex-shrink-0">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search by name, SKU, or description..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <Select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value as InventoryCategory | "all")}
-          className="w-[180px]"
-        >
-          <option value="all">All Categories</option>
-          <option value={InventoryCategory.MATERIAL}>Material</option>
-          <option value={InventoryCategory.TOOL}>Tool</option>
-          <option value={InventoryCategory.EQUIPMENT}>Equipment</option>
-          <option value={InventoryCategory.OTHER}>Other</option>
-        </Select>
-      </div>
+      <FilterBar
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search by name, SKU, or description..."
+        filters={
+          <Select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value as InventoryCategory | "all")}
+            className="h-[40px] w-[180px] text-[13px]"
+          >
+            <option value="all">All Categories</option>
+            <option value={InventoryCategory.MATERIAL}>Material</option>
+            <option value={InventoryCategory.TOOL}>Tool</option>
+            <option value={InventoryCategory.EQUIPMENT}>Equipment</option>
+            <option value={InventoryCategory.OTHER}>Other</option>
+          </Select>
+        }
+      />
 
       {/* Table Container - Takes remaining space */}
-      <div className="flex-1 flex flex-col min-h-0 rounded-md border overflow-hidden bg-card">
-        <div className="flex-1 overflow-y-auto overflow-x-hidden" data-table-scroll-container>
-          <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Item Name</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>SKU</TableHead>
-              <TableHead>Stock</TableHead>
-              <TableHead>Min Stock</TableHead>
-              <TableHead>Unit Price</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredItems.length === 0 ? (
+      <div className="flex-1 flex flex-col min-h-0 rounded-[10px] border border-border/50 overflow-hidden bg-card shadow-sm mt-3">
+        {/* Table Wrapper - Scrollable area that fills space */}
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div
+            className={cn(
+              "flex-1 min-h-0 overflow-x-auto overflow-y-auto"
+            )}
+            data-table-scroll-container
+          >
+            <Table className="border-0 rounded-none min-w-[1000px]">
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                  No inventory items found
-                </TableCell>
+                <TableHead className="min-w-[200px]">Item Name</TableHead>
+                <TableHead className="min-w-[120px]">Category</TableHead>
+                <TableHead className="min-w-[120px]">SKU</TableHead>
+                <TableHead className="min-w-[100px]">Stock</TableHead>
+                <TableHead className="min-w-[100px]">Min Stock</TableHead>
+                <TableHead className="min-w-[120px]">Unit Price</TableHead>
+                <TableHead className="min-w-[150px]">Location</TableHead>
+                <TableHead className="text-center min-w-[80px]">Actions</TableHead>
               </TableRow>
-            ) : (
-              paginatedItems.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      <Package className="h-4 w-4 text-muted-foreground" />
-                      {item.name}
-                      {isLowStock(item) && (
-                        <AlertTriangle className="h-4 w-4 text-destructive" />
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getCategoryBadgeVariant(item.category)}>
-                      {item.category}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{item.sku || "-"}</TableCell>
-                  <TableCell>
-                    <span className={isLowStock(item) ? "text-destructive font-semibold" : ""}>
-                      {item.currentStock} {item.unit}
-                    </span>
-                  </TableCell>
-                  <TableCell>{item.minStock} {item.unit}</TableCell>
-                  <TableCell>
-                    {item.unitPrice ? formatCurrency(item.unitPrice) : "-"}
-                  </TableCell>
-                  <TableCell>{item.location || "-"}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link href={`/inventory/${item.id}`}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Details
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEdit(item)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleDelete(item)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+            </TableHeader>
+            <TableBody>
+              {filteredItems.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    No inventory items found
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                paginatedItems.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium min-w-[200px]">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <Package className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="truncate block flex-1 min-w-0" title={item.name}>{item.name}</span>
+                        {isLowStock(item) && (
+                          <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0" />
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap min-w-[120px]">
+                      <Badge variant={getCategoryBadgeVariant(item.category)}>
+                        {item.category}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="min-w-[120px]">
+                      <span className="truncate block max-w-[120px]" title={item.sku || "-"}>{item.sku || "-"}</span>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap min-w-[100px]">
+                      <span className={isLowStock(item) ? "text-destructive font-semibold" : ""}>
+                        {item.currentStock} {item.unit}
+                      </span>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap min-w-[100px]">{item.minStock} {item.unit}</TableCell>
+                    <TableCell className="whitespace-nowrap min-w-[120px]">{item.unitPrice ? formatCurrency(item.unitPrice) : "-"}</TableCell>
+                    <TableCell className="min-w-[150px]">
+                      <span className="truncate block max-w-[150px]" title={item.location || "-"}>{item.location || "-"}</span>
+                    </TableCell>
+                    <TableCell className="text-center min-w-[80px]">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/inventory/${item.id}`}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Details
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEdit(item)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(item)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+          </div>
         </div>
-        
-        {/* Pagination - Always at bottom */}
-        <div className="flex-shrink-0 border-t bg-card">
+
+        {/* Pagination - Pinned to bottom of viewport */}
+        <div className="flex-shrink-0 border-t border-border/40 bg-muted/30">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -310,9 +323,9 @@ export function InventoryItemList({ onCreateItem }: InventoryItemListProps) {
           </DialogHeader>
           <p>Are you sure you want to delete "{itemToDelete?.name}"? This action cannot be undone.</p>
           <div className="flex justify-end gap-2 mt-4">
-            <Button 
+            <Button
               type="button"
-              variant="outline" 
+              variant="outline"
               onClick={(e) => {
                 e.stopPropagation()
                 setDeleteDialogOpen(false)
@@ -320,9 +333,9 @@ export function InventoryItemList({ onCreateItem }: InventoryItemListProps) {
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               type="button"
-              variant="destructive" 
+              variant="destructive"
               onClick={(e) => {
                 e.stopPropagation()
                 confirmDelete()

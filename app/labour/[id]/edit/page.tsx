@@ -27,7 +27,6 @@ export default function EditLabourPage() {
           const data = await labourApi.getById(params.id)
           setLabour(data)
         } catch (error) {
-          console.error("Failed to load labour:", error)
         } finally {
           setLoading(false)
         }
@@ -74,14 +73,16 @@ export default function EditLabourPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => router.push("/labour")}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Edit Labour Entry</h1>
-          <p className="text-muted-foreground">Update labour entry information</p>
+          <h1 className="text-2xl font-bold tracking-tight">Edit Labour Entry</h1>
+          <p className="text-muted-foreground text-xs mt-0">Update labour entry information</p>
         </div>
+      </div>
       </div>
 
       <Card>

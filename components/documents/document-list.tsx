@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
 import { Pagination } from "@/components/ui/pagination"
 import { DocumentForm } from "./document-form"
 import { useDocuments } from "@/lib/hooks/use-documents"
@@ -25,6 +26,8 @@ import { DocumentFormSchema } from "@/lib/validations/document"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { projectsApi } from "@/lib/api/projects"
 import toast from "react-hot-toast"
+import { usePlanLimits } from "@/lib/hooks/use-plan-limits"
+import { ApiError } from "@/lib/api/client"
 
 interface DocumentListProps {
   projectId?: string
@@ -34,6 +37,7 @@ interface DocumentListProps {
 export function DocumentList({ projectId, onCreateDocument }: DocumentListProps) {
   const { documents, loading, deleteDocument, createDocument, updateDocument, loadDocuments } = useDocuments()
   const { projects } = useProjects()
+  const { handleError, UpgradeModalComponent } = usePlanLimits()
   const [searchQuery, setSearchQuery] = React.useState("")
   const [projectFilter, setProjectFilter] = React.useState<string>("all")
   const [typeFilter, setTypeFilter] = React.useState<DocumentType | "all">("all")
@@ -83,16 +87,23 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
     setCurrentPage(1)
   }, [projectFilter, searchQuery, typeFilter, startDate, endDate])
 
-  // Adjust current page if it's out of bounds after filtering
+  // Reset to page 1 when itemsPerPage changes
   React.useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
+    setCurrentPage(1)
+  }, [itemsPerPage])
+
+  // Adjust current page if it's out of bounds after filtering or page size change
+  React.useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
       setCurrentPage(totalPages)
+    } else if (currentPage < 1) {
+      setCurrentPage(1)
     }
-  }, [totalPages, currentPage])
+  }, [totalPages, itemsPerPage])
 
   const handleDelete = async () => {
     if (!documentToDelete) return
-    
+
     try {
       await deleteDocument(documentToDelete.id)
       await loadDocuments(projectId, true) // Force refresh
@@ -134,6 +145,10 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
       // Immediately refresh to ensure the list updates
       await loadDocuments()
     } catch (error: any) {
+      // Handle plan limit errors
+      if (handleError(error)) {
+        return // Upgrade modal will be shown
+      }
       console.error("Error creating document:", error)
       toast.error(error?.message || "Failed to create document. Please try again.")
     }
@@ -202,13 +217,14 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
     return <div className="flex items-center justify-center p-8">Loading...</div>
   }
 
+
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] space-y-6">
+    <div className="flex flex-col h-full min-h-0 gap-1">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between flex-shrink-0">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between flex-shrink-0 pt-4 sm:pt-6 pb-4 border-b border-border/40">
         <div>
-          <h2 className="text-2xl font-bold">Documents</h2>
-          <p className="text-muted-foreground">Manage project documents and files</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Documents</h1>
+          <p className="text-muted-foreground mt-1 text-sm">Manage project documents and files</p>
         </div>
         {!projectId && (
           <Button onClick={() => setCreateDialogOpen(true)}>
@@ -219,8 +235,8 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col gap-4 rounded-lg border bg-card p-4 flex-shrink-0">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="flex flex-col gap-4 rounded-lg border border-transparent sm:border-border sm:bg-card sm:p-2 flex-shrink-0 my-2">
+        <div className="grid gap-4 sm:gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -291,42 +307,53 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
 
       {/* Table Container - Takes remaining space */}
       <div className="flex-1 flex flex-col min-h-0 rounded-md border overflow-hidden bg-card">
-        {filteredDocuments.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center p-8 text-center">
-            <div>
-              <File className="mx-auto h-12 w-12 text-muted-foreground" />
-              <p className="mt-4 text-lg font-semibold">No documents found</p>
-              <p className="text-muted-foreground">Get started by uploading a new document</p>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="flex-1 overflow-y-auto overflow-x-hidden" data-table-scroll-container>
-              <Table>
-              <TableHeader>
+        <div
+          className={cn(
+            "flex-1 min-h-0 overflow-x-auto", // Horizontal scroll on mobile
+            "overflow-y-auto" // Always allow vertical scroll for table content
+          )}
+          data-table-scroll-container
+        >
+          <Table className="border-0 rounded-none min-w-[700px]">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Project Name</TableHead>
+                <TableHead>Document Name</TableHead>
+                <TableHead>Document Type</TableHead>
+                <TableHead>Uploaded Date</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredDocuments.length === 0 ? (
                 <TableRow>
-                  <TableHead>Project Name</TableHead>
-                  <TableHead>Document Name</TableHead>
-                  <TableHead>Document Type</TableHead>
-                  <TableHead>Uploaded Date</TableHead>
-                  <TableHead className="w-[70px]">Actions</TableHead>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <div className="flex flex-col items-center justify-center py-4">
+                      <File className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
+                      <p className="text-lg font-semibold text-foreground">No documents found</p>
+                      <p className="text-muted-foreground">Get started by uploading a new document</p>
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredDocuments.map((doc) => (
+              ) : (
+                paginatedDocuments.map((doc) => (
                   <TableRow key={doc.id}>
-                    <TableCell className="font-medium">{doc.projectName}</TableCell>
+                    <TableCell className="font-medium">
+                      <span className="truncate block" title={doc.projectName}>
+                        {doc.projectName}
+                      </span>
+                    </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <File className="h-4 w-4 text-muted-foreground" />
-                        <span>{doc.name}</span>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <File className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="truncate block flex-1 min-w-0" title={doc.name}>{doc.name}</span>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap">
                       <Badge variant={getTypeBadgeVariant(doc.type)}>{doc.type}</Badge>
                     </TableCell>
-                    <TableCell>{new Date(doc.uploadedAt).toLocaleDateString()}</TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap">{new Date(doc.uploadedAt).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}</TableCell>
+                    <TableCell className="relative text-center">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
@@ -369,24 +396,23 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            </div>
-            
-            {/* Pagination - Always at bottom */}
-            <div className="flex-shrink-0 border-t bg-card">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                itemsPerPage={itemsPerPage}
-                totalItems={filteredDocuments.length}
-                onPageChange={setCurrentPage}
-                onItemsPerPageChange={setItemsPerPage}
-              />
-            </div>
-          </>
-        )}
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Pagination - Always at bottom */}
+        <div className="flex-shrink-0 border-t border-border/50 -mt-px">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            itemsPerPage={itemsPerPage}
+            totalItems={filteredDocuments.length}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={setItemsPerPage}
+          />
+        </div>
       </div>
 
       {/* Create Dialog */}
@@ -434,9 +460,9 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
-            <Button 
+            <Button
               type="button"
-              variant="outline" 
+              variant="outline"
               onClick={(e) => {
                 e.stopPropagation()
                 setDeleteDialogOpen(false)
@@ -444,9 +470,9 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               type="button"
-              variant="destructive" 
+              variant="destructive"
               onClick={(e) => {
                 e.stopPropagation()
                 handleDelete()
@@ -457,6 +483,9 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Upgrade Modal */}
+      <UpgradeModalComponent />
     </div>
   )
 }

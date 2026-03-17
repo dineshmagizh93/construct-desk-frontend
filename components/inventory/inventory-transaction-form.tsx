@@ -14,11 +14,12 @@ import { DialogFooter } from "@/components/ui/dialog"
 
 interface InventoryTransactionFormProps {
   itemId?: string
+  projectId?: string
   onSubmit: (data: any) => Promise<void>
   onCancel: () => void
 }
 
-export function InventoryTransactionForm({ itemId, onSubmit, onCancel }: InventoryTransactionFormProps) {
+export function InventoryTransactionForm({ itemId, projectId, onSubmit, onCancel }: InventoryTransactionFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [items, setItems] = React.useState<InventoryItem[]>([])
   const [projects, setProjects] = React.useState<Project[]>([])
@@ -46,7 +47,7 @@ export function InventoryTransactionForm({ itemId, onSubmit, onCancel }: Invento
       itemId: itemId || "",
       type: TransactionType.IN,
       quantity: 0,
-      projectId: "",
+      projectId: projectId || "",
       reference: "",
       notes: "",
       transactionDate: new Date().toISOString().split("T")[0],
@@ -62,7 +63,7 @@ export function InventoryTransactionForm({ itemId, onSubmit, onCancel }: Invento
       const submitData = {
         ...data,
         quantity: parseFloat(data.quantity),
-        projectId: data.projectId || undefined,
+        projectId: data.projectId, // Required now
         reference: data.reference || undefined,
         notes: data.notes || undefined,
         transactionDate: data.transactionDate || undefined,
@@ -143,19 +144,24 @@ export function InventoryTransactionForm({ itemId, onSubmit, onCancel }: Invento
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="projectId">Project</Label>
+          <Label htmlFor="projectId">
+            Project <span className="text-destructive">*</span>
+          </Label>
           <Select
             id="projectId"
-            {...register("projectId")}
+            {...register("projectId", { required: "Project is required" })}
             onChange={(e) => setValue("projectId", e.target.value)}
+            value={watch("projectId")}
+            disabled={!!projectId}
           >
-            <option value="">No project</option>
+            <option value="">Select a project</option>
             {projects.map((project) => (
               <option key={project.id} value={project.id}>
                 {project.name}
               </option>
             ))}
           </Select>
+          {errors.projectId && <p className="text-sm text-destructive">{errors.projectId.message}</p>}
         </div>
       </div>
 

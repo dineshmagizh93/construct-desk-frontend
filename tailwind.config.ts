@@ -18,6 +18,15 @@ const config = {
       },
     },
     extend: {
+      fontSize: {
+        'xs': ['0.7rem', { lineHeight: '1rem' }], // 11.2px
+        'sm': ['0.8125rem', { lineHeight: '1.25rem' }], // 13px
+        'base': ['0.875rem', { lineHeight: '1.375rem' }], // 14px
+        'lg': ['1rem', { lineHeight: '1.5rem' }], // 16px
+        'xl': ['1.125rem', { lineHeight: '1.6rem' }], // 18px
+        '2xl': ['1.375rem', { lineHeight: '1.75rem' }], // 22px
+        '3xl': ['1.75rem', { lineHeight: '2.25rem' }], // 28px
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

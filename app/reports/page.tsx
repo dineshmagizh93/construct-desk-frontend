@@ -7,14 +7,14 @@ import { BarChart3 } from "lucide-react"
 
 export default function ReportsPage() {
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-          <BarChart3 className="h-8 w-8" />
+    <div className="flex flex-col h-full min-h-0">
+      <div className="flex-1 overflow-y-auto pr-2 space-y-6">
+        {/* Header */}
+      <div className="pt-4 sm:pt-6 pb-4 border-b border-border/40">
+        <h1 className="text-2xl font-bold tracking-tight">
           Reports
         </h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-muted-foreground mt-0 text-xs">
           Comprehensive overview of payments, expenses, and projects
         </p>
       </div>
@@ -27,6 +27,7 @@ export default function ReportsPage() {
 
       {/* Project Overview */}
       <ProjectOverview />
+      </div>
     </div>
   )
 }

@@ -30,7 +30,6 @@ export default function EditInventoryItemPage() {
         } catch (err) {
           const apiError = err as ApiError
           setError(apiError.message as string || "Failed to load item")
-          console.error("Failed to load item:", err)
         } finally {
           setLoading(false)
         }
@@ -76,14 +75,16 @@ export default function EditInventoryItemPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => router.push("/inventory")}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Edit Item</h1>
-          <p className="text-muted-foreground">Update inventory item information</p>
+          <h1 className="text-2xl font-bold tracking-tight">Edit Item</h1>
+          <p className="text-muted-foreground text-sm mt-1">Update inventory item information</p>
         </div>
+      </div>
       </div>
 
       <Card>

@@ -26,7 +26,6 @@ export default function LeadDetailsPage() {
           const data = await leadsApi.getById(params.id)
           setLead(data)
         } catch (error) {
-          console.error("Failed to load lead:", error)
         } finally {
           setLoading(false)
         }
@@ -95,15 +94,15 @@ export default function LeadDetailsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.push("/leads")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{lead.name}</h1>
-            <div className="flex items-center gap-2 mt-1">
+            <h1 className="text-2xl font-bold tracking-tight">{lead.name}</h1>
+            <div className="flex items-center gap-2 mt-0">
               <Badge variant={lead.type === "CLIENT" ? "default" : "outline"}>
                 {lead.type === "CLIENT" ? "Client" : "Lead"}
               </Badge>
@@ -132,12 +131,12 @@ export default function LeadDetailsPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Contact Information</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-2">
             <div className="flex items-start gap-3">
               <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
@@ -168,7 +167,7 @@ export default function LeadDetailsPage() {
           <CardHeader>
             <CardTitle>Details</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-2">
             <div>
               <p className="text-sm font-medium mb-1">Source</p>
               <Badge variant={getSourceBadgeVariant(lead.source)}>{lead.source}</Badge>
@@ -213,7 +212,7 @@ export default function LeadDetailsPage() {
         <>
           <div className="fixed inset-0 z-50 bg-black/50" onClick={() => setConvertDialogOpen(false)} />
           <div className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-md translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg">
-            <h2 className="text-lg font-semibold">Convert Lead to Client</h2>
+            <h2 className="text-base font-semibold">Convert Lead to Client</h2>
             <p className="text-sm text-muted-foreground">
               Are you sure you want to convert "{lead.name}" to a client? This will change their
               status to "Converted" and type to "CLIENT".

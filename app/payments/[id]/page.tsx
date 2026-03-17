@@ -25,7 +25,6 @@ export default function PaymentDetailsPage() {
           const data = await paymentsApi.getById(params.id)
           setPayment(data)
         } catch (error) {
-          console.error("Failed to load payment:", error)
         } finally {
           setLoading(false)
         }
@@ -66,15 +65,15 @@ export default function PaymentDetailsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.push("/payments")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{payment.milestone}</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">{payment.milestone}</h1>
+            <p className="text-muted-foreground text-xs mt-0">
               Payment for{" "}
               <Link href={`/projects/${payment.projectId}`} className="hover:underline">
                 {payment.projectName}
@@ -87,17 +86,17 @@ export default function PaymentDetailsPage() {
         </Badge>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Payment Details</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-2">
             <div className="flex items-start gap-3">
               <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div className="flex-1">
                 <p className="text-sm font-medium">Amount</p>
-                <p className="text-2xl font-bold">{formatCurrency(payment.amount)}</p>
+                <p className="text-xl font-bold">{formatCurrency(payment.amount)}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -127,7 +126,7 @@ export default function PaymentDetailsPage() {
           <CardHeader>
             <CardTitle>Project Information</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-2">
             <div>
               <p className="text-sm font-medium mb-1">Project</p>
               <Link

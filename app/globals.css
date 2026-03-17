@@ -54,7 +54,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground text-sm antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
@@ -83,8 +83,9 @@
     mask-image: linear-gradient(to bottom, black, transparent);
   }
   
-  /* Smooth transitions */
-  * {
+  /* Smooth transitions for interactive elements only */
+  a, button, input, select, textarea,
+  [role="button"], [role="tab"], [role="menuitem"] {
     @apply transition-colors duration-200;
   }
   

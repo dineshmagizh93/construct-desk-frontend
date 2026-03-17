@@ -97,7 +97,7 @@ export function ProjectOverview() {
                 <FolderKanban className="h-4 w-4 text-blue-600" />
                 <p className="text-sm font-medium text-muted-foreground">Total Projects</p>
               </div>
-              <p className="text-2xl font-bold">{summary.total}</p>
+              <p className="text-xl font-bold">{summary.total}</p>
             </div>
 
             <div className="rounded-lg border bg-card p-4">
@@ -105,7 +105,7 @@ export function ProjectOverview() {
                 <TrendingUp className="h-4 w-4 text-green-600" />
                 <p className="text-sm font-medium text-muted-foreground">In Progress</p>
               </div>
-              <p className="text-2xl font-bold">{summary.inProgress}</p>
+              <p className="text-xl font-bold">{summary.inProgress}</p>
             </div>
 
             <div className="rounded-lg border bg-card p-4">
@@ -113,7 +113,7 @@ export function ProjectOverview() {
                 <Calendar className="h-4 w-4 text-purple-600" />
                 <p className="text-sm font-medium text-muted-foreground">Completed</p>
               </div>
-              <p className="text-2xl font-bold">{summary.completed}</p>
+              <p className="text-xl font-bold">{summary.completed}</p>
             </div>
 
             <div className="rounded-lg border bg-card p-4">
@@ -121,22 +121,22 @@ export function ProjectOverview() {
                 <DollarSign className="h-4 w-4 text-orange-600" />
                 <p className="text-sm font-medium text-muted-foreground">Total Budget</p>
               </div>
-              <p className="text-2xl font-bold">{formatCurrency(summary.totalBudget)}</p>
+              <p className="text-xl font-bold">{formatCurrency(summary.totalBudget)}</p>
             </div>
           </div>
 
           {/* Projects Table */}
           <div className="rounded-lg border bg-card">
-            <div className="overflow-x-auto">
+            <div className="w-full">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Project Name</TableHead>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Progress</TableHead>
-                    <TableHead>Budget</TableHead>
-                    <TableHead>Location</TableHead>
+                    <TableHead className="w-[18%]">Project Name</TableHead>
+                    <TableHead className="w-[14%]">Client</TableHead>
+                    <TableHead className="w-[11%]">Status</TableHead>
+                    <TableHead className="w-[14%]">Progress</TableHead>
+                    <TableHead className="w-[14%]">Budget</TableHead>
+                    <TableHead className="w-[29%]">Location</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -152,29 +152,32 @@ export function ProjectOverview() {
                         <TableCell className="font-medium">
                           <Link
                             href={`/projects/${project.id}`}
-                            className="hover:underline"
+                            className="hover:underline truncate block"
+                            title={project.name}
                           >
                             {project.name}
                           </Link>
                         </TableCell>
-                        <TableCell>{project.clientName}</TableCell>
-                        <TableCell>
+                        <TableCell className="truncate" title={project.clientName}>
+                          {project.clientName}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
                           <Badge variant={getStatusBadgeVariant(project.status)}>
                             {project.status}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">
                           <div className="flex items-center gap-2">
-                            <div className="w-16 bg-secondary rounded-full h-2">
+                            <div className="w-16 bg-secondary rounded-full h-2 flex-shrink-0">
                               <div
                                 className="bg-primary h-2 rounded-full transition-all"
                                 style={{ width: `${project.progress}%` }}
                               />
                             </div>
-                            <span className="text-sm font-medium">{project.progress}%</span>
+                            <span className="text-sm font-medium whitespace-nowrap">{project.progress}%</span>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">
                           <div className="text-sm">
                             <p className="font-medium">{formatCurrency(project.estimatedBudget)}</p>
                             {project.actualBudget && (
@@ -184,8 +187,8 @@ export function ProjectOverview() {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {project.location}
+                        <TableCell className="text-xs text-muted-foreground truncate" title={project.location || "-"}>
+                          {project.location || "-"}
                         </TableCell>
                       </TableRow>
                     ))

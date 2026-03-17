@@ -4,7 +4,7 @@ import * as React from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { userFormSchema, UserFormSchema } from "@/lib/validations/user"
-import { User } from "@/types/user"
+import { User } from "@/lib/api/users"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
@@ -13,7 +13,7 @@ import { DialogFooter } from "@/components/ui/dialog"
 
 interface UserFormProps {
   user?: User
-  onSubmit: (data: UserFormSchema) => Promise<void>
+  onSubmit: (data: UserFormSchema & { permissions?: UserPermission[] }) => Promise<void>
   onCancel: () => void
 }
 
@@ -113,6 +113,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
         <Input id="phone" {...register("phone")} placeholder="Enter phone number (optional)" />
         {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
       </div>
+
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>

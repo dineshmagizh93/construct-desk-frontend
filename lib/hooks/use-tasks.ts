@@ -7,7 +7,7 @@ import { ApiError } from "@/lib/api/client"
 
 // Simple cache to prevent unnecessary refetches
 let tasksCache: { data: Task[]; timestamp: number; filters?: string } | null = null
-const CACHE_DURATION = 30000 // 30 seconds
+const CACHE_DURATION = 120000 // 2 minutes
 
 export function useTasks(filters?: TaskFilters) {
   // Initialize with cache if available to prevent loading state

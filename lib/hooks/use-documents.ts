@@ -7,7 +7,7 @@ import { ApiError } from "@/lib/api/client"
 
 // Simple cache to prevent unnecessary refetches
 let documentsCache: { data: Document[]; timestamp: number; projectId?: string } | null = null
-const CACHE_DURATION = 30000 // 30 seconds
+const CACHE_DURATION = 120000 // 2 minutes
 
 export function useDocuments() {
   // Initialize with cache if available to prevent loading state
@@ -63,7 +63,6 @@ export function useDocuments() {
     }
   }, [])
 
-  // Only load if no cached data
   useEffect(() => {
     const now = Date.now()
     if (!documentsCache || (now - documentsCache.timestamp) >= CACHE_DURATION) {

@@ -24,7 +24,12 @@ const COLUMNS: { status: TaskStatus; label: string; color: string }[] = [
   { status: TaskStatus.BLOCKED, label: "Blocked", color: "bg-red-100" },
 ]
 
-export function KanbanBoard() {
+interface KanbanBoardProps {
+  viewMode?: "kanban" | "list"
+  setViewMode?: (mode: "kanban" | "list") => void
+}
+
+export function KanbanBoard({ viewMode, setViewMode }: KanbanBoardProps = {}) {
   const { projects } = useProjects()
   const { users } = useUsers()
   const [filters, setFilters] = React.useState<TaskFilters>({})
@@ -152,21 +157,45 @@ export function KanbanBoard() {
   }
 
   return (
-    <div className="flex flex-col h-full space-y-4">
+    <div className="flex flex-col h-full gap-1">
       {/* Header */}
-      <div className="flex items-center justify-between flex-shrink-0">
+      <div className="flex items-center justify-between flex-shrink-0 pt-4 sm:pt-6 pb-0.5 border-b border-border/40">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Task Management</h1>
-          <p className="text-muted-foreground">Manage your tasks with Kanban board</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Task Management</h1>
+          <p className="text-muted-foreground mt-0 text-xs">Manage your tasks with Kanban board</p>
         </div>
-        <Button onClick={() => setCreateDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Task
-        </Button>
+        <div className="flex items-center gap-2">
+          {setViewMode && (
+            <div className="inline-flex rounded-md border" role="group">
+              <Button
+                variant={viewMode === "kanban" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("kanban")}
+                className="rounded-r-none"
+              >
+                <LayoutGrid className="h-4 w-4 mr-1.5" />
+                Kanban
+              </Button>
+              <Button
+                variant={viewMode === "list" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("list")}
+                className="rounded-l-none border-l"
+              >
+                <List className="h-4 w-4 mr-1.5" />
+                List
+              </Button>
+            </div>
+          )}
+          <Button onClick={() => setCreateDialogOpen(true)} size="sm">
+            <Plus className="mr-1.5 h-4 w-4" />
+            New Task
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-4 flex-wrap flex-shrink-0">
+      <div className="flex gap-1.5 flex-wrap flex-shrink-0">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -224,7 +253,7 @@ export function KanbanBoard() {
       </div>
 
       {/* Kanban Board */}
-      <div className="flex-1 flex gap-4 overflow-x-auto min-h-0">
+      <div className="flex-1 flex gap-1.5 overflow-hidden min-h-0">
         {COLUMNS.map((column) => {
           const columnTasks = tasksByStatus[column.status]
           const isDraggedOver = draggedOverColumn === column.status
@@ -232,27 +261,28 @@ export function KanbanBoard() {
           return (
             <div
               key={column.status}
-              className={`flex-1 min-w-[280px] flex flex-col rounded-lg border-2 ${
+              className={`flex-1 min-w-0 flex flex-col rounded-lg border-2 ${
                 isDraggedOver ? "border-primary bg-primary/5" : "border-border"
               } transition-colors`}
+              style={{ width: '20%', maxWidth: '20%', minWidth: 0 }}
               onDragOver={(e) => handleDragOver(e, column.status)}
               onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, column.status)}
             >
               {/* Column Header */}
-              <div className={`p-4 rounded-t-lg ${column.color} border-b`}>
+              <div className={`p-1.5 rounded-t-lg ${column.color} border-b flex-shrink-0`}>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold">{column.label}</h3>
-                    <Badge variant="secondary">{columnTasks.length}</Badge>
+                  <div className="flex items-center gap-1 min-w-0">
+                    <h3 className="text-xs font-semibold truncate">{column.label}</h3>
+                    <Badge variant="secondary" className="text-[10px] px-1 py-0 flex-shrink-0">{columnTasks.length}</Badge>
                   </div>
                 </div>
               </div>
 
               {/* Tasks */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
                 {columnTasks.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground text-sm">
+                  <div className="text-center py-4 text-muted-foreground text-xs">
                     No tasks
                   </div>
                 ) : (

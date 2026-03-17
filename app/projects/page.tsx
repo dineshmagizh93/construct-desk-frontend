@@ -1,12 +1,20 @@
 "use client"
 
-import { ProjectList } from "@/components/projects/project-list"
+import * as React from "react"
 import { useProjects } from "@/lib/hooks/use-projects"
 import { ProjectFormSchema } from "@/lib/validations/project"
 import { CreateProjectDto } from "@/lib/api/projects"
+import { TableSkeleton } from "@/components/ui/loading-skeleton"
+import { usePlanLimits } from "@/lib/hooks/use-plan-limits"
+
+// Lazy load heavy component to speed up navigation
+const ProjectList = React.lazy(() => 
+  import("@/components/projects/project-list").then(module => ({ default: module.ProjectList }))
+)
 
 export default function ProjectsPage() {
   const { createProject, loadProjects } = useProjects()
+  const { handleError, UpgradeModalComponent } = usePlanLimits()
 
   const handleCreateProject = async (data: ProjectFormSchema) => {
     // Helper to convert empty strings to undefined
@@ -38,6 +46,10 @@ export default function ProjectsPage() {
       // Refresh the projects list immediately after creation
       await loadProjects()
     } catch (error: any) {
+      // Handle plan limit errors
+      if (handleError(error)) {
+        return // Upgrade modal will be shown
+      }
       // Re-throw with a more user-friendly message
       const errorMessage = Array.isArray(error?.message) 
         ? error.message.join(', ')
@@ -46,6 +58,13 @@ export default function ProjectsPage() {
     }
   }
 
-  return <ProjectList onCreateProject={handleCreateProject} />
+  return (
+    <>
+      <UpgradeModalComponent />
+      <React.Suspense fallback={<TableSkeleton />}>
+        <ProjectList onCreateProject={handleCreateProject} />
+      </React.Suspense>
+    </>
+  )
 }
 

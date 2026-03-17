@@ -9,6 +9,8 @@ import { Payment, PaymentStatus } from "@/types/payment"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
+import { PageHeader } from "@/components/ui/page-header"
+import { FilterBar } from "@/components/ui/filter-bar"
 import {
   Table,
   TableBody,
@@ -19,6 +21,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
 import { Pagination } from "@/components/ui/pagination"
 import { PaymentForm } from "./payment-form"
 import { usePayments } from "@/lib/hooks/use-payments"
@@ -43,6 +46,7 @@ export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [paymentToDelete, setPaymentToDelete] = React.useState<Payment | null>(null)
   const [openDropdownId, setOpenDropdownId] = React.useState<string | null>(null)
+  const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
 
   // Filter payments
   const filteredPayments = React.useMemo(() => {
@@ -79,12 +83,19 @@ export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
     setCurrentPage(1)
   }, [projectFilter, searchQuery, statusFilter, dueDateFilter])
 
-  // Adjust current page if it's out of bounds after filtering
+  // Reset to page 1 when itemsPerPage changes
   React.useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
+    setCurrentPage(1)
+  }, [itemsPerPage])
+
+  // Adjust current page if it's out of bounds after filtering or page size change
+  React.useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
       setCurrentPage(totalPages)
+    } else if (currentPage < 1) {
+      setCurrentPage(1)
     }
-  }, [totalPages, currentPage])
+  }, [totalPages, itemsPerPage])
 
   const handleDelete = async (payment: Payment) => {
     setPaymentToDelete(payment)
@@ -93,7 +104,7 @@ export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
 
   const confirmDelete = async () => {
     if (!paymentToDelete) return
-    
+
     try {
       await deletePayment(paymentToDelete.id)
       await loadPayments(projectId, true) // Force refresh
@@ -131,124 +142,146 @@ export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
     return <div className="flex items-center justify-center p-8">Loading payments...</div>
   }
 
+
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] space-y-6">
-      {/* Header and Actions */}
-      <div className="flex items-center justify-between flex-shrink-0">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Payments</h1>
-          <p className="text-muted-foreground">
-            {projectId ? "Project payments" : "Manage all payments"}
-          </p>
-        </div>
-        <CreatePaymentButton onCreate={onCreatePayment} projectId={projectId} onRefresh={loadPayments} />
-      </div>
+    <div className="flex flex-col h-full min-h-0">
+      {/* Header */}
+      <PageHeader
+        title="Payments"
+        subtitle={projectId ? "Project payments" : "Manage all payments"}
+        action={{
+          label: "New Payment",
+          icon: Plus,
+          onClick: () => setCreateDialogOpen(true),
+        }}
+      />
 
       {/* Filters */}
-      <div className="flex gap-4 flex-wrap flex-shrink-0">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search by milestone or project..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        {!projectId && (
-          <Select
-            value={projectFilter}
-            onChange={(e) => setProjectFilter(e.target.value)}
-            className="w-[200px]"
-          >
-            <option value="all">All Projects</option>
-            {projects.map((project) => (
-              <option key={project.id} value={project.id}>
-                {project.name}
-              </option>
-            ))}
-          </Select>
-        )}
-        <Select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as PaymentStatus | "all")}
-          className="w-[150px]"
-        >
-          <option value="all">All Status</option>
-          <option value="Pending">Pending</option>
-          <option value="Paid">Paid</option>
-          <option value="Overdue">Overdue</option>
-        </Select>
-        <div className="relative">
-          <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="date"
-            value={dueDateFilter}
-            onChange={(e) => setDueDateFilter(e.target.value)}
-            placeholder="Filter by due date"
-            className="w-[180px] pl-9"
-          />
-        </div>
-        {dueDateFilter && (
-          <Button variant="ghost" size="sm" onClick={() => setDueDateFilter("")}>
-            Clear
-          </Button>
-        )}
-      </div>
+      <FilterBar
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search by milestone or project..."
+        filters={
+          <>
+            {!projectId && (
+              <Select
+                value={projectFilter}
+                onChange={(e) => setProjectFilter(e.target.value)}
+                className="h-[40px] w-[180px] text-[13px]"
+              >
+                <option value="all">All Projects</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </Select>
+            )}
+            <Select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as PaymentStatus | "all")}
+              className="h-[40px] w-[140px] text-[13px]"
+            >
+              <option value="all">All Status</option>
+              <option value="Pending">Pending</option>
+              <option value="Paid">Paid</option>
+              <option value="Overdue">Overdue</option>
+            </Select>
+            <div className="relative">
+              <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="date"
+                value={dueDateFilter}
+                onChange={(e) => setDueDateFilter(e.target.value)}
+                placeholder="Due Date"
+                className="h-[40px] w-[160px] pl-9 text-[13px]"
+              />
+            </div>
+            {dueDateFilter && (
+              <Button variant="ghost" size="sm" className="h-[40px]" onClick={() => setDueDateFilter("")}>
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </>
+        }
+      />
 
       {/* Table Container - Takes remaining space */}
-      <div className="flex-1 flex flex-col min-h-0 rounded-md border overflow-hidden bg-card">
-        <div className="flex-1 overflow-y-auto overflow-x-hidden" data-table-scroll-container>
-          <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Project Name</TableHead>
-              <TableHead>Milestone</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Due Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[70px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredPayments.length === 0 ? (
+      <div className="flex-1 flex flex-col min-h-0 rounded-[10px] border border-border/50 overflow-hidden bg-card shadow-sm mt-3">
+        {/* Table Wrapper - Scrollable area that fills space */}
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div
+            className={cn(
+              "flex-1 min-h-0 overflow-x-auto overflow-y-auto"
+            )}
+            data-table-scroll-container
+          >
+            <Table className="border-0 rounded-none min-w-[800px]">
+            <colgroup>
+              <col style={{ width: '24%' }} />
+              <col style={{ width: '26%' }} />
+              <col style={{ width: '15%' }} />
+              <col style={{ width: '14%' }} />
+              <col style={{ width: '15%' }} />
+              <col style={{ width: '6%' }} />
+            </colgroup>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                  No payments found
-                </TableCell>
+                <TableHead className="w-[24%]">Project Name</TableHead>
+                <TableHead className="w-[26%]">Milestone</TableHead>
+                <TableHead className="w-[15%]">Amount</TableHead>
+                <TableHead className="w-[14%]">Due Date</TableHead>
+                <TableHead className="w-[15%]">Status</TableHead>
+                <TableHead className="w-[6%] text-center">Actions</TableHead>
               </TableRow>
-            ) : (
-              paginatedPayments.map((payment) => (
-                <TableRow key={payment.id}>
-                  <TableCell className="font-medium">
-                    <Link href={`/projects/${payment.projectId}`} className="hover:underline">
-                      {payment.projectName}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{payment.milestone}</TableCell>
-                  <TableCell className="font-medium">{formatCurrency(payment.amount)}</TableCell>
-                  <TableCell>{new Date(payment.dueDate).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusBadgeVariant(payment.status)}>{payment.status}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <PaymentActionsMenu 
-                      payment={payment} 
-                      onDelete={handleDelete}
-                      isOpen={openDropdownId === payment.id}
-                      onOpenChange={(open) => setOpenDropdownId(open ? payment.id : null)}
-                    />
+            </TableHeader>
+            <TableBody>
+              {filteredPayments.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    No payments found
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                paginatedPayments.map((payment) => (
+                  <TableRow key={payment.id}>
+                    <TableCell className="font-medium w-[24%]">
+                      <span
+                        className="truncate block"
+                        title={payment.projectName}
+                      >
+                        {payment.projectName}
+                      </span>
+                    </TableCell>
+                    <TableCell className="w-[26%]">
+                      <span className="truncate block" title={payment.milestone}>
+                        {payment.milestone}
+                      </span>
+                    </TableCell>
+                    <TableCell className="font-medium whitespace-nowrap w-[15%]">{formatCurrency(payment.amount)}</TableCell>
+                    <TableCell className="whitespace-nowrap w-[14%]">{new Date(payment.dueDate).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}</TableCell>
+                    <TableCell className="whitespace-nowrap w-[15%]">
+                      <Badge variant={getStatusBadgeVariant(payment.status)}>{payment.status}</Badge>
+                    </TableCell>
+                    <TableCell className="relative text-center w-[6%]">
+                      <PaymentActionsMenu
+                        payment={payment}
+                        onDelete={handleDelete}
+                        isOpen={openDropdownId === payment.id}
+                        onOpenChange={(open) => setOpenDropdownId(open ? payment.id : null)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+          </div>
         </div>
-        
+
         {/* Summary */}
         {filteredPayments.length > 0 && (
-          <div className="flex justify-end gap-4 text-sm px-4 py-3 border-t">
+          <div className="flex justify-end gap-4 text-[13px] px-4 py-2.5 border-t border-border/40 bg-muted/30 flex-shrink-0">
             <div>
               <span className="text-muted-foreground">Total: </span>
               <span className="font-semibold">
@@ -276,8 +309,8 @@ export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
           </div>
         )}
 
-        {/* Pagination - Always at bottom */}
-        <div className="flex-shrink-0 border-t bg-card">
+        {/* Pagination - Pinned to bottom of viewport */}
+        <div className="flex-shrink-0 border-t border-border/40 bg-muted/30">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -293,7 +326,7 @@ export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
       {deleteDialogOpen && (
         <>
           <div className="fixed inset-0 z-50 bg-black/50" onClick={() => setDeleteDialogOpen(false)} />
-          <div 
+          <div
             className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-md translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg"
             onClick={(e) => e.stopPropagation()}
           >
@@ -303,9 +336,9 @@ export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
               action cannot be undone.
             </p>
             <div className="flex justify-end gap-2">
-              <Button 
+              <Button
                 type="button"
-                variant="outline" 
+                variant="outline"
                 onClick={(e) => {
                   e.stopPropagation()
                   setDeleteDialogOpen(false)
@@ -313,9 +346,9 @@ export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 type="button"
-                variant="destructive" 
+                variant="destructive"
                 onClick={(e) => {
                   e.stopPropagation()
                   confirmDelete()
@@ -327,7 +360,97 @@ export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
           </div>
         </>
       )}
+
+      {/* Create Payment Dialog */}
+      {createDialogOpen && (
+        <CreatePaymentDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          onCreate={onCreatePayment}
+          projectId={projectId}
+          onRefresh={loadPayments}
+        />
+      )}
     </div>
+  )
+}
+
+function CreatePaymentDialog({
+  open,
+  onOpenChange,
+  onCreate,
+  projectId,
+  onRefresh,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onCreate: (data: Omit<Payment, "id" | "createdAt" | "updatedAt">) => Promise<void>
+  projectId?: string
+  onRefresh?: () => Promise<void>
+}) {
+  const [error, setError] = React.useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  const handleSubmit = async (data: PaymentFormSchema) => {
+    try {
+      setIsSubmitting(true)
+      setError(null)
+      const finalProjectId = data.projectId || projectId || ""
+
+      if (!finalProjectId) {
+        setError("Please select a project")
+        return
+      }
+
+      const project = await projectsApi.getById(finalProjectId)
+
+      await onCreate({
+        ...data,
+        projectId: finalProjectId,
+        projectName: project?.name || "",
+        amount: typeof data.amount === "string" ? parseFloat(data.amount) : data.amount,
+        paidDate: data.paidDate || undefined,
+        notes: data.notes || undefined,
+      } as Omit<Payment, "id" | "createdAt" | "updatedAt">)
+
+      onOpenChange(false)
+      if (onRefresh) {
+        await onRefresh()
+      }
+    } catch (err: any) {
+      setError(err?.message || "Failed to create payment. Please try again.")
+      console.error("Error creating payment:", err)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (!open) return null
+
+  return (
+    <>
+      <div className="fixed inset-0 z-50 bg-black/50" onClick={() => !isSubmitting && onOpenChange(false)} />
+      <div className="fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Create New Payment</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => !isSubmitting && onOpenChange(false)}
+            className="h-6 w-6"
+            disabled={isSubmitting}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+        {error && (
+          <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+        <PaymentForm onSubmit={handleSubmit} onCancel={() => !isSubmitting && onOpenChange(false)} projectId={projectId} />
+      </div>
+    </>
   )
 }
 
@@ -375,12 +498,18 @@ function CreatePaymentButton({
   onCreate,
   projectId,
   onRefresh,
+  open: externalOpen,
+  onOpenChange,
 }: {
   onCreate: (data: Omit<Payment, "id" | "createdAt" | "updatedAt">) => Promise<void>
   projectId?: string
   onRefresh?: () => Promise<void>
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }) {
-  const [open, setOpen] = React.useState(false)
+  const [internalOpen, setInternalOpen] = React.useState(false)
+  const open = externalOpen !== undefined ? externalOpen : internalOpen
+  const setOpen = onOpenChange || setInternalOpen
   const [error, setError] = React.useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
@@ -389,14 +518,14 @@ function CreatePaymentButton({
       setIsSubmitting(true)
       setError(null)
       const finalProjectId = data.projectId || projectId || ""
-      
+
       if (!finalProjectId) {
         setError("Please select a project")
         return
       }
 
       const project = await projectsApi.getById(finalProjectId)
-      
+
       await onCreate({
         ...data,
         projectId: finalProjectId,
@@ -405,7 +534,7 @@ function CreatePaymentButton({
         paidDate: data.paidDate || undefined,
         notes: data.notes || undefined,
       } as Omit<Payment, "id" | "createdAt" | "updatedAt">)
-      
+
       setOpen(false)
       // Immediately refresh the list to show the new payment
       if (onRefresh) {
@@ -431,10 +560,10 @@ function CreatePaymentButton({
           <div className="fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Create New Payment</h2>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => !isSubmitting && setOpen(false)} 
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => !isSubmitting && setOpen(false)}
                 className="h-6 w-6"
                 disabled={isSubmitting}
               >

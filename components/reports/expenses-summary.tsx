@@ -187,7 +187,7 @@ export function ExpensesSummary() {
               <DollarSign className="h-4 w-4 text-blue-600" />
               <p className="text-sm font-medium text-muted-foreground">Total Expenses</p>
             </div>
-            <p className="text-3xl font-bold">{formatCurrency(summary.total)}</p>
+            <p className="text-xl font-bold">{formatCurrency(summary.total)}</p>
             <p className="text-xs text-muted-foreground mt-1">{summary.count} expense entries</p>
           </div>
 

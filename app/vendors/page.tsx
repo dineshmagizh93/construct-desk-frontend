@@ -15,12 +15,14 @@ export default function VendorsPage() {
         ...data,
         email: data.email || undefined,
         address: data.address || undefined,
+        city: data.city || undefined,
+        state: data.state || undefined,
+        country: data.country || undefined,
         notes: data.notes || undefined,
       } as Omit<Vendor, "id" | "createdAt" | "updatedAt">)
       // Immediately refresh to ensure VendorList component sees the update
       await loadVendors()
     } catch (error) {
-      console.error("Error creating vendor:", error)
       throw error // Re-throw to let the form handle the error
     }
   }

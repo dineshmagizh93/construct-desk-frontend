@@ -17,6 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
 import { Pagination } from "@/components/ui/pagination"
 import { SiteProgressForm } from "./site-progress-form"
 import { useSiteProgress } from "@/lib/hooks/use-site-progress"
@@ -26,11 +27,10 @@ import { SiteProgressFormSchema } from "@/lib/validations/site-progress"
 
 interface SiteProgressListProps {
   projectId?: string
-  onCreateProgress: () => void
 }
 
-export function SiteProgressList({ projectId, onCreateProgress }: SiteProgressListProps) {
-  const { progress, loading, deleteProgress, loadProgress } = useSiteProgress()
+export function SiteProgressList({ projectId }: SiteProgressListProps) {
+  const { progress, loading, deleteProgress, loadProgress, createProgress } = useSiteProgress()
   const { projects } = useProjects()
   const [searchQuery, setSearchQuery] = React.useState("")
   const [projectFilter, setProjectFilter] = React.useState<string>("all")
@@ -76,12 +76,19 @@ export function SiteProgressList({ projectId, onCreateProgress }: SiteProgressLi
     setCurrentPage(1)
   }, [projectFilter, searchQuery, startDate, endDate])
 
-  // Adjust current page if it's out of bounds after filtering
+  // Reset to page 1 when itemsPerPage changes
   React.useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
+    setCurrentPage(1)
+  }, [itemsPerPage])
+
+  // Adjust current page if it's out of bounds after filtering or page size change
+  React.useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
       setCurrentPage(totalPages)
+    } else if (currentPage < 1) {
+      setCurrentPage(1)
     }
-  }, [totalPages, currentPage])
+  }, [totalPages, itemsPerPage])
 
   const handleDelete = async (item: SiteProgress) => {
     setProgressToDelete(item)
@@ -90,7 +97,7 @@ export function SiteProgressList({ projectId, onCreateProgress }: SiteProgressLi
 
   const confirmDelete = async () => {
     if (!progressToDelete) return
-    
+
     try {
       await deleteProgress(progressToDelete.id)
       await loadProgress(projectId, true) // Force refresh
@@ -113,21 +120,28 @@ export function SiteProgressList({ projectId, onCreateProgress }: SiteProgressLi
     return <div className="flex items-center justify-center p-8">Loading site progress...</div>
   }
 
+
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] space-y-6">
+    <div className="flex flex-col h-full min-h-0 gap-1">
       {/* Header and Actions */}
-      <div className="flex items-center justify-between flex-shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 flex-shrink-0 pt-4 sm:pt-6 pb-4 border-b border-border/40">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Site Progress</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Site Progress</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
             {projectId ? "Project site progress" : "Track construction site progress"}
           </p>
         </div>
-        <CreateProgressButton onCreate={async () => {}} projectId={projectId} />
+        <CreateProgressButton
+          projectId={projectId}
+          onCreated={async () => {
+            await loadProgress(projectId, true)
+          }}
+          createProgress={createProgress}
+        />
       </div>
 
       {/* Filters */}
-      <div className="flex gap-4 flex-wrap flex-shrink-0">
+      <div className="flex gap-4 flex-col sm:flex-row flex-shrink-0 my-2">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -179,56 +193,68 @@ export function SiteProgressList({ projectId, onCreateProgress }: SiteProgressLi
 
       {/* Table Container - Takes remaining space */}
       <div className="flex-1 flex flex-col min-h-0 rounded-md border overflow-hidden bg-card">
-        <div className="flex-1 overflow-y-auto overflow-x-hidden" data-table-scroll-container>
-          <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Project Name</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Notes</TableHead>
-              <TableHead>Photo Count</TableHead>
-              <TableHead className="w-[70px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredProgress.length === 0 ? (
+        <div
+          className={cn(
+            "flex-1 min-h-0 overflow-x-auto", // Horizontal scroll on mobile
+            "overflow-y-auto" // Always allow vertical scroll for table content
+          )}
+          data-table-scroll-container
+        >
+          <Table className="border-0 rounded-none min-w-[900px]">
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                  No site progress entries found
-                </TableCell>
+                <TableHead>Project Name</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Notes</TableHead>
+                <TableHead>Photo Count</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
               </TableRow>
-            ) : (
-              paginatedProgress.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">
-                    <Link href={`/projects/${item.projectId}`} className="hover:underline">
-                      {item.projectName}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{new Date(item.date).toLocaleDateString()}</TableCell>
-                  <TableCell className="max-w-md">
-                    <p className="text-sm text-muted-foreground truncate">
-                      {item.notes || "No notes"}
-                    </p>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                      <span>{item.photos.length}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <ProgressActionsMenu item={item} onDelete={handleDelete} />
+            </TableHeader>
+            <TableBody>
+              {filteredProgress.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    No site progress entries found
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                paginatedProgress.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium">
+                      <span
+                        className="truncate block"
+                        title={item.projectName}
+                      >
+                        {item.projectName}
+                      </span>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">{new Date(item.date).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}</TableCell>
+                    <TableCell className="align-top">
+                      <p
+                        className="text-xs text-muted-foreground whitespace-normal break-words max-w-3xl"
+                        title={item.notes || "No notes"}
+                      >
+                        {item.notes || "No notes"}
+                      </p>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      <div className="flex items-center gap-1">
+                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                        <span>{item.photos.length}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="relative text-center">
+                      <ProgressActionsMenu item={item} onDelete={handleDelete} />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
         </div>
-        
-        {/* Pagination - Always at bottom */}
-        <div className="flex-shrink-0 border-t bg-card">
+
+        {/* Pagination - Always at bottom, outside scroll container */}
+        <div className="flex-shrink-0 border-t border-border bg-background">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -244,7 +270,7 @@ export function SiteProgressList({ projectId, onCreateProgress }: SiteProgressLi
       {deleteDialogOpen && (
         <>
           <div className="fixed inset-0 z-50 bg-black/50" onClick={() => setDeleteDialogOpen(false)} />
-          <div 
+          <div
             className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-md translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg"
             onClick={(e) => e.stopPropagation()}
           >
@@ -255,9 +281,9 @@ export function SiteProgressList({ projectId, onCreateProgress }: SiteProgressLi
               undone.
             </p>
             <div className="flex justify-end gap-2">
-              <Button 
+              <Button
                 type="button"
-                variant="outline" 
+                variant="outline"
                 onClick={(e) => {
                   e.stopPropagation()
                   setDeleteDialogOpen(false)
@@ -265,9 +291,9 @@ export function SiteProgressList({ projectId, onCreateProgress }: SiteProgressLi
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 type="button"
-                variant="destructive" 
+                variant="destructive"
                 onClick={(e) => {
                   e.stopPropagation()
                   confirmDelete()
@@ -320,10 +346,12 @@ function ProgressActionsMenu({
 }
 
 function CreateProgressButton({
-  onCreate,
+  createProgress,
+  onCreated,
   projectId,
 }: {
-  onCreate: (data: Omit<SiteProgress, "id" | "createdAt" | "updatedAt">) => Promise<void>
+  createProgress: (data: { projectId: string; date: string; notes?: string; photos?: string[] }) => Promise<any>
+  onCreated: () => Promise<void>
   projectId?: string
 }) {
   const [open, setOpen] = React.useState(false)
@@ -335,25 +363,23 @@ function CreateProgressButton({
       setIsSubmitting(true)
       setError(null)
       const finalProjectId = data.projectId || projectId || ""
-      
+
       if (!finalProjectId) {
         setError("Please select a project")
         return
       }
 
-      const project = await projectsApi.getById(finalProjectId)
-      if (!project) {
-        throw new Error("Project not found")
-      }
-
-      await onCreate({
-        ...data,
+      await createProgress({
         projectId: finalProjectId,
-        projectName: project.name,
+        date: data.date,
         notes: data.notes || undefined,
-      } as Omit<SiteProgress, "id" | "createdAt" | "updatedAt">)
-      
+        photos: data.photos || [],
+      })
+
+      await onCreated()
+
       setOpen(false)
+      toast.success("Site progress added successfully")
     } catch (err: any) {
       setError(err?.message || "Failed to create site progress. Please try again.")
       console.error("Error creating site progress:", err)
@@ -374,10 +400,10 @@ function CreateProgressButton({
           <div className="fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Add Site Progress</h2>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => !isSubmitting && setOpen(false)} 
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => !isSubmitting && setOpen(false)}
                 className="h-6 w-6"
                 disabled={isSubmitting}
               >

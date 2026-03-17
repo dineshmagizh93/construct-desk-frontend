@@ -25,7 +25,6 @@ export default function ExpenseDetailsPage() {
           const data = await expensesApi.getById(params.id)
           setExpense(data)
         } catch (error) {
-          console.error("Failed to load expense:", error)
         } finally {
           setLoading(false)
         }
@@ -70,24 +69,26 @@ export default function ExpenseDetailsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push("/expenses")}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{expense.category}</h1>
-          <p className="text-muted-foreground">Expense details and information</p>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.push("/expenses")}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">{expense.category}</h1>
+            <p className="text-muted-foreground text-xs mt-0">Expense details and information</p>
+          </div>
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Expense Information</CardTitle>
             <CardDescription>Basic expense details</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-muted-foreground">Amount</span>
               <span className="text-lg font-semibold">{formatCurrency(expense.amount)}</span>

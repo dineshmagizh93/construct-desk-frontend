@@ -1,33 +1,69 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { Sidebar } from "./sidebar"
 import { Header } from "./header"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/lib/hooks/use-auth"
+import { useSuperAdmin } from "@/lib/hooks/use-super-admin"
 import { getAuthToken } from "@/lib/config"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
 }
 
+// Global auth check state to prevent multiple checks
+let globalAuthChecked = false
+let globalAuthPromise: Promise<boolean> | null = null
+
 // Memoize to prevent re-renders on navigation
 export const DashboardLayout = React.memo(function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false)
   const router = useRouter()
+  const pathname = usePathname()
   const { isAuthenticated, loading } = useAuth()
+  const { isSuperAdmin } = useSuperAdmin()
+  const [authInitialized, setAuthInitialized] = React.useState(globalAuthChecked)
 
-  // Only check auth once, not on every navigation
-  const authChecked = React.useRef(false)
-  
+  // Redirect super admin away from normal CRM pages to admin dashboard
   React.useEffect(() => {
-    if (!loading && !authChecked.current) {
-      authChecked.current = true
-      const token = getAuthToken()
-      if (!token || !isAuthenticated) {
-        router.push("/login")
+    if (isSuperAdmin && authInitialized && pathname) {
+      // Allow admin pages, login, register, and other public pages
+      const allowedPaths = ['/admin', '/login', '/register', '/', '/pricing', '/contact', '/features', '/solutions', '/resources']
+      const isAllowedPath = allowedPaths.some(path => pathname === path || pathname.startsWith(path + '/'))
+      
+      if (!isAllowedPath && !pathname.startsWith('/admin')) {
+        // Redirect to admin dashboard
+        router.push('/admin')
       }
+    }
+  }, [isSuperAdmin, authInitialized, pathname, router])
+
+  // Only check auth once globally, not on every navigation
+  React.useEffect(() => {
+    if (!globalAuthChecked && !loading) {
+      if (globalAuthPromise) {
+        globalAuthPromise.then((authenticated) => {
+          if (!authenticated) {
+            router.push("/login")
+          }
+          globalAuthChecked = true
+          setAuthInitialized(true)
+        })
+      } else {
+        const token = getAuthToken()
+        if (!token || !isAuthenticated) {
+          globalAuthPromise = Promise.resolve(false)
+          router.push("/login")
+        } else {
+          globalAuthPromise = Promise.resolve(true)
+        }
+        globalAuthChecked = true
+        setAuthInitialized(true)
+      }
+    } else if (globalAuthChecked) {
+      setAuthInitialized(true)
     }
   }, [isAuthenticated, loading, router])
 
@@ -35,8 +71,24 @@ export const DashboardLayout = React.memo(function DashboardLayout({ children }:
     setSidebarCollapsed((prev) => !prev)
   }, [])
 
-  // Show loading only on initial auth check
-  if (loading && !authChecked.current) {
+  // Prefetch all module routes on mount for instant navigation
+  React.useEffect(() => {
+    const moduleRoutes = [
+      "/dashboard", "/usage", "/projects", "/tasks", "/leads", "/site-progress",
+      "/payments", "/expenses", "/inventory", "/vendors", "/labour",
+      "/documents", "/reports", "/users", "/settings"
+    ]
+    
+    // Prefetch all routes in background
+    moduleRoutes.forEach(route => {
+      if (route !== pathname) {
+        router.prefetch(route)
+      }
+    })
+  }, [pathname, router])
+
+  // Show loading only on very first auth check
+  if (!authInitialized && loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -48,22 +100,24 @@ export const DashboardLayout = React.memo(function DashboardLayout({ children }:
   }
 
   // Don't render if not authenticated (redirect will happen)
-  if (!isAuthenticated && authChecked.current) {
+  if (!isAuthenticated && authInitialized) {
     return null
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      {/* Desktop Sidebar - Hidden on mobile */}
       <Sidebar isCollapsed={sidebarCollapsed} onToggle={toggleSidebar} />
-      <div
+        <div
         className={cn(
           "transition-all duration-300",
-          sidebarCollapsed ? "lg:pl-16" : "lg:pl-64"
+          "pl-0", // No padding on mobile
+          sidebarCollapsed ? "lg:pl-14" : "lg:pl-[200px]"
         )}
       >
         <Header sidebarCollapsed={sidebarCollapsed} />
-        <main className="p-6 lg:p-8 pt-24 lg:pt-28 min-h-[calc(100vh-5rem)] overflow-y-auto overflow-x-hidden">
-          <div className="max-w-[1920px] mx-auto w-full">
+        <main className="px-4 sm:px-5 lg:px-6 pb-4 sm:pb-5 lg:pb-6 pt-12 sm:pt-14 h-screen overflow-hidden">
+          <div className="max-w-[1920px] mx-auto w-full h-full flex flex-col min-h-0">
             {children}
           </div>
         </main>
