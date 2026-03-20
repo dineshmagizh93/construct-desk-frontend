@@ -3,7 +3,7 @@
 import * as React from "react"
 import { formatCurrency } from "@/lib/utils/currency"
 import Link from "next/link"
-import { MoreVertical, Eye, Edit, Trash2, Search, Plus, X, Calendar, DollarSign } from "lucide-react"
+import { MoreVertical, Eye, Edit, Trash2, Search, Plus, X, Calendar, DollarSign, Upload } from "lucide-react"
 import toast from "react-hot-toast"
 import { Expense, ExpenseCategory } from "@/types/expense"
 import { Button } from "@/components/ui/button"
@@ -24,6 +24,8 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { cn } from "@/lib/utils"
 import { Pagination } from "@/components/ui/pagination"
 import { ExpenseForm } from "./expense-form"
+import { BulkUploadModal } from "@/components/shared/bulk-upload-modal"
+import { downloadExpenseBulkTemplate, parseBulkExpensesFromCsv } from "./expense-bulk-utils"
 import { useExpenses } from "@/lib/hooks/use-expenses"
 import { useProjects } from "@/lib/hooks/use-projects"
 import { projectsApi } from "@/lib/api/projects"
@@ -35,7 +37,7 @@ interface ExpenseListProps {
 }
 
 export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
-  const { expenses, loading, deleteExpense, loadExpenses } = useExpenses()
+  const { expenses, loading, deleteExpense, loadExpenses, bulkCreateExpenses } = useExpenses()
   const { projects } = useProjects()
   const [searchQuery, setSearchQuery] = React.useState("")
   const [projectFilter, setProjectFilter] = React.useState<string>("all")
@@ -48,6 +50,7 @@ export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
   const [expenseToDelete, setExpenseToDelete] = React.useState<Expense | null>(null)
   const [openDropdownId, setOpenDropdownId] = React.useState<string | null>(null)
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
+  const [bulkUploadOpen, setBulkUploadOpen] = React.useState(false)
 
   // Filter expenses
   const filteredExpenses = React.useMemo(() => {
@@ -169,6 +172,15 @@ export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search by paid to or notes..."
+        actionButton={
+          !projectId
+            ? {
+                label: "Bulk Upload",
+                icon: <Upload className="h-4 w-4" />,
+                onClick: () => setBulkUploadOpen(true),
+              }
+            : undefined
+        }
         filters={
           <>
             {!projectId && (
@@ -326,6 +338,22 @@ export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
           />
         </div>
       </div>
+
+      {/* Bulk Upload Modal */}
+      <BulkUploadModal
+        open={bulkUploadOpen}
+        onOpenChange={setBulkUploadOpen}
+        title="Bulk Upload Expenses"
+        description="Upload a CSV file containing your expenses. The Project ID column should match the ID of your existing projects. Invalid projects will be skipped."
+        requiredHeaders={["Project ID", "Category", "Amount", "Date", "Paid To"]}
+        onDownloadTemplate={downloadExpenseBulkTemplate}
+        onParseCsv={parseBulkExpensesFromCsv}
+        onUpload={async (rows) => {
+          const res = await bulkCreateExpenses(rows)
+          await loadExpenses(projectId, true)
+          return res
+        }}
+      />
 
       {/* Create Expense Dialog */}
       {createDialogOpen && (

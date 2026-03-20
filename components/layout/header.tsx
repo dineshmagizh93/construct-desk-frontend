@@ -35,7 +35,7 @@ export const Header = React.memo(function Header({ sidebarCollapsed }: HeaderPro
       className={cn(
         "fixed top-0 z-20 flex h-12 sm:h-14 items-center gap-2 sm:gap-3 border-b border-border/40 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 px-3 sm:px-4 lg:px-6 shadow-sm transition-all duration-300",
         "left-0 right-0", // Full width on mobile
-        sidebarCollapsed ? "lg:left-16" : "lg:left-64"
+        sidebarCollapsed ? "lg:left-14" : "lg:left-[200px]"
       )}
     >
       {/* Mobile Menu Button */}
@@ -62,13 +62,13 @@ export const Header = React.memo(function Header({ sidebarCollapsed }: HeaderPro
       {/* Upgrade Button - Show for non-Enterprise plans */}
       {user?.company?.subscriptionPlan && user.company.subscriptionPlan !== 'ENTERPRISE' && (
         <Button
-          variant="ghost"
+          variant="default"
           size="sm"
-          className="hidden sm:flex items-center gap-1.5 h-8 px-2.5 text-xs"
+          className="hidden sm:flex items-center gap-2 h-8 px-3 rounded-full shadow-sm"
           onClick={() => router.push('/pricing')}
         >
           <ArrowUp className="h-3.5 w-3.5" />
-          <span>Upgrade</span>
+          <span className="font-semibold">Upgrade</span>
         </Button>
       )}
 

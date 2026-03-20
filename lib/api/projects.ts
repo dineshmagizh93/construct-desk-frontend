@@ -11,6 +11,7 @@ export interface ProjectStats {
 }
 
 export interface CreateProjectDto {
+  projectId: string;
   name: string;
   clientName?: string;
   location?: string;
@@ -24,6 +25,7 @@ export interface CreateProjectDto {
 }
 
 export interface UpdateProjectDto {
+  projectId?: string;
   name?: string;
   clientName?: string;
   location?: string;
@@ -36,10 +38,18 @@ export interface UpdateProjectDto {
   progress?: number;
 }
 
+export interface BulkCreateResponse {
+  requested: number;
+  unique: number;
+  created: number;
+  skipped: number;
+}
+
 // Transform backend response to frontend Project type
 const transformProject = (data: any): Project => {
   return {
     id: data.id,
+    projectId: data.projectId || "",
     name: data.name,
     clientName: data.clientName || '',
     location: data.location || '',
@@ -69,6 +79,11 @@ export const projectsApi = {
   async create(project: CreateProjectDto): Promise<Project> {
     const data = await apiClient.post<any>('/projects', project);
     return transformProject(data);
+  },
+
+  async bulkCreate(projects: CreateProjectDto[]): Promise<BulkCreateResponse> {
+    const data = await apiClient.post<BulkCreateResponse>('/projects/bulk', { projects });
+    return data;
   },
 
   async update(id: string, project: UpdateProjectDto): Promise<Project> {

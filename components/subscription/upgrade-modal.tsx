@@ -53,12 +53,12 @@ export function UpgradeModal({ open, onOpenChange, limitType }: UpgradeModalProp
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-full">
             Cancel
           </Button>
-          <Button onClick={handleUpgrade}>
+          <Button onClick={handleUpgrade} variant="default" className="rounded-full">
+            <ArrowRight className="mr-2 h-4 w-4" />
             Upgrade Plan
-            <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </DialogFooter>
       </DialogContent>

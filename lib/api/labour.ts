@@ -42,6 +42,10 @@ export const labourApi = {
     return data.map(transformLabour);
   },
 
+  async bulkCreate(labour: any[]): Promise<{ requested: number; created: number; skipped: number }> {
+    return await apiClient.post<any>('/labour/bulk', { labour });
+  },
+
   async getById(id: string): Promise<Labour> {
     const data = await apiClient.get<any>(`/labour/${id}`);
     return transformLabour(data);

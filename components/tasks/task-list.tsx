@@ -20,13 +20,15 @@ import {
 } from "@/components/ui/table"
 import { Pagination } from "@/components/ui/pagination"
 import { cn } from "@/lib/utils"
-import { Plus, Search, Calendar, User, Clock, Edit, Trash2, MoreVertical, Eye, LayoutGrid, List } from "lucide-react"
+import { Plus, Search, Calendar, User, Clock, Edit, Trash2, MoreVertical, Eye, LayoutGrid, List, Upload } from "lucide-react"
 import { useProjects } from "@/lib/hooks/use-projects"
 import { useUsers } from "@/lib/hooks/use-users"
 import { TaskFilters } from "@/lib/api/tasks"
 import { format } from "date-fns"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { BulkUploadModal } from "@/components/shared/bulk-upload-modal"
+import { downloadTaskBulkTemplate, parseBulkTasksFromCsv } from "./task-bulk-utils"
 
 interface TaskListProps {
   viewMode?: "kanban" | "list"
@@ -37,8 +39,9 @@ export function TaskList({ viewMode, setViewMode }: TaskListProps = {}) {
   const { projects } = useProjects()
   const { users } = useUsers()
   const [filters, setFilters] = React.useState<TaskFilters>({})
-  const { tasks, loading, error, createTask, updateTask, deleteTask, loadTasks } = useTasks(filters)
+  const { tasks, loading, error, createTask, updateTask, deleteTask, loadTasks, bulkCreateTasks } = useTasks(filters)
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
+  const [bulkUploadOpen, setBulkUploadOpen] = React.useState(false)
   const [selectedTask, setSelectedTask] = React.useState<Task | null>(null)
   const [editDialogOpen, setEditDialogOpen] = React.useState(false)
   const [taskToEdit, setTaskToEdit] = React.useState<Task | null>(null)
@@ -250,10 +253,16 @@ export function TaskList({ viewMode, setViewMode }: TaskListProps = {}) {
               </Button>
             </div>
           )}
-          <Button onClick={() => setCreateDialogOpen(true)} size="sm">
-            <Plus className="mr-1.5 h-4 w-4" />
-            New Task
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setBulkUploadOpen(true)}>
+              <Upload className="mr-1.5 h-4 w-4" />
+              Bulk Upload
+            </Button>
+            <Button onClick={() => setCreateDialogOpen(true)} size="sm">
+              <Plus className="mr-1.5 h-4 w-4" />
+              New Task
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -503,6 +512,21 @@ export function TaskList({ viewMode, setViewMode }: TaskListProps = {}) {
           users={users}
         />
       )}
+
+      {/* Bulk Upload Modal */}
+      <BulkUploadModal
+        open={bulkUploadOpen}
+        onOpenChange={setBulkUploadOpen}
+        title="Bulk Upload Tasks"
+        description="Upload a CSV file containing tasks. Project IDs should match exactly or leave blank. Invalid projects are skipped."
+        requiredHeaders={["Project ID", "Title", "Status"]}
+        onDownloadTemplate={downloadTaskBulkTemplate}
+        onParseCsv={parseBulkTasksFromCsv}
+        onUpload={async (rows) => {
+          const res = await bulkCreateTasks(rows)
+          return res
+        }}
+      />
 
       {/* Edit Task Dialog */}
       {editDialogOpen && taskToEdit && (

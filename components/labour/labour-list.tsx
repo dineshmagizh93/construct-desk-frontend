@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { MoreVertical, Eye, Edit, Trash2, Search, Plus, X, Calendar, Users, DollarSign } from "lucide-react"
+import { MoreVertical, Eye, Edit, Trash2, Search, Plus, X, Calendar, Users, DollarSign, Upload } from "lucide-react"
 import { formatCurrency } from "@/lib/utils/currency"
 import { Labour, LabourCategory } from "@/types/labour"
 import { Button } from "@/components/ui/button"
@@ -21,6 +21,8 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { cn } from "@/lib/utils"
 import { Pagination } from "@/components/ui/pagination"
 import { LabourForm } from "./labour-form"
+import { BulkUploadModal } from "@/components/shared/bulk-upload-modal"
+import { downloadLabourBulkTemplate, parseBulkLabourFromCsv } from "./labour-bulk-utils"
 import { useLabour } from "@/lib/hooks/use-labour"
 import { useProjects } from "@/lib/hooks/use-projects"
 import { LabourFormSchema } from "@/lib/validations/labour"
@@ -34,7 +36,7 @@ interface LabourListProps {
 }
 
 export function LabourList({ projectId, onCreateLabour }: LabourListProps) {
-  const { labour, loading, deleteLabour, loadLabour, createLabour, updateLabour } = useLabour()
+  const { labour, loading, deleteLabour, loadLabour, createLabour, updateLabour, bulkCreateLabour } = useLabour()
   const { projects } = useProjects()
   const [searchQuery, setSearchQuery] = React.useState("")
   const [projectFilter, setProjectFilter] = React.useState<string>("all")
@@ -46,6 +48,7 @@ export function LabourList({ projectId, onCreateLabour }: LabourListProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [labourToDelete, setLabourToDelete] = React.useState<Labour | null>(null)
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
+  const [bulkUploadOpen, setBulkUploadOpen] = React.useState(false)
   const [editDialogOpen, setEditDialogOpen] = React.useState(false)
   const [labourToEdit, setLabourToEdit] = React.useState<Labour | null>(null)
 
@@ -189,10 +192,16 @@ export function LabourList({ projectId, onCreateLabour }: LabourListProps) {
           <p className="text-muted-foreground mt-1 text-sm">Manage labour entries and track costs</p>
         </div>
         {!projectId && (
-          <Button onClick={() => setCreateDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Labour Entry
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setBulkUploadOpen(true)}>
+              <Upload className="mr-2 h-4 w-4" />
+              Bulk Upload
+            </Button>
+            <Button onClick={() => setCreateDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Labour Entry
+            </Button>
+          </div>
         )}
       </div>
 
@@ -431,6 +440,22 @@ export function LabourList({ projectId, onCreateLabour }: LabourListProps) {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Upload Modal */}
+      <BulkUploadModal
+        open={bulkUploadOpen}
+        onOpenChange={setBulkUploadOpen}
+        title="Bulk Upload Labour"
+        description="Upload a CSV file containing labour entries. The Project ID column should match existing project identifiers. Invalid projects are skipped."
+        requiredHeaders={["Project ID", "Category", "Headcount", "Cost Per Day", "Date"]}
+        onDownloadTemplate={downloadLabourBulkTemplate}
+        onParseCsv={parseBulkLabourFromCsv}
+        onUpload={async (rows) => {
+          const res = await bulkCreateLabour(rows)
+          await loadLabour(projectId, true)
+          return res
+        }}
+      />
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

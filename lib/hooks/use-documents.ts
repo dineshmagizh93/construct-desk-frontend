@@ -105,6 +105,23 @@ export function useDocuments() {
     }
   }, [])
 
+  const bulkCreateDocuments = useCallback(async (documentsData: any[]) => {
+    try {
+      setError(null)
+      const res = await documentsApi.bulkCreate(documentsData)
+      // Invalidate cache
+      if (documentsCache) {
+        documentsCache.timestamp = 0
+      }
+      return res
+    } catch (err) {
+      const apiError = err as ApiError
+      const errorMessage = apiError.message as string || "Failed to bulk create documents"
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }, [])
+
   const updateDocument = useCallback(async (id: string, updates: UpdateDocumentDto) => {
     try {
       setError(null)
@@ -149,6 +166,7 @@ export function useDocuments() {
     loadDocuments,
     loadDocumentsByProject,
     createDocument,
+    bulkCreateDocuments,
     updateDocument,
     deleteDocument,
   }

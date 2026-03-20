@@ -84,6 +84,23 @@ export function useVendors() {
     }
   }, [])
 
+  const bulkCreateVendors = useCallback(async (vendors: any[]) => {
+    try {
+      setError(null)
+      const res = await vendorsApi.bulkCreate(vendors)
+      // Invalidate cache immediately
+      if (vendorsCache) {
+        vendorsCache.timestamp = 0
+      }
+      return res
+    } catch (err) {
+      const apiError = err as ApiError
+      const errorMessage = apiError.message as string || "Failed to bulk create vendors"
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }, [])
+
   const updateVendor = useCallback(async (id: string, updates: UpdateVendorDto) => {
     try {
       setError(null)
@@ -146,6 +163,7 @@ export function useVendors() {
     error,
     loadVendors,
     createVendor,
+    bulkCreateVendors,
     updateVendor,
     deleteVendor,
     toggleVendorStatus,

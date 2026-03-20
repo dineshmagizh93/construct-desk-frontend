@@ -3,7 +3,7 @@
 import * as React from "react"
 import { formatCurrency } from "@/lib/utils/currency"
 import Link from "next/link"
-import { MoreVertical, Eye, Edit, Trash2, Search, Plus, X, Calendar } from "lucide-react"
+import { MoreVertical, Eye, Edit, Trash2, Search, Plus, X, Calendar, Upload } from "lucide-react"
 import toast from "react-hot-toast"
 import { Payment, PaymentStatus } from "@/types/payment"
 import { Button } from "@/components/ui/button"
@@ -24,6 +24,8 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { cn } from "@/lib/utils"
 import { Pagination } from "@/components/ui/pagination"
 import { PaymentForm } from "./payment-form"
+import { BulkUploadModal } from "@/components/shared/bulk-upload-modal"
+import { downloadPaymentBulkTemplate, parseBulkPaymentsFromCsv } from "./payment-bulk-utils"
 import { usePayments } from "@/lib/hooks/use-payments"
 import { useProjects } from "@/lib/hooks/use-projects"
 import { projectsApi } from "@/lib/api/projects"
@@ -35,7 +37,7 @@ interface PaymentListProps {
 }
 
 export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
-  const { payments, loading, deletePayment, loadPayments } = usePayments()
+  const { payments, loading, deletePayment, loadPayments, bulkCreatePayments } = usePayments()
   const { projects } = useProjects()
   const [searchQuery, setSearchQuery] = React.useState("")
   const [projectFilter, setProjectFilter] = React.useState<string>("all")
@@ -47,6 +49,7 @@ export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
   const [paymentToDelete, setPaymentToDelete] = React.useState<Payment | null>(null)
   const [openDropdownId, setOpenDropdownId] = React.useState<string | null>(null)
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
+  const [bulkUploadOpen, setBulkUploadOpen] = React.useState(false)
 
   // Filter payments
   const filteredPayments = React.useMemo(() => {
@@ -161,6 +164,15 @@ export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search by milestone or project..."
+        actionButton={
+          !projectId
+            ? {
+                label: "Bulk Upload",
+                icon: <Upload className="h-4 w-4" />,
+                onClick: () => setBulkUploadOpen(true),
+              }
+            : undefined
+        }
         filters={
           <>
             {!projectId && (
@@ -321,6 +333,22 @@ export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
           />
         </div>
       </div>
+
+      {/* Bulk Upload Modal */}
+      <BulkUploadModal
+        open={bulkUploadOpen}
+        onOpenChange={setBulkUploadOpen}
+        title="Bulk Upload Payments"
+        description="Upload a CSV file containing payments. The Project ID column should match existing project identifiers. Invalid projects are skipped."
+        requiredHeaders={["Project ID", "Milestone", "Amount", "Due Date"]}
+        onDownloadTemplate={downloadPaymentBulkTemplate}
+        onParseCsv={parseBulkPaymentsFromCsv}
+        onUpload={async (rows) => {
+          const res = await bulkCreatePayments(rows)
+          await loadPayments(projectId, true)
+          return res
+        }}
+      />
 
       {/* Delete Confirmation Dialog */}
       {deleteDialogOpen && (

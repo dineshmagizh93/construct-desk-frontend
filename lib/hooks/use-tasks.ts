@@ -82,6 +82,20 @@ export function useTasks(filters?: TaskFilters) {
     }
   }, [])
 
+  const bulkCreateTasks = useCallback(async (tasks: any[]) => {
+    try {
+      setError(null)
+      const res = await tasksApi.bulkCreate(tasks)
+      await loadTasks(true) // Force refetch
+      return res
+    } catch (err) {
+      const apiError = err as ApiError
+      const errorMessage = apiError.message as string || "Failed to bulk create tasks"
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }, [loadTasks])
+
   const updateTask = useCallback(async (id: string, updates: UpdateTaskDto) => {
     try {
       setError(null)
@@ -143,6 +157,7 @@ export function useTasks(filters?: TaskFilters) {
     error,
     loadTasks,
     createTask,
+    bulkCreateTasks,
     updateTask,
     updateTaskPosition,
     deleteTask,

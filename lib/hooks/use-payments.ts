@@ -105,6 +105,23 @@ export function usePayments() {
     }
   }, [])
 
+  const bulkCreatePayments = useCallback(async (payments: any[]) => {
+    try {
+      setError(null)
+      const res = await paymentsApi.bulkCreate(payments)
+      // Invalidate cache immediately
+      if (paymentsCache) {
+        paymentsCache.timestamp = 0
+      }
+      return res
+    } catch (err) {
+      const apiError = err as ApiError
+      const errorMessage = apiError.message as string || "Failed to bulk create payments"
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }, [])
+
   const updatePayment = useCallback(async (id: string, updates: UpdatePaymentDto) => {
     try {
       setError(null)
@@ -149,6 +166,7 @@ export function usePayments() {
     loadPayments,
     loadPaymentsByProject,
     createPayment,
+    bulkCreatePayments,
     updatePayment,
     deletePayment,
   }

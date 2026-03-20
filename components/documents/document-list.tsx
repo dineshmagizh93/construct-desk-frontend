@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { MoreVertical, Eye, Edit, Trash2, Search, Plus, X, Calendar, Download, File } from "lucide-react"
+import { MoreVertical, Eye, Edit, Trash2, Search, Plus, X, Calendar, Download, File, Upload } from "lucide-react"
 import { Document, DocumentType } from "@/types/document"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,6 +20,8 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { cn } from "@/lib/utils"
 import { Pagination } from "@/components/ui/pagination"
 import { DocumentForm } from "./document-form"
+import { BulkUploadModal } from "@/components/shared/bulk-upload-modal"
+import { downloadDocumentBulkTemplate, parseBulkDocumentsFromCsv } from "./document-bulk-utils"
 import { useDocuments } from "@/lib/hooks/use-documents"
 import { useProjects } from "@/lib/hooks/use-projects"
 import { DocumentFormSchema } from "@/lib/validations/document"
@@ -35,7 +37,7 @@ interface DocumentListProps {
 }
 
 export function DocumentList({ projectId, onCreateDocument }: DocumentListProps) {
-  const { documents, loading, deleteDocument, createDocument, updateDocument, loadDocuments } = useDocuments()
+  const { documents, loading, deleteDocument, createDocument, updateDocument, loadDocuments, bulkCreateDocuments } = useDocuments()
   const { projects } = useProjects()
   const { handleError, UpgradeModalComponent } = usePlanLimits()
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -48,6 +50,7 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [documentToDelete, setDocumentToDelete] = React.useState<Document | null>(null)
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
+  const [bulkUploadOpen, setBulkUploadOpen] = React.useState(false)
   const [editDialogOpen, setEditDialogOpen] = React.useState(false)
   const [documentToEdit, setDocumentToEdit] = React.useState<Document | null>(null)
 
@@ -227,10 +230,16 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
           <p className="text-muted-foreground mt-1 text-sm">Manage project documents and files</p>
         </div>
         {!projectId && (
-          <Button onClick={() => setCreateDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Upload Document
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setBulkUploadOpen(true)}>
+              <Upload className="mr-2 h-4 w-4" />
+              Bulk Upload
+            </Button>
+            <Button onClick={() => setCreateDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Upload Document
+            </Button>
+          </div>
         )}
       </div>
 
@@ -483,6 +492,22 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Upload Modal */}
+      <BulkUploadModal
+        open={bulkUploadOpen}
+        onOpenChange={setBulkUploadOpen}
+        title="Bulk Upload Documents"
+        description="Upload a CSV file containing documents. Make sure to provide Project ID and File URL. Invalid projects or those over quota will fail."
+        requiredHeaders={["Project ID", "Name", "File URL"]}
+        onDownloadTemplate={downloadDocumentBulkTemplate}
+        onParseCsv={parseBulkDocumentsFromCsv}
+        onUpload={async (rows) => {
+          const res = await bulkCreateDocuments(rows)
+          await loadDocuments(projectId, true)
+          return res
+        }}
+      />
 
       {/* Upgrade Modal */}
       <UpgradeModalComponent />

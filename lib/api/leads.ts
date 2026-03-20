@@ -55,6 +55,10 @@ export const leadsApi = {
     return transformLead(data);
   },
 
+  async bulkCreate(leads: any[]): Promise<{ requested: number; created: number; skipped: number }> {
+    return await apiClient.post<any>('/leads/bulk', { leads });
+  },
+
   async update(id: string, lead: UpdateLeadDto): Promise<Lead> {
     const data = await apiClient.patch<any>(`/leads/${id}`, lead);
     return transformLead(data);

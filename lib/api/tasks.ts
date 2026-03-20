@@ -133,6 +133,10 @@ export const tasksApi = {
     return apiClient.post<Task>('/tasks', task);
   },
 
+  async bulkCreate(tasks: any[]): Promise<{ requested: number; created: number; skipped: number }> {
+    return apiClient.post<any>('/tasks/bulk', { tasks });
+  },
+
   async update(id: string, task: UpdateTaskDto): Promise<Task> {
     return apiClient.patch<Task>(`/tasks/${id}`, task);
   },

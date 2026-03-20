@@ -84,6 +84,23 @@ export function useLeads() {
     }
   }, [])
 
+  const bulkCreateLeads = useCallback(async (leads: any[]) => {
+    try {
+      setError(null)
+      const res = await leadsApi.bulkCreate(leads)
+      // Invalidate cache immediately
+      if (leadsCache) {
+        leadsCache.timestamp = 0
+      }
+      return res
+    } catch (err) {
+      const apiError = err as ApiError
+      const errorMessage = apiError.message as string || "Failed to bulk create leads"
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }, [])
+
   const updateLead = useCallback(async (id: string, updates: UpdateLeadDto) => {
     try {
       setError(null)
@@ -131,6 +148,7 @@ export function useLeads() {
     error,
     loadLeads,
     createLead,
+    bulkCreateLeads,
     updateLead,
     deleteLead,
     convertToClient,

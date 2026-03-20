@@ -78,6 +78,20 @@ export function useInventoryItems(category?: string) {
     }
   }, [])
 
+  const bulkCreateItems = useCallback(async (itemsList: any[]) => {
+    try {
+      setError(null)
+      const res = await inventoryApi.bulkCreateItems(itemsList)
+      if (inventoryItemsCache) inventoryItemsCache.timestamp = 0
+      return res
+    } catch (err) {
+      const apiError = err as ApiError
+      const errorMessage = apiError.message as string || "Failed to bulk create inventory items"
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }, [])
+
   const updateItem = useCallback(async (id: string, updates: UpdateInventoryItemDto) => {
     try {
       setError(null)
@@ -111,6 +125,7 @@ export function useInventoryItems(category?: string) {
     error,
     loadItems,
     createItem,
+    bulkCreateItems,
     updateItem,
     deleteItem,
   }
@@ -164,6 +179,19 @@ export function useInventoryTransactions(itemId?: string, projectId?: string) {
     }
   }, [])
 
+  const bulkCreateTransactions = useCallback(async (transactions: any[]) => {
+    try {
+      setError(null)
+      const res = await inventoryApi.bulkCreateTransactions(transactions)
+      return res
+    } catch (err) {
+      const apiError = err as ApiError
+      const errorMessage = apiError.message as string || "Failed to bulk create transactions"
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }, [])
+
   const deleteTransaction = useCallback(async (id: string) => {
     try {
       setError(null)
@@ -183,6 +211,7 @@ export function useInventoryTransactions(itemId?: string, projectId?: string) {
     error,
     loadTransactions,
     createTransaction,
+    bulkCreateTransactions,
     deleteTransaction,
   }
 }

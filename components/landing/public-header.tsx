@@ -14,7 +14,6 @@ export function PublicHeader() {
   const navItems = [
     { label: "Features", href: "/features" },
     { label: "Solutions", href: "/solutions" },
-    { label: "Resources", href: "/resources" },
     { label: "Pricing", href: "/pricing" },
     { label: "Contact Us", href: "/contact" },
   ]

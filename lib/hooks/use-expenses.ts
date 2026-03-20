@@ -105,6 +105,23 @@ export function useExpenses() {
     }
   }, [])
 
+  const bulkCreateExpenses = useCallback(async (expenses: any[]) => {
+    try {
+      setError(null)
+      const res = await expensesApi.bulkCreate(expenses)
+      // Invalidate cache immediately
+      if (expensesCache) {
+        expensesCache.timestamp = 0
+      }
+      return res
+    } catch (err) {
+      const apiError = err as ApiError
+      const errorMessage = apiError.message as string || "Failed to bulk create expenses"
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }, [])
+
   const updateExpense = useCallback(async (id: string, updates: UpdateExpenseDto) => {
     try {
       setError(null)
@@ -149,6 +166,7 @@ export function useExpenses() {
     loadExpenses,
     loadExpensesByProject,
     createExpense,
+    bulkCreateExpenses,
     updateExpense,
     deleteExpense,
   }

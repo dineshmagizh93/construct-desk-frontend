@@ -31,7 +31,6 @@ interface MobileSidebarProps {
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: Gauge, label: "Usage Tracker", href: "/usage" },
   { icon: FolderKanban, label: "Projects", href: "/projects" },
   { icon: KanbanSquare, label: "Tasks", href: "/tasks" },
   { icon: Users, label: "Leads & Clients", href: "/leads" },
@@ -44,6 +43,7 @@ const menuItems = [
   { icon: FileText, label: "Documents", href: "/documents" },
   { icon: BarChart3, label: "Reports", href: "/reports" },
   { icon: UserPlus, label: "Users", href: "/users" },
+  { icon: Gauge, label: "Usage Tracker", href: "/usage" },
   { icon: Settings, label: "Settings", href: "/settings" },
 ]
 

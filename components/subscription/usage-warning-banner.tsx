@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { AlertTriangle, X } from "lucide-react"
+import { AlertTriangle, X, ArrowUpRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { PlanUsageStats } from "@/lib/api/company"
@@ -64,11 +64,12 @@ export function UsageWarningBanner({ usage, onDismiss }: UsageWarningBannerProps
       </div>
       <div className="flex items-center gap-2">
         <Button
-          variant="ghost"
+          variant="secondary"
           size="sm"
-          className="h-7 px-2 text-xs"
+          className="h-7 px-3 rounded-full text-xs font-semibold flex items-center gap-1.5"
           onClick={handleUpgrade}
         >
+          <ArrowUpRight className="h-3.5 w-3.5" />
           Upgrade
         </Button>
         <Button

@@ -11,6 +11,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { SiteProgressForm } from "./site-progress-form"
 import { X } from "lucide-react"
 import { useState } from "react"
+import { useRole } from "@/lib/hooks/use-role"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { parseCsv, normalizeHeaderKey, normalizeDateToYmd } from "@/lib/utils/csv"
+import toast from "react-hot-toast"
+import { CreateSiteProgressDto } from "@/lib/api/site-progress"
 
 interface ProjectProgressTabProps {
   projectId: string
@@ -18,9 +25,14 @@ interface ProjectProgressTabProps {
 
 export function ProjectProgressTab({ projectId }: ProjectProgressTabProps) {
   const { progress, loading, createProgress, loadProgressByProject } = useSiteProgress()
+  const { isAdmin } = useRole()
   const [projectProgress, setProjectProgress] = React.useState<SiteProgress[]>([])
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
+
+  const [bulkOpen, setBulkOpen] = useState(false)
+  const [bulkError, setBulkError] = useState<string | null>(null)
+  const [bulkRows, setBulkRows] = useState<CreateSiteProgressDto[]>([])
 
   React.useEffect(() => {
     const load = async () => {
@@ -56,10 +68,25 @@ export function ProjectProgressTab({ projectId }: ProjectProgressTabProps) {
           <h3 className="text-lg font-semibold">Site Progress Timeline</h3>
           <p className="text-sm text-muted-foreground">Latest updates first</p>
         </div>
-        <Button onClick={() => setCreateDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Progress
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Progress
+          </Button>
+          {isAdmin && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setBulkOpen(true)
+                setBulkError(null)
+                setBulkRows([])
+              }}
+            >
+              Bulk Upload
+            </Button>
+          )}
+        </div>
       </div>
 
       {projectProgress.length === 0 ? (
@@ -158,6 +185,156 @@ export function ProjectProgressTab({ projectId }: ProjectProgressTabProps) {
           </div>
         </>
       )}
+
+      {/* Bulk Upload Dialog */}
+      <Dialog
+        open={bulkOpen}
+        onOpenChange={(open) => {
+          setBulkOpen(open)
+          if (!open) {
+            setBulkError(null)
+            setBulkRows([])
+          }
+        }}
+      >
+        <DialogContent className="max-w-2xl max-h-[calc(100vh-1rem)] p-3 hide-scrollbar gap-2">
+          <DialogHeader>
+            <DialogTitle>Bulk Upload Site Progress</DialogTitle>
+            <DialogDescription className="text-xs">
+              Upload CSV for this project only. If any row has a different `projectId`, upload will not proceed.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const headers = ["projectId", "date", "notes", "photos"]
+                  const sample = [projectId || "YOUR_PROJECT_ID", "2024-01-15", "Optional notes", "https://example.com/a.jpg;https://example.com/b.jpg"]
+                  const escapeCell = (v: string) => {
+                    const needsQuotes = v.includes(",") || v.includes('"') || v.includes("\n") || v.includes("\r")
+                    const escaped = v.replace(/"/g, '""')
+                    return needsQuotes ? `"${escaped}"` : escaped
+                  }
+                  const csv = `${headers.map(escapeCell).join(",")}\n${sample.map((c) => escapeCell(String(c))).join(",")}\n`
+                  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" })
+                  const url = URL.createObjectURL(blob)
+                  const a = document.createElement("a")
+                  a.href = url
+                  a.download = "site-progress-bulk-upload-template.csv"
+                  document.body.appendChild(a)
+                  a.click()
+                  a.remove()
+                  URL.revokeObjectURL(url)
+                }}
+              >
+                Download CSV Template
+              </Button>
+              <div className="text-xs text-muted-foreground">Headers: date,notes,photos</div>
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="bulk-site-progress">Choose CSV file</Label>
+              <Input
+                id="bulk-site-progress"
+                type="file"
+                accept=".csv,text/csv"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  setBulkError(null)
+                  setBulkRows([])
+                  try {
+                    const text = await file.text()
+                    const parsed = parseCsv(text)
+                    if (parsed.length === 0) throw new Error("Empty CSV.")
+
+                    const [headerRow, ...dataRows] = parsed
+                    const headerMap = new Map<string, number>()
+                    headerRow.forEach((h, idx) => headerMap.set(normalizeHeaderKey(h), idx))
+
+                    const required = ["date"]
+                    const missing = required.filter((h) => !headerMap.has(h))
+                    if (missing.length > 0) throw new Error(`Missing required CSV headers: ${missing.join(", ")}`)
+
+                    const get = (row: string[], key: string) => {
+                      const idx = headerMap.get(key)
+                      if (idx === undefined) return ""
+                      return (row[idx] ?? "").trim()
+                    }
+
+                    const rows: CreateSiteProgressDto[] = []
+                    const mismatch: string[] = []
+
+                    for (const row of dataRows) {
+                      const rowProjectIdRaw = get(row, "projectid")
+                      if (rowProjectIdRaw && rowProjectIdRaw !== projectId) mismatch.push(rowProjectIdRaw)
+                      const finalProjectId = rowProjectIdRaw || projectId
+
+                      const date = normalizeDateToYmd(get(row, "date"))
+                      if (!finalProjectId || !date) continue
+
+                      const notes = get(row, "notes") || undefined
+                      const photosRaw = get(row, "photos")
+                      const photos =
+                        photosRaw
+                          ? photosRaw
+                              .split(";")
+                              .map((p) => p.trim())
+                              .filter(Boolean)
+                          : []
+
+                      rows.push({ projectId: finalProjectId, date, notes, photos })
+                    }
+
+                    if (mismatch.length > 0) {
+                      throw new Error(`CSV projectId mismatch. All rows must match current project (${projectId}).`)
+                    }
+
+                    if (rows.length === 0) throw new Error("No valid rows found. Check CSV values.")
+                    setBulkRows(rows)
+                  } catch (err: any) {
+                    setBulkError(err?.message || "Failed to parse CSV.")
+                  }
+                }}
+              />
+            </div>
+
+            {bulkError && <div className="rounded-md bg-destructive/10 p-2 text-xs text-destructive">{bulkError}</div>}
+
+            <div className="flex items-center justify-end gap-2 pt-1">
+              <Button type="button" variant="outline" onClick={() => setBulkOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                disabled={bulkRows.length === 0}
+                onClick={async () => {
+                  try {
+                    setBulkError(null)
+                    for (const row of bulkRows) {
+                      await createProgress(row)
+                    }
+                    const updated = await loadProgressByProject(projectId)
+                    setProjectProgress(updated)
+                    toast.success("Bulk site progress uploaded successfully")
+                    setBulkOpen(false)
+                    setBulkRows([])
+                  } catch (err: any) {
+                    const raw = err?.message as string
+                    const cleaned = raw?.includes(":") ? raw.split(":").slice(1).join(":").trim() : raw
+                    setBulkError(cleaned || "Bulk upload failed")
+                  }
+                }}
+              >
+                Upload
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Image Modal */}
       {selectedImage && (

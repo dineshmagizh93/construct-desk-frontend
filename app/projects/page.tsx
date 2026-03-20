@@ -30,6 +30,7 @@ export default function ProjectsPage() {
     }
 
     const projectData: CreateProjectDto = {
+      projectId: data.projectId.trim(),
       name: data.name.trim(),
       clientName: toUndefined(data.clientName),
       location: toUndefined(data.location),

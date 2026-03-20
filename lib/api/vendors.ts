@@ -64,6 +64,10 @@ export const vendorsApi = {
     return transformVendor(data);
   },
 
+  async bulkCreate(vendors: any[]): Promise<{ requested: number; created: number; skipped: number }> {
+    return await apiClient.post<any>('/vendors/bulk', { vendors });
+  },
+
   async update(id: string, vendor: UpdateVendorDto): Promise<Vendor> {
     const data = await apiClient.patch<any>(`/vendors/${id}`, vendor);
     return transformVendor(data);

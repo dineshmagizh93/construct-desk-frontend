@@ -6,280 +6,228 @@ import { useRouter } from "next/navigation"
 import { PublicHeader } from "@/components/landing/public-header"
 import { Button } from "@/components/ui/button"
 import {
-  LayoutDashboard,
-  FolderKanban,
-  Users,
   ArrowRight,
-  CheckCircle2,
-  Zap,
-  Shield,
-  Clock,
   BarChart3,
-  CreditCard,
+  CheckCircle2,
+  ChevronRight,
   ClipboardList,
-  TrendingUp,
-  FileText,
+  CreditCard,
+  FolderKanban,
+  LayoutDashboard,
   Package,
+  Shield,
+  Star,
+  Zap,
 } from "lucide-react"
 
 export default function Home() {
   const router = useRouter()
 
-  const features = [
-    {
-      icon: LayoutDashboard,
-      title: "Dashboard & Analytics",
-      description: "Real-time insights into your projects, finances, and team performance",
-    },
-    {
-      icon: FolderKanban,
-      title: "Project Management",
-      description: "Track projects from start to finish with timelines, budgets, and progress",
-    },
-    {
-      icon: ClipboardList,
-      title: "Task Management",
-      description: "Organize work with Kanban boards and task tracking for your team",
-    },
-    {
-      icon: CreditCard,
-      title: "Financial Tracking",
-      description: "Manage payments, expenses, and generate financial reports",
-    },
-    {
-      icon: Package,
-      title: "Inventory Management",
-      description: "Track materials, stock levels, and inventory transactions",
-    },
-    {
-      icon: Users,
-      title: "Team Collaboration",
-      description: "Manage users, roles, and permissions across your organization",
-    },
-  ]
-
-  const benefits = [
-    { icon: Zap, text: "Save 10+ hours per week with automated workflows" },
-    { icon: Shield, text: "Secure cloud-based platform with data backup" },
-    { icon: Clock, text: "Real-time updates and notifications" },
-    { icon: TrendingUp, text: "Make data-driven decisions with analytics" },
-  ]
-
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#fafafa] selection:bg-primary/20 font-sans overflow-x-hidden text-slate-900">
       <PublicHeader />
 
-      {/* Hero Section */}
-      <section className="pt-20 pb-8 px-4 sm:px-6 lg:px-8">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center space-y-4">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium">
-              <span>✨</span> All-in-One Construction Management
-            </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight max-w-4xl mx-auto">
-              Manage Your Construction Business
-              <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent block">
-                {" "}in One Place
-              </span>
-            </h1>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Projects, finances, inventory, and team collaboration—all integrated in a single, easy-to-use platform.
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-              <Button size="lg" className="text-base px-8" onClick={() => router.push("/register")}>
-                Start Free Trial
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-              <Button size="lg" variant="outline" className="text-base px-8" onClick={() => router.push("/pricing")}>
-                View Pricing
-              </Button>
-            </div>
-            <p className="text-sm text-muted-foreground pt-2">
-              No credit card required • 14-day free trial • Cancel anytime
-            </p>
-          </div>
-        </div>
-      </section>
+      {/* Hero Section - Ultra Clean Minimalist */}
+      <section className="relative pt-32 lg:pt-40 pb-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center overflow-hidden">
+        {/* Soft floating background orb */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 blur-[100px] rounded-full pointer-events-none -z-10" />
 
-      {/* Benefits Bar */}
-      <section className="py-8 px-4 sm:px-6 lg:px-8 bg-muted/30 border-y border-border/40">
-        <div className="container mx-auto max-w-6xl">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {benefits.map((benefit, index) => {
-              const Icon = benefit.icon
-              return (
-                <div key={index} className="flex items-start gap-3">
-                  <Icon className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-muted-foreground">{benefit.text}</p>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-10 px-4 sm:px-6 lg:px-8">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center space-y-2 mb-8">
-            <h2 className="text-3xl sm:text-4xl font-bold">Everything You Need</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Powerful features designed specifically for construction businesses
-            </p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => {
-              const Icon = feature.icon
-              return (
-                <div
-                  key={index}
-                  className="p-6 rounded-lg border border-border/40 bg-card hover:border-primary/50 hover:shadow-md transition-all"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="p-2 rounded-lg bg-primary/10 text-primary flex-shrink-0">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <div className="space-y-1">
-                      <h3 className="font-semibold text-base">{feature.title}</h3>
-                      <p className="text-sm text-muted-foreground">{feature.description}</p>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Screenshots/Demo Section */}
-      <section className="py-8 px-4 sm:px-6 lg:px-8 bg-muted/20">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center space-y-2 mb-6">
-            <h2 className="text-3xl sm:text-4xl font-bold">See It In Action</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Get a glimpse of how ConstructDesk works
-            </p>
-          </div>
+        <div className="container mx-auto max-w-5xl relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-1000 ease-out fill-mode-forwards">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight max-w-4xl mx-auto leading-[1.1] text-slate-900 mb-6 drop-shadow-sm">
+            Construction Management, 
+            <span className="block text-primary mt-1">Perfectly Refined.</span>
+          </h1>
           
-          {/* Dashboard Preview */}
-          <div className="rounded-xl border border-border/40 bg-card overflow-hidden shadow-lg">
-            <div className="aspect-[21/9] bg-gradient-to-br from-muted/50 to-muted/30 flex items-center justify-center relative">
-              <Image
-                src="/screenshots/dashboard.png"
-                alt="ConstructDesk Dashboard"
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 80vw"
-                priority
-              />
-              <div className="absolute left-3 top-3 rounded-md bg-background/80 backdrop-blur px-2 py-1 text-xs font-medium text-foreground border border-border/60">
-                Dashboard Preview
-              </div>
-            </div>
+          <p className="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed mb-10">
+            A remarkably clean, blazingly fast platform to manage projects, financials, and teams. Experience the clarity your construction business deserves.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button size="lg" className="h-14 px-8 text-base shadow-xl shadow-primary/20 rounded-full hover:-translate-y-1 transition-transform duration-300 w-full sm:w-auto" onClick={() => router.push("/register")}>
+              Start your free trial
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+            <Button size="lg" variant="outline" className="h-14 px-8 text-base bg-white border-slate-200 rounded-full hover:bg-slate-50 hover:border-slate-300 transition-colors w-full sm:w-auto" onClick={() => router.push("/pricing")}>
+              Explore Pricing
+            </Button>
           </div>
+          <p className="text-sm text-slate-500 mt-5 font-medium">
+            3-day free trial. No credit card required.
+          </p>
 
-          {/* Video Section - Optional */}
-          <div className="mt-4 rounded-xl border border-border/40 bg-card overflow-hidden shadow-lg">
-            <div className="aspect-[21/9] bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center relative">
-              <div className="text-center space-y-4 z-10">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/90 hover:bg-primary transition-colors cursor-pointer">
-                  <svg className="h-8 w-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-foreground">Demo Video</p>
-                  <p className="text-xs text-muted-foreground max-w-md">
-                    Add your demo video URL or upload to <code className="text-xs bg-background px-1.5 py-0.5 rounded">/public/videos/demo.mp4</code>
-                  </p>
-                </div>
-              </div>
-              {/* Uncomment when you have video:
-              <iframe
-                className="w-full h-full"
-                src="https://www.youtube.com/embed/YOUR_VIDEO_ID"
-                title="ConstructDesk Demo"
-                allowFullScreen
-              />
-              */}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-10 px-4 sm:px-6 lg:px-8">
-        <div className="container mx-auto max-w-4xl">
-          <div className="rounded-2xl border border-border/40 bg-gradient-to-br from-primary/5 to-primary/10 p-6 sm:p-8 text-center space-y-4">
-            <h2 className="text-2xl sm:text-3xl font-bold">Ready to Get Started?</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              Join construction teams who are already using ConstructDesk to streamline their operations
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-4">
-              <Button size="lg" className="text-base px-8" onClick={() => router.push("/register")}>
-                Start Free Trial
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-              <Button size="lg" variant="outline" className="text-base px-8" onClick={() => router.push("/pricing")}>
-                View Pricing
-              </Button>
-            </div>
-            <div className="flex items-center justify-center gap-6 pt-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-primary" />
-                <span>14-day free trial</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-primary" />
-                <span>No credit card</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-primary" />
-                <span>Cancel anytime</span>
+          {/* Hero Image Showcase */}
+          <div className="mt-20 mx-auto max-w-[1100px] relative perspective-[1000px]">
+            {/* Soft shadow underneath */}
+            <div className="absolute -bottom-10 inset-x-10 h-10 bg-black/10 blur-2xl rounded-full"></div>
+            
+            <div className="relative rounded-[24px] overflow-hidden border border-slate-200/50 bg-white/50 p-2 shadow-2xl shadow-slate-300/50 backdrop-blur-sm transform transition-all hover:scale-[1.01] duration-700 ease-out z-20">
+              <div className="rounded-[16px] overflow-hidden border border-slate-100 bg-white shadow-sm ring-1 ring-black/5 relative aspect-[16/9]">
+                <Image
+                  src="/screenshots/dashboard.png"
+                  alt="ConstructDesk Premium Dashboard"
+                  fill
+                  className="object-cover object-top"
+                  priority
+                />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-8 px-4 sm:px-6 lg:px-8 border-t border-border/40 bg-muted/30">
+      {/* Feature Grid - Clean Cards */}
+      <section className="pt-16 pb-24 px-4 sm:px-6 lg:px-8 bg-[#fafafa]">
         <div className="container mx-auto max-w-6xl">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">C</span>
-                </div>
-                <span className="font-bold">ConstructDesk</span>
+          <div className="text-center max-w-3xl mx-auto mb-20 space-y-4">
+            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900">
+              Everything in its proper place.
+            </h2>
+            <p className="text-lg text-slate-600">
+              A thoughtfully designed suite of tools that work exactly how you expect them to. 
+              No clutter, no confusion—just pure productivity.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Feature 1 */}
+            <div className="group bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 ease-out">
+              <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-blue-100 transition-all duration-300">
+                <LayoutDashboard className="h-6 w-6 text-blue-600" />
               </div>
-              <p className="text-sm text-muted-foreground">
-                Construction management software for modern teams.
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Crystal Clear Dashboard</h3>
+              <p className="text-slate-600 leading-relaxed">
+                Track revenue, expenses, and active projects in a beautifully summarized centralized view. Know exactly where your business stands in seconds.
+              </p>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="group bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 ease-out">
+              <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-emerald-100 transition-all duration-300">
+                <FolderKanban className="h-6 w-6 text-emerald-600" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Project Management</h3>
+              <p className="text-slate-600 leading-relaxed">
+                Organize every site perfectly. Tag phases, log daily progress, manage documents securely, and keep stakeholders instantly aligned.
+              </p>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="group bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 ease-out">
+              <div className="h-12 w-12 rounded-2xl bg-purple-50 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-purple-100 transition-all duration-300">
+                <CreditCard className="h-6 w-6 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Flawless Financials</h3>
+              <p className="text-slate-600 leading-relaxed">
+                Say goodbye to scattered receipts. Categorize expenses, monitor payments, and export ledger-ready reports with a single click.
+              </p>
+            </div>
+
+            {/* Feature 4 */}
+            <div className="group bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 ease-out">
+              <div className="h-12 w-12 rounded-2xl bg-orange-50 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-orange-100 transition-all duration-300">
+                <Package className="h-6 w-6 text-orange-600" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Inventory Tracking</h3>
+              <p className="text-slate-600 leading-relaxed">
+                Never lose track of materials again. Log incoming shipments, distribute to sites, and monitor available stock with perfect accuracy.
+              </p>
+            </div>
+
+            {/* Feature 5 */}
+            <div className="group bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 ease-out px-8 lg:col-span-2 relative overflow-hidden flex flex-col sm:flex-row items-center gap-8">
+              <div className="absolute right-0 top-0 w-64 h-64 bg-primary/5 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+              <div className="flex-1 relative z-10">
+                <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
+                  <Shield className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-3">Enterprise-Grade Security</h3>
+                <p className="text-slate-600 leading-relaxed max-w-md">
+                  Your data is fortified. Assign granular role-based permissions, configure company settings, and let our system automatically block unauthorized access across all modules.
+                </p>
+              </div>
+              <div className="hidden sm:flex flex-1 justify-end opacity-50 relative z-10 w-full">
+                <div className="w-full max-w-[200px] space-y-3">
+                  <div className="h-10 w-full bg-slate-100 rounded-lg animate-pulse" />
+                  <div className="h-10 w-4/5 bg-slate-100 rounded-lg animate-pulse" style={{animationDelay: "150ms"}} />
+                  <div className="h-10 w-full bg-slate-100 rounded-lg animate-pulse" style={{animationDelay: "300ms"}} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Clean Call To Action */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-900 relative overflow-hidden">
+        {/* Subtle glow in dark */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/20 blur-[150px] rounded-full pointer-events-none" />
+        
+        <div className="container mx-auto max-w-4xl text-center relative z-10">
+          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6 tracking-tight">
+            Ready to streamline your sites?
+          </h2>
+          <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto font-light">
+            Join the modern era of construction management. Get started in less than two minutes.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+            <Button size="lg" className="h-14 px-10 text-lg rounded-full shadow-2xl shadow-primary/20 hover:-translate-y-1 transition-all" onClick={() => router.push("/register")}>
+              Start 3-Day Free Trial
+            </Button>
+            <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-full text-slate-900 bg-white hover:bg-slate-100 hover:text-slate-900 border-none transition-all" onClick={() => router.push("/pricing")}>
+              View Pricing Details
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Clean White Footer */}
+      <footer className="bg-white py-12 px-4 sm:px-6 lg:px-8 border-t border-slate-200 text-slate-600">
+        <div className="container mx-auto max-w-6xl">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 font-bold bg-primary text-white rounded-lg flex items-center justify-center text-sm shadow-sm">
+                  C
+                </div>
+                <span className="font-bold text-slate-900 text-lg tracking-tight">ConstructDesk</span>
+              </div>
+              <p className="text-sm text-slate-500 max-w-xs">
+                Software engineered for construction professionals who demand clarity, speed, and precision.
               </p>
             </div>
             <div>
-              <h4 className="font-semibold text-sm mb-3">Product</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="/features" className="hover:text-foreground transition-colors">Features</a></li>
-                <li><a href="/pricing" className="hover:text-foreground transition-colors">Pricing</a></li>
+              <h4 className="font-semibold text-slate-900 mb-4 tracking-tight">Product</h4>
+              <ul className="space-y-3 text-sm">
+                <li><button onClick={() => window.scrollTo(0,0)} className="hover:text-primary transition-colors">Features</button></li>
+                <li><button onClick={() => router.push("/pricing")} className="hover:text-primary transition-colors">Pricing</button></li>
+                <li><button className="hover:text-primary transition-colors">Integrations</button></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-sm mb-3">Company</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="/contact" className="hover:text-foreground transition-colors">Contact</a></li>
+              <h4 className="font-semibold text-slate-900 mb-4 tracking-tight">Company</h4>
+              <ul className="space-y-3 text-sm">
+                <li><button className="hover:text-primary transition-colors">About Us</button></li>
+                <li><button className="hover:text-primary transition-colors">Contact Support</button></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-sm mb-3">Account</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="/register" className="hover:text-foreground transition-colors">Sign Up</a></li>
-                <li><a href="/login" className="hover:text-foreground transition-colors">Sign In</a></li>
+              <h4 className="font-semibold text-slate-900 mb-4 tracking-tight">Legal</h4>
+              <ul className="space-y-3 text-sm">
+                <li><button className="hover:text-primary transition-colors">Privacy Policy</button></li>
+                <li><button className="hover:text-primary transition-colors">Terms of Service</button></li>
               </ul>
             </div>
           </div>
-          <div className="pt-6 border-t border-border/40 text-center text-sm text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} ConstructDesk. All rights reserved.</p>
+          <div className="border-t border-slate-200 pt-8 flex flex-col md:flex-row items-center justify-between text-sm">
+            <p className="text-slate-500">&copy; {new Date().getFullYear()} ConstructDesk. All rights reserved.</p>
+            <div className="flex items-center gap-2 mt-4 md:mt-0 text-slate-500 font-medium bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200/60 shadow-sm">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              </span>
+              All systems operational
+            </div>
           </div>
         </div>
       </footer>

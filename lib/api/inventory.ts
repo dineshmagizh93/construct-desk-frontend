@@ -149,6 +149,10 @@ export const inventoryApi = {
     return transformItem(data);
   },
 
+  async bulkCreateItems(items: any[]): Promise<{ requested: number; created: number; skipped: number }> {
+    return await apiClient.post<any>('/inventory/items/bulk', { items });
+  },
+
   async updateItem(id: string, item: UpdateInventoryItemDto): Promise<InventoryItem> {
     const data = await apiClient.patch<any>(`/inventory/items/${id}`, item);
     return transformItem(data);
@@ -181,6 +185,10 @@ export const inventoryApi = {
   async createTransaction(transaction: CreateInventoryTransactionDto): Promise<InventoryTransaction> {
     const data = await apiClient.post<any>('/inventory/transactions', transaction);
     return transformTransaction(data);
+  },
+
+  async bulkCreateTransactions(transactions: any[]): Promise<{ requested: number; created: number; skipped: number }> {
+    return await apiClient.post<any>('/inventory/transactions/bulk', { transactions });
   },
 
   async deleteTransaction(id: string): Promise<void> {

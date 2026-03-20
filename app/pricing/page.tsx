@@ -7,7 +7,7 @@ import { PublicHeader } from "@/components/landing/public-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Check, ArrowRight, Zap, Building2, Crown, Users, HardDrive, HeadphonesIcon, Code, X } from "lucide-react"
+import { Check, ArrowRight, Zap, Building2, Crown, Users, HardDrive, HeadphonesIcon } from "lucide-react"
 import { subscriptionApi, PlanName } from "@/lib/api/subscription"
 import toast from "react-hot-toast"
 
@@ -60,7 +60,6 @@ export default function PricingPage() {
       }
 
       toast.success("Redirecting to checkout...")
-
       setTimeout(() => {
         window.location.href = response.url
       }, 500)
@@ -68,7 +67,6 @@ export default function PricingPage() {
       const message = (error as any)?.message || ""
 
       let errorMessage = "Failed to start checkout. Please try again."
-
       if (message) {
         if (message.includes("Stripe is not configured") || message.includes("Razorpay is not configured")) {
           errorMessage = "Payment processing is not configured. Please contact support."
@@ -103,73 +101,70 @@ export default function PricingPage() {
   const plans = [
     {
       name: "Starter",
-      description: "Perfect for small contractors and startups.",
+      tagline: "Best for small contractors getting started with digital tracking",
       priceInrMonthly: 2999,
-      period: "/month",
+      priceInrYearly: 28999,
+      perDayInr: 100,
       icon: Zap,
       popular: false,
+      valueLine: null as string | null,
       features: [
-        "3 users",
-        "Up to 5 projects",
-        "Dashboard",
-        "Project management",
+        "Up to 5 users",
+        "Manage up to 5 active projects",
+        "Dashboard & project management",
         "Task tracking",
         "Leads & client management",
         "Site progress tracking",
         "Payment & expense tracking",
         "Basic reports",
+        "Basic vendor management (limit 10 vendors)",
+        "Basic labour tracking (limit 20 workers)",
         "Document storage (10GB)",
-        "Mobile access",
         "Email support",
-      ],
-      limitations: [
-        "No inventory module",
-        "No vendor management",
-        "No labour management",
-        "Limited analytics",
       ],
     },
     {
       name: "Growth",
-      description: "For growing construction businesses.",
-      priceInrMonthly: 6999,
-      period: "/month",
+      tagline: "For growing construction businesses managing multiple sites efficiently",
+      priceInrMonthly: 5999,
+      priceInrYearly: 57999,
+      perDayInr: 200,
       icon: Building2,
       popular: true,
+      valueLine: "Avoid material loss, track labour costs, and prevent project delays",
+      bestValueLabel: "Best value for growing teams",
       features: [
-        "10 users",
-        "Up to 25 projects",
-        "Everything in Starter",
+        "Up to 15 users",
+        "Manage up to 25 active projects",
+        "Everything in Starter + full site control tools",
         "Inventory management",
-        "Vendor management",
-        "Labour management",
-        "Advanced reports",
+        "Full vendor management",
+        "Full labour management",
+        "Advanced reports & insights",
         "Role-based permissions",
         "Document storage (50GB)",
         "Priority email support",
       ],
-      limitations: [],
     },
     {
       name: "Professional",
-      description: "For high-volume construction teams.",
-      priceInrMonthly: 12999,
-      period: "/month",
+      tagline: "For large teams needing advanced control and performance tracking",
+      priceInrMonthly: 11999,
+      priceInrYearly: 115000,
+      perDayInr: 400,
       icon: Crown,
       popular: false,
+      valueLine: "Designed for companies handling large-scale or high-value projects",
       features: [
-        "30 users",
+        "Up to 30 users",
         "Unlimited projects",
         "Everything in Growth",
         "Custom dashboards",
         "Project profitability tracking",
         "Advanced analytics",
-        "API access",
-        "Webhooks",
         "Document storage (200GB)",
-        "Integration support",
+        "Priority support",
       ],
-      limitations: [],
     },
   ]
 
@@ -189,7 +184,6 @@ export default function PricingPage() {
           "Role-based permissions (Admin, Manager, User)",
           "Personal dashboard and preferences",
           "Email notifications and alerts",
-          "Mobile app access",
           "No limit on number of users you can add",
         ],
         useCases: [
@@ -257,35 +251,6 @@ export default function PricingPage() {
         pricing: "₹4,999 per month. Includes unlimited support tickets and priority access to all support channels.",
       },
     },
-    {
-      name: "Custom Integrations",
-      description: "Custom API integrations and webhooks",
-      priceUsd: null as number | null,
-      unit: "",
-      icon: Code,
-      details: {
-        title: "Custom Integrations",
-        description: "Connect ConstructDesk with your existing business tools and systems through custom API integrations and webhooks. Tailored to your specific workflow needs.",
-        features: [
-          "Custom API development and integration",
-          "Webhook configuration for real-time data sync",
-          "Integration with accounting software (QuickBooks, Xero, etc.)",
-          "ERP system connectivity",
-          "Third-party tool integrations",
-          "Custom data mapping and transformation",
-          "Ongoing maintenance and updates",
-          "Dedicated integration support",
-        ],
-        useCases: [
-          "Connecting with existing business systems",
-          "Automating data flow between platforms",
-          "Custom reporting and analytics",
-          "Workflow automation",
-          "Legacy system integration",
-        ],
-        pricing: "Custom pricing based on integration complexity and requirements. Contact our sales team for a detailed quote. Typical range: ₹50,000 - ₹5,00,000 one-time setup + monthly maintenance fees.",
-      },
-    },
   ]
 
   return (
@@ -304,8 +269,7 @@ export default function PricingPage() {
                 </span>
               </h1>
               <p className="text-base text-muted-foreground">
-                Choose the perfect plan for your construction business. All plans include a 14-day free trial. 
-                No credit card required.
+                Choose the right plan for your construction business. 3-day free trial on all plans.
               </p>
             </div>
 
@@ -337,7 +301,7 @@ export default function PricingPage() {
                 </button>
               </div>
 
-              {/* Billing Toggle */}
+              {/* Billing Toggle: Monthly / Yearly with Save 20% */}
               <div className="flex items-center gap-2 bg-muted/60 rounded-lg p-1 border border-border/60">
                 <button
                   type="button"
@@ -353,14 +317,14 @@ export default function PricingPage() {
                 <button
                   type="button"
                   onClick={() => setBillingPeriod("yearly")}
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-1 ${
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
                     billingPeriod === "yearly"
                       ? "bg-primary text-primary-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   Yearly
-                  <span className="text-xs font-semibold">(Save 20%)</span>
+                  <span className="text-xs font-semibold opacity-90">Save 20%</span>
                 </button>
               </div>
             </div>
@@ -374,66 +338,90 @@ export default function PricingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-4">
             {plans.map((plan, index) => {
               const Icon = plan.icon as any
+              const yearlyInr = plan.priceInrYearly ?? Math.round(plan.priceInrMonthly * 12 * YEARLY_DISCOUNT)
 
-              let priceLabel = "Custom"
+              let priceLabel = ""
               let subLabel = ""
 
-              if (plan.priceInrMonthly !== null) {
-                const monthlyInr = plan.priceInrMonthly
-                const yearlyInr = Math.round(monthlyInr * 12 * YEARLY_DISCOUNT)
-
-                if (currency === "USD") {
-                  const monthlyUsd = monthlyInr / USD_TO_INR
-                  const yearlyUsd = yearlyInr / USD_TO_INR
-                  if (billingPeriod === "monthly") {
-                    priceLabel = `$${monthlyUsd.toFixed(0)}`
-                    subLabel = "/month"
-                  } else {
-                    priceLabel = `$${yearlyUsd.toFixed(0)}`
-                    subLabel = "/year (billed yearly)"
-                  }
+              if (currency === "USD") {
+                const monthlyUsd = plan.priceInrMonthly / USD_TO_INR
+                const yearlyUsd = yearlyInr / USD_TO_INR
+                if (billingPeriod === "monthly") {
+                  priceLabel = `$${Math.round(monthlyUsd).toLocaleString()}`
+                  subLabel = "/month"
                 } else {
-                  if (billingPeriod === "monthly") {
-                    priceLabel = `₹${monthlyInr.toLocaleString("en-IN")}`
-                    subLabel = "/month"
-                  } else {
-                    priceLabel = `₹${yearlyInr.toLocaleString("en-IN")}`
-                    subLabel = "/year (billed yearly)"
-                  }
+                  priceLabel = `$${Math.round(yearlyUsd).toLocaleString()}`
+                  subLabel = "/year"
+                }
+              } else {
+                if (billingPeriod === "monthly") {
+                  priceLabel = `₹${plan.priceInrMonthly.toLocaleString("en-IN")}`
+                  subLabel = "/month"
+                } else {
+                  priceLabel = `₹${yearlyInr.toLocaleString("en-IN")}`
+                  subLabel = "/year"
                 }
               }
+
+              const showPerDay = billingPeriod === "monthly" && currency === "INR" && plan.perDayInr
+              const valueLine = (plan as { valueLine?: string | null }).valueLine
+              const bestValueLabel = (plan as { bestValueLabel?: string }).bestValueLabel
 
               return (
                 <Card
                   key={index}
-                  className={plan.popular ? "border-primary shadow-lg scale-105" : ""}
+                  className={
+                    plan.popular
+                      ? "border-2 border-primary shadow-xl scale-[1.02] lg:scale-[1.05] z-10 relative ring-2 ring-primary/20"
+                      : "border border-border/40"
+                  }
                 >
                   {plan.popular && (
-                    <div className="bg-primary text-primary-foreground text-center py-2 text-sm font-medium rounded-t-lg">
-                      Most Popular
+                    <div className="rounded-t-lg overflow-hidden">
+                      <div className="bg-primary text-primary-foreground text-center py-2 text-sm font-medium">
+                        Most Popular
+                      </div>
+                      {bestValueLabel && (
+                        <p className="text-center text-xs font-medium text-muted-foreground bg-muted/60 py-1.5">
+                          {bestValueLabel}
+                        </p>
+                      )}
                     </div>
                   )}
-                  <CardHeader className={plan.popular ? "pt-6" : ""}>
+                  <div className="px-6 pt-4 pb-0">
+                    <span className="inline-block text-xs font-medium text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+                      3-day Free Trial
+                    </span>
+                  </div>
+                  <CardHeader className="pt-4">
                     <div className="flex items-center gap-3 mb-2">
                       <div className={`p-2 rounded-lg ${plan.popular ? "bg-primary/10 text-primary" : "bg-muted"}`}>
                         <Icon className="h-5 w-5" />
                       </div>
                       <CardTitle className="text-lg">{plan.name}</CardTitle>
                     </div>
-                    <CardDescription>{plan.description}</CardDescription>
+                    <CardDescription className="text-sm">{plan.tagline}</CardDescription>
                     <div className="mt-4">
                       <div className="flex items-baseline gap-1">
-                          <span className="text-2xl font-bold">{priceLabel}</span>
-                          {subLabel && <span className="text-muted-foreground">{subLabel}</span>}
+                        <span className="text-2xl font-bold">{priceLabel}</span>
+                        <span className="text-muted-foreground">{subLabel}</span>
                       </div>
-                      {plan.priceInrMonthly != null && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {billingPeriod === "monthly" ? "Billed monthly" : "Billed yearly"}
+                      {showPerDay && (
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          ≈ ₹{plan.perDayInr}/day
                         </p>
                       )}
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {billingPeriod === "monthly" ? "Billed monthly" : "Billed yearly"}
+                      </p>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {valueLine && (
+                      <p className="text-xs text-muted-foreground leading-snug bg-muted/50 rounded-md px-3 py-2 border border-border/40">
+                        {valueLine}
+                      </p>
+                    )}
                     <Button
                       className="w-full"
                       variant={plan.popular ? "default" : "outline"}
@@ -444,12 +432,15 @@ export default function PricingPage() {
                         "Processing..."
                       ) : (
                         <>
-                          {getAuthToken() ? "Subscribe Now" : "Start Free Trial"}
+                          Start Free Trial
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </>
                       )}
                     </Button>
-                    <div className="space-y-3 pt-4">
+                    <p className="text-xs text-center text-muted-foreground">
+                      Setup takes less than 10 minutes
+                    </p>
+                    <div className="space-y-3 pt-2 border-t border-border/40">
                       <p className="text-sm font-semibold">Includes:</p>
                       <ul className="space-y-2">
                         {plan.features.map((feature, featureIndex) => (
@@ -459,38 +450,28 @@ export default function PricingPage() {
                           </li>
                         ))}
                       </ul>
-                      {plan.limitations.length > 0 && (
-                        <div className="pt-2 border-t border-border/40">
-                          <p className="text-sm font-semibold text-muted-foreground mb-2">Limitations:</p>
-                          <ul className="space-y-1">
-                            {plan.limitations.map((limitation, limIndex) => (
-                              <li key={limIndex} className="flex items-start gap-2 text-sm text-muted-foreground">
-                                <span className="mt-0.5">•</span>
-                                <span>{limitation}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
                     </div>
                   </CardContent>
                 </Card>
               )
             })}
           </div>
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            No credit card required. Cancel anytime.
+          </p>
         </div>
       </section>
 
       {/* Add-ons Section */}
       <section className="py-12 px-4 sm:px-6 lg:px-8 bg-muted/30">
-        <div className="container mx-auto max-w-7xl">
-          <div className="text-center space-y-3 mb-6">
+        <div className="container mx-auto max-w-5xl">
+          <div className="text-center space-y-3 mb-8">
             <h2 className="text-2xl font-bold">Add-ons & Extensions</h2>
             <p className="text-sm text-muted-foreground">
               Enhance your plan with additional features and services
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-stretch">
             {addOns.map((addon, index) => {
               let priceLabel = "Custom pricing"
               if (addon.priceUsd !== null) {
@@ -515,21 +496,23 @@ export default function PricingPage() {
               }
 
               return (
-                <Card key={index}>
-                  <CardHeader>
+                <Card key={index} className="flex flex-col h-full">
+                  <CardHeader className="pb-2">
                     <CardTitle className="text-base">{addon.name}</CardTitle>
-                    <CardDescription>{addon.description}</CardDescription>
+                    <CardDescription className="text-sm">{addon.description}</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-0 flex flex-col flex-1">
                     <p className="text-xl font-bold mb-4">{priceLabel}</p>
-                    <Button 
-                      variant="outline" 
-                      className="w-full" 
-                      size="sm"
-                      onClick={() => setSelectedAddon(index)}
-                    >
-                      Learn More
-                    </Button>
+                    <div className="mt-auto pt-2">
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        size="sm"
+                        onClick={() => setSelectedAddon(index)}
+                      >
+                        Learn More
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               )
@@ -638,26 +621,18 @@ export default function PricingPage() {
                 {[
                   {
                     label: "Users included",
-                    values: ["3 users", "10 users", "30 users"],
+                    values: ["Up to 5", "Up to 15", "Up to 30"],
                   },
                   {
                     label: "Projects",
                     values: ["Up to 5", "Up to 25", "Unlimited"],
                   },
                   {
-                    label: "Dashboard & Projects",
+                    label: "Dashboard & project management",
                     values: [true, true, true],
                   },
                   {
-                    label: "Tasks & Kanban boards",
-                    values: [true, true, true],
-                  },
-                  {
-                    label: "Leads & Clients",
-                    values: [true, true, true],
-                  },
-                  {
-                    label: "Site Progress",
+                    label: "Tasks, Leads & Site Progress",
                     values: [true, true, true],
                   },
                   {
@@ -665,27 +640,31 @@ export default function PricingPage() {
                     values: [true, true, true],
                   },
                   {
+                    label: "Vendors",
+                    values: ["10 vendors", "Full", "Full"],
+                  },
+                  {
+                    label: "Labour",
+                    values: ["20 workers", "Full", "Full"],
+                  },
+                  {
                     label: "Inventory",
                     values: [false, true, true],
                   },
                   {
-                    label: "Vendors",
+                    label: "Reports & analytics",
+                    values: ["Basic", "Advanced", "Advanced"],
+                  },
+                  {
+                    label: "Role-based permissions",
                     values: [false, true, true],
                   },
                   {
-                    label: "Labour",
-                    values: [false, true, true],
+                    label: "Document storage",
+                    values: ["10GB", "50GB", "200GB"],
                   },
                   {
-                    label: "Advanced Reports & Analytics",
-                    values: [false, true, true],
-                  },
-                  {
-                    label: "Custom Dashboards",
-                    values: [false, false, true],
-                  },
-                  {
-                    label: "API & Webhooks",
+                    label: "Custom dashboards & profitability",
                     values: [false, false, true],
                   },
                 ].map((row, rowIndex) => (
@@ -725,7 +704,7 @@ export default function PricingPage() {
             {[
               {
                 q: "Do you offer a free trial?",
-                a: "Yes! All plans include a 14-day free trial. No credit card required. You can cancel anytime during the trial period.",
+                a: "Yes! All plans include a 3-day free trial. No credit card required. Cancel anytime.",
               },
               {
                 q: "Can I change plans later?",
@@ -778,10 +757,10 @@ export default function PricingPage() {
 
       {/* Footer */}
       <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-border/40 bg-muted/30">
-        <div className="container mx-auto max-w-7xl">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
+        <div className="container mx-auto max-w-4xl">
+          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr] lg:gap-12 items-start justify-items-center lg:justify-items-stretch text-center sm:text-left">
+            <div className="space-y-4 pr-0 sm:pr-4 w-full max-w-sm sm:max-w-none justify-self-center lg:justify-self-start">
+              <div className="flex items-center justify-center sm:justify-start gap-2">
                 <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-lg">C</span>
                 </div>
@@ -791,7 +770,7 @@ export default function PricingPage() {
                 All-in-one construction management software for modern teams.
               </p>
             </div>
-            <div>
+            <div className="min-w-[140px] justify-self-center">
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="/#features" className="hover:text-foreground">Features</a></li>
@@ -799,15 +778,14 @@ export default function PricingPage() {
                 <li><a href="/pricing" className="hover:text-foreground">Pricing</a></li>
               </ul>
             </div>
-            <div>
+            <div className="min-w-[140px] justify-self-center">
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="/#contact" className="hover:text-foreground">Contact Us</a></li>
-                <li><a href="/#resources" className="hover:text-foreground">Resources</a></li>
               </ul>
             </div>
-            <div>
-              <h4 className="font-semibold mb-4">Get Started</h4>
+            <div className="min-w-[140px] justify-self-center">
+              <h4 className="font-semibold mb-4">Account</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="/register" className="hover:text-foreground">Sign Up</a></li>
                 <li><a href="/login" className="hover:text-foreground">Sign In</a></li>

@@ -45,6 +45,10 @@ export const expensesApi = {
     return data.map(transformExpense);
   },
 
+  async bulkCreate(expenses: any[]): Promise<{ requested: number; created: number; skipped: number }> {
+    return await apiClient.post<any>('/expenses/bulk', { expenses });
+  },
+
   async getById(id: string): Promise<Expense> {
     const data = await apiClient.get<any>(`/expenses/${id}`);
     return transformExpense(data);

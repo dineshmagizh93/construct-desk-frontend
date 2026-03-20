@@ -127,6 +127,19 @@ export function useProjects() {
     }
   }, [])
 
+  const bulkCreateProjects = useCallback(async (projects: CreateProjectDto[]) => {
+    try {
+      // Do not touch the global `error` state used by the projects page.
+      // Bulk upload failures should be shown inside the bulk upload dialog.
+      const res = await projectsApi.bulkCreate(projects)
+      return res
+    } catch (err) {
+      const apiError = err as ApiError
+      const errorMessage = apiError.message as string || "Failed to bulk upload projects"
+      throw new Error(errorMessage)
+    }
+  }, [])
+
   return {
     projects,
     loading,
@@ -135,6 +148,7 @@ export function useProjects() {
     createProject,
     updateProject,
     deleteProject,
+    bulkCreateProjects,
   }
 }
 

@@ -46,6 +46,10 @@ export const siteProgressApi = {
     return transformSiteProgress(data);
   },
 
+  async bulkCreate(progress: any[]): Promise<{ requested: number; created: number; skipped: number }> {
+    return await apiClient.post<any>('/site-progress/bulk', { progress });
+  },
+
   async update(id: string, siteProgress: UpdateSiteProgressDto): Promise<SiteProgress> {
     const data = await apiClient.patch<any>(`/site-progress/${id}`, siteProgress);
     return transformSiteProgress(data);

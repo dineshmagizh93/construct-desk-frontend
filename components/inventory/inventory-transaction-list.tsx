@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { MoreVertical, Eye, Trash2, Search, Plus, Package, ArrowUp, ArrowDown, RotateCcw } from "lucide-react"
+import { MoreVertical, Eye, Trash2, Search, Plus, Package, ArrowUp, ArrowDown, RotateCcw, Upload } from "lucide-react"
 import toast from "react-hot-toast"
 import { InventoryTransaction, TransactionType, inventoryApi, CreateInventoryTransactionDto } from "@/lib/api/inventory"
 import { useInventoryTransactions } from "@/lib/hooks/use-inventory"
@@ -24,6 +24,8 @@ import { cn } from "@/lib/utils"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Pagination } from "@/components/ui/pagination"
 import { InventoryTransactionForm } from "./inventory-transaction-form"
+import { BulkUploadModal } from "@/components/shared/bulk-upload-modal"
+import { INVENTORY_TRANSACTION_BULK_HEADERS, generateInventoryTransactionCsvTemplate, parseBulkInventoryTransactionsFromCsv } from "./inventory-bulk-utils"
 
 interface InventoryTransactionListProps {
   projectId?: string
@@ -34,7 +36,7 @@ interface InventoryTransactionListProps {
 }
 
 export function InventoryTransactionList({ projectId, itemId, onCreateTransaction, onAddClick, onAddClickClear }: InventoryTransactionListProps) {
-  const { transactions, loading, deleteTransaction, loadTransactions } = useInventoryTransactions(itemId, projectId)
+  const { transactions, loading, deleteTransaction, loadTransactions, bulkCreateTransactions } = useInventoryTransactions(itemId, projectId)
   const { projects } = useProjects()
   const [searchQuery, setSearchQuery] = React.useState("")
   const [projectFilter, setProjectFilter] = React.useState<string>("all")
@@ -44,6 +46,7 @@ export function InventoryTransactionList({ projectId, itemId, onCreateTransactio
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [transactionToDelete, setTransactionToDelete] = React.useState<InventoryTransaction | null>(null)
   const [formDialogOpen, setFormDialogOpen] = React.useState(false)
+  const [bulkUploadOpen, setBulkUploadOpen] = React.useState(false)
 
   React.useEffect(() => {
     if (onAddClick) {
@@ -165,6 +168,10 @@ export function InventoryTransactionList({ projectId, itemId, onCreateTransactio
     <div className="flex flex-col h-full min-h-0 gap-1">
       {/* Filters */}
       <div className="flex gap-1.5 flex-wrap flex-shrink-0">
+        <Button variant="outline" onClick={() => setBulkUploadOpen(true)}>
+          <Upload className="mr-2 h-4 w-4" />
+          Bulk Upload
+        </Button>
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -349,6 +356,28 @@ export function InventoryTransactionList({ projectId, itemId, onCreateTransactio
           </div>
         </DialogContent>
       </Dialog>
+      <BulkUploadModal
+        open={bulkUploadOpen}
+        onOpenChange={setBulkUploadOpen}
+        title="Bulk Upload Transactions"
+        requiredHeaders={INVENTORY_TRANSACTION_BULK_HEADERS}
+        onDownloadTemplate={() => {
+          const t = generateInventoryTransactionCsvTemplate()
+          const blob = new Blob([t], { type: 'text/csv' })
+          const url = window.URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = 'inventory_transaction_template.csv'
+          a.click()
+          window.URL.revokeObjectURL(url)
+        }}
+        onParseCsv={parseBulkInventoryTransactionsFromCsv}
+        onUpload={async (rows) => {
+          const res = await bulkCreateTransactions(rows)
+          await loadTransactions()
+          return res
+        }}
+      />
     </div>
   )
 }

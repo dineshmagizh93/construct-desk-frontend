@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { MoreVertical, Eye, Edit, Trash2, Search, Plus, X, Power, PowerOff } from "lucide-react"
+import { MoreVertical, Eye, Edit, Trash2, Search, Plus, X, Power, PowerOff, Upload } from "lucide-react"
 import toast from "react-hot-toast"
 import { Vendor, VendorType, VendorStatus } from "@/types/vendor"
 import { Button } from "@/components/ui/button"
@@ -23,13 +23,15 @@ import { cn } from "@/lib/utils"
 import { VendorForm } from "./vendor-form"
 import { useVendors } from "@/lib/hooks/use-vendors"
 import { VendorFormSchema } from "@/lib/validations/vendor"
+import { BulkUploadModal } from "@/components/shared/bulk-upload-modal"
+import { VENDOR_BULK_HEADERS, generateVendorCsvTemplate, parseBulkVendorsFromCsv } from "./vendor-bulk-utils"
 
 interface VendorListProps {
   onCreateVendor: () => void
 }
 
 export function VendorList({ onCreateVendor }: VendorListProps) {
-  const { vendors, loading, deleteVendor, toggleVendorStatus, loadVendors } = useVendors()
+  const { vendors, loading, deleteVendor, toggleVendorStatus, loadVendors, bulkCreateVendors } = useVendors()
   const [searchQuery, setSearchQuery] = React.useState("")
   const [typeFilter, setTypeFilter] = React.useState<VendorType | "all">("all")
   const [statusFilter, setStatusFilter] = React.useState<VendorStatus | "all">("all")
@@ -40,6 +42,7 @@ export function VendorList({ onCreateVendor }: VendorListProps) {
   const [vendorToDelete, setVendorToDelete] = React.useState<Vendor | null>(null)
   const [vendorToToggle, setVendorToToggle] = React.useState<Vendor | null>(null)
   const [openDropdownId, setOpenDropdownId] = React.useState<string | null>(null)
+  const [bulkUploadOpen, setBulkUploadOpen] = React.useState(false)
 
   // Filter vendors
   const filteredVendors = React.useMemo(() => {
@@ -157,7 +160,13 @@ export function VendorList({ onCreateVendor }: VendorListProps) {
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Vendors</h1>
           <p className="text-muted-foreground mt-1 text-sm">Manage your vendors and suppliers</p>
         </div>
-        <CreateVendorButton onCreate={async () => { }} onRefresh={loadVendors} />
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setBulkUploadOpen(true)}>
+            <Upload className="mr-2 h-4 w-4" />
+            Bulk Upload
+          </Button>
+          <CreateVendorButton onCreate={async () => { }} onRefresh={loadVendors} />
+        </div>
       </div>
 
       {/* Filters */}
@@ -335,6 +344,29 @@ export function VendorList({ onCreateVendor }: VendorListProps) {
           </div>
         </>
       )}
+
+      <BulkUploadModal
+        open={bulkUploadOpen}
+        onOpenChange={setBulkUploadOpen}
+        title="Bulk Upload Vendors"
+        requiredHeaders={VENDOR_BULK_HEADERS}
+        onDownloadTemplate={() => {
+          const t = generateVendorCsvTemplate()
+          const blob = new Blob([t], { type: 'text/csv' })
+          const url = window.URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = 'vendor_template.csv'
+          a.click()
+          window.URL.revokeObjectURL(url)
+        }}
+        onParseCsv={parseBulkVendorsFromCsv}
+        onUpload={async (rows) => {
+          const res = await bulkCreateVendors(rows)
+          await loadVendors(true)
+          return res
+        }}
+      />
     </div>
   )
 }

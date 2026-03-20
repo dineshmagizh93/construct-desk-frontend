@@ -57,6 +57,10 @@ export const documentsApi = {
     return transformDocument(data);
   },
 
+  async bulkCreate(documents: any[]): Promise<{ requested: number; created: number; skipped: number }> {
+    return await apiClient.post<any>('/documents/bulk', { documents });
+  },
+
   async update(id: string, document: UpdateDocumentDto): Promise<Document> {
     const data = await apiClient.patch<any>(`/documents/${id}`, document);
     return transformDocument(data);

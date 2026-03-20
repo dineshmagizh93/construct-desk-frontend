@@ -2,6 +2,7 @@ export type ProjectStatus = "Planning" | "In Progress" | "On Hold" | "Completed"
 
 export interface Project {
   id: string
+  projectId: string
   name: string
   clientName: string
   location: string
@@ -17,6 +18,7 @@ export interface Project {
 }
 
 export interface ProjectFormData {
+  projectId: string
   name: string
   clientName: string
   location: string

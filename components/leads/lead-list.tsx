@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { MoreVertical, Eye, Edit, Trash2, Search, Plus, X, UserPlus } from "lucide-react"
+import { MoreVertical, Eye, Edit, Trash2, Search, Plus, X, UserPlus, Upload } from "lucide-react"
 import toast from "react-hot-toast"
 import { Lead, LeadType, LeadStatus } from "@/types/lead"
 import { Button } from "@/components/ui/button"
@@ -26,13 +26,15 @@ import { LeadForm } from "./lead-form"
 import { useLeads } from "@/lib/hooks/use-leads"
 import { LeadFormSchema } from "@/lib/validations/lead"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { BulkUploadModal } from "@/components/shared/bulk-upload-modal"
+import { LEAD_BULK_HEADERS, generateLeadCsvTemplate, parseBulkLeadsFromCsv } from "./lead-bulk-utils"
 
 interface LeadListProps {
   onCreateLead: () => void
 }
 
 export function LeadList({ onCreateLead }: LeadListProps) {
-  const { leads, loading, createLead, deleteLead, convertToClient, loadLeads } = useLeads()
+  const { leads, loading, createLead, deleteLead, convertToClient, loadLeads, bulkCreateLeads } = useLeads()
   const [activeTab, setActiveTab] = React.useState<"all" | "leads" | "clients">("all")
   const [searchQuery, setSearchQuery] = React.useState("")
   const [statusFilter, setStatusFilter] = React.useState<LeadStatus | "all">("all")
@@ -43,6 +45,7 @@ export function LeadList({ onCreateLead }: LeadListProps) {
   const [leadToDelete, setLeadToDelete] = React.useState<Lead | null>(null)
   const [leadToConvert, setLeadToConvert] = React.useState<Lead | null>(null)
   const [openDropdownId, setOpenDropdownId] = React.useState<string | null>(null)
+  const [bulkUploadOpen, setBulkUploadOpen] = React.useState(false)
 
   // Filter leads based on tab, search, and status
   const filteredLeads = React.useMemo(() => {
@@ -181,8 +184,8 @@ export function LeadList({ onCreateLead }: LeadListProps) {
         }}
       />
 
-      {/* Tabs */}
-      <div className="flex-shrink-0 mb-2">
+      {/* Tabs and Actions */}
+      <div className="flex items-center justify-between flex-shrink-0 mb-2">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)}>
           <TabsList className="h-9">
             <TabsTrigger value="all" className="text-[13px]">All</TabsTrigger>
@@ -190,6 +193,10 @@ export function LeadList({ onCreateLead }: LeadListProps) {
             <TabsTrigger value="clients" className="text-[13px]">Clients</TabsTrigger>
           </TabsList>
         </Tabs>
+        <Button variant="outline" onClick={() => setBulkUploadOpen(true)}>
+          <Upload className="mr-2 h-4 w-4" />
+          Bulk Upload
+        </Button>
       </div>
 
       {/* Filters */}
@@ -386,6 +393,29 @@ export function LeadList({ onCreateLead }: LeadListProps) {
           </div>
         </>
       )}
+
+      <BulkUploadModal
+        open={bulkUploadOpen}
+        onOpenChange={setBulkUploadOpen}
+        title="Bulk Upload Leads"
+        requiredHeaders={LEAD_BULK_HEADERS}
+        onDownloadTemplate={() => {
+          const t = generateLeadCsvTemplate()
+          const blob = new Blob([t], { type: 'text/csv' })
+          const url = window.URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = 'lead_template.csv'
+          a.click()
+          window.URL.revokeObjectURL(url)
+        }}
+        onParseCsv={parseBulkLeadsFromCsv}
+        onUpload={async (rows) => {
+          const res = await bulkCreateLeads(rows)
+          await loadLeads(undefined, true)
+          return res
+        }}
+      />
     </div>
   )
 }
@@ -568,4 +598,6 @@ function CreateLeadButton({
     </>
   )
 }
+
+// We need to add BulkUploadModal to LeadList component itself
 

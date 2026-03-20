@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Users, FolderKanban, HardDrive, AlertTriangle, Sparkles } from "lucide-react"
+import { Users, FolderKanban, HardDrive, AlertTriangle, Sparkles, CheckCircle2, XCircle } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { PlanUsageStats } from "@/lib/api/company"
@@ -173,6 +173,62 @@ export function UsageTracker({ usage }: UsageTrackerProps) {
           subtitle="Document storage used across your team."
         />
       </div>
+
+      <div className="mt-8">
+        <h3 className="text-sm font-semibold mb-4 text-foreground/90 uppercase tracking-wider">Plan Features</h3>
+        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+          <FeatureItem 
+            label="Inventory Management"
+            enabled={usage.plan.inventory === true}
+          />
+          <FeatureItem 
+            label="Vendor Management"
+            enabled={usage.plan.vendorManagement === true}
+            description={usage.plan.planName === 'STARTER' ? 'Limit 10 vendors' : 'Full Access'}
+          />
+          <FeatureItem 
+            label="Labour Management"
+            enabled={usage.plan.labourManagement === true}
+            description={usage.plan.planName === 'STARTER' ? 'Limit 20 workers' : 'Full Access'}
+          />
+          <FeatureItem 
+            label="Advanced Analytics"
+            enabled={usage.plan.analytics === 'advanced'}
+            description={usage.plan.analytics === 'basic' ? 'Basic' : 'Advanced'}
+          />
+          <FeatureItem 
+            label="Role-based Permissions"
+            enabled={usage.plan.roleBasedPermissions === true}
+          />
+          <FeatureItem 
+            label="Custom Dashboards"
+            enabled={usage.plan.customDashboards === true}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function FeatureItem({ label, enabled, description }: { label: string; enabled: boolean; description?: string }) {
+  return (
+    <div className={cn(
+      "flex items-center justify-between p-3 rounded-lg border",
+      enabled ? "bg-primary/5 border-primary/20" : "bg-muted/30 border-border/40"
+    )}>
+      <div className="flex flex-col">
+        <span className={cn("text-sm font-medium", enabled ? "text-foreground" : "text-muted-foreground")}>
+          {label}
+        </span>
+        {description && (
+          <span className="text-xs text-muted-foreground">{description}</span>
+        )}
+      </div>
+      {enabled ? (
+        <CheckCircle2 className="h-4 w-4 text-primary" />
+      ) : (
+        <XCircle className="h-4 w-4 text-muted-foreground/50" />
+      )}
     </div>
   )
 }

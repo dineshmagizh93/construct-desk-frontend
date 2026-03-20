@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { MoreVertical, Eye, Edit, Trash2, Search, Plus, Package, AlertTriangle } from "lucide-react"
+import { MoreVertical, Eye, Edit, Trash2, Search, Plus, Package, AlertTriangle, Upload } from "lucide-react"
 import toast from "react-hot-toast"
 import { InventoryItem, InventoryCategory, inventoryApi } from "@/lib/api/inventory"
 import { Button } from "@/components/ui/button"
@@ -23,6 +23,8 @@ import { cn } from "@/lib/utils"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Pagination } from "@/components/ui/pagination"
 import { InventoryItemForm } from "./inventory-item-form"
+import { BulkUploadModal } from "@/components/shared/bulk-upload-modal"
+import { INVENTORY_ITEM_BULK_HEADERS, generateInventoryItemCsvTemplate, parseBulkInventoryItemsFromCsv } from "./inventory-bulk-utils"
 import { useInventoryItems } from "@/lib/hooks/use-inventory"
 import { formatCurrency } from "@/lib/utils/currency"
 
@@ -33,7 +35,7 @@ interface InventoryItemListProps {
 }
 
 export function InventoryItemList({ onCreateItem, onAddClick, onAddClickClear }: InventoryItemListProps) {
-  const { items, loading, deleteItem, loadItems } = useInventoryItems()
+  const { items, loading, deleteItem, loadItems, bulkCreateItems } = useInventoryItems()
   const [searchQuery, setSearchQuery] = React.useState("")
   const [categoryFilter, setCategoryFilter] = React.useState<InventoryCategory | "all">("all")
   const [currentPage, setCurrentPage] = React.useState(1)
@@ -42,6 +44,7 @@ export function InventoryItemList({ onCreateItem, onAddClick, onAddClickClear }:
   const [itemToDelete, setItemToDelete] = React.useState<InventoryItem | null>(null)
   const [formDialogOpen, setFormDialogOpen] = React.useState(false)
   const [editingItem, setEditingItem] = React.useState<InventoryItem | undefined>(undefined)
+  const [bulkUploadOpen, setBulkUploadOpen] = React.useState(false)
 
   React.useEffect(() => {
     if (onAddClick) {
@@ -169,6 +172,12 @@ export function InventoryItemList({ onCreateItem, onAddClick, onAddClickClear }:
 
   return (
     <div className="flex flex-col h-full min-h-0">
+      <div className="flex flex-wrap gap-2 flex-shrink-0">
+        <Button variant="outline" onClick={() => setBulkUploadOpen(true)} className="mr-2">
+          <Upload className="mr-2 h-4 w-4" />
+          Bulk Upload
+        </Button>
+      </div>
       {/* Filters */}
       <FilterBar
         searchValue={searchQuery}

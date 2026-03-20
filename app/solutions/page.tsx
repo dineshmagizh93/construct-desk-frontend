@@ -7,32 +7,32 @@ export default function SolutionsPage() {
   const solutions = [
     {
       title: "For General Contractors",
-      description: "Manage multiple projects, subcontractors, and timelines efficiently. Track progress across all sites, coordinate with teams, and ensure timely project delivery.",
+      description: "Manage multiple projects, vendors, and timelines in one place. Track progress across sites and keep delivery on schedule.",
       features: [
         "Multi-project dashboard",
-        "Subcontractor management",
-        "Timeline tracking",
-        "Resource allocation",
+        "Vendor management",
+        "Project & task timelines",
+        "Site progress tracking",
       ],
     },
     {
       title: "For Construction Companies",
-      description: "Streamline operations from bidding to project completion. Manage finances, inventory, and workforce all in one place.",
+      description: "Run operations from project start to completion. Track payments, expenses, inventory, and labour in one place.",
       features: [
-        "Bid management",
-        "Financial tracking",
+        "Payments & expense tracking",
         "Inventory control",
-        "Workforce management",
+        "Labour management",
+        "Document storage",
       ],
     },
     {
       title: "For Project Managers",
-      description: "Track progress, manage resources, and ensure on-time delivery. Get real-time insights and make data-driven decisions.",
+      description: "Track progress, assign tasks, and stay on top of delivery. Use reports and the dashboard for real-time visibility.",
       features: [
-        "Progress tracking",
-        "Resource management",
-        "Task assignment",
-        "Real-time reporting",
+        "Site progress & photos",
+        "Task assignment & tracking",
+        "Leads & client management",
+        "Reports & analytics",
       ],
     },
   ]

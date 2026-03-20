@@ -31,6 +31,7 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
     resolver: zodResolver(projectFormSchema),
     defaultValues: project
       ? {
+          projectId: project.projectId,
           name: project.name,
           clientName: project.clientName,
           location: project.location,
@@ -41,6 +42,7 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
           estimatedBudget: project.estimatedBudget,
         }
       : {
+          projectId: "",
           name: "",
           clientName: "",
           location: "",
@@ -67,6 +69,21 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="projectId">
+          Project ID <span className="text-destructive">*</span>
+        </Label>
+        <Input
+          id="projectId"
+          {...register("projectId")}
+          placeholder="e.g. PRJ-1001"
+          required
+        />
+        {errors.projectId && (
+          <p className="text-sm text-destructive">{errors.projectId.message}</p>
+        )}
+      </div>
+
       <div className="space-y-2">
         <Label htmlFor="name">
           Project Name <span className="text-destructive">*</span>

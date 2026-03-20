@@ -13,6 +13,13 @@ import { X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { DocumentType } from "@/types/document"
+import { useRole } from "@/lib/hooks/use-role"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import toast from "react-hot-toast"
+import { parseCsv, normalizeDateToYmd, normalizeHeaderKey } from "@/lib/utils/csv"
+import { CreateDocumentDto } from "@/lib/api/documents"
 
 interface ProjectDocumentsTabProps {
   projectId: string
@@ -20,8 +27,13 @@ interface ProjectDocumentsTabProps {
 
 export function ProjectDocumentsTab({ projectId }: ProjectDocumentsTabProps) {
   const { createDocument, loadDocumentsByProject } = useDocuments()
+  const { isAdmin } = useRole()
   const [projectDocuments, setProjectDocuments] = React.useState<Document[]>([])
   const [loading, setLoading] = React.useState(true)
+
+  const [bulkOpen, setBulkOpen] = React.useState(false)
+  const [bulkError, setBulkError] = React.useState<string | null>(null)
+  const [bulkRows, setBulkRows] = React.useState<CreateDocumentDto[]>([])
 
   React.useEffect(() => {
     const load = async () => {
@@ -53,6 +65,138 @@ export function ProjectDocumentsTab({ projectId }: ProjectDocumentsTabProps) {
     // Reload documents
     const updated = await loadDocumentsByProject(projectId)
     setProjectDocuments(updated)
+  }
+
+  const downloadBulkTemplate = () => {
+    // Note: bulk upload supports adding multiple documents that already have `fileUrl`.
+    // Uploading physical files via CSV isn't supported here.
+    const headers = ["projectId", "name", "type", "fileUrl", "fileName", "fileSize", "notes"]
+    const sample = [
+      projectId || "YOUR_PROJECT_ID",
+      "Agreement - Bulk Upload",
+      "Agreement",
+      "https://example.com/files/agreement.pdf",
+      "",
+      "",
+      "Optional notes",
+    ]
+
+    const escapeCell = (v: string) => {
+      const needsQuotes = v.includes(",") || v.includes('"') || v.includes("\n") || v.includes("\r")
+      const escaped = v.replace(/"/g, '""')
+      return needsQuotes ? `"${escaped}"` : escaped
+    }
+
+    const csv = `${headers.map(escapeCell).join(",")}\n${sample.map((c) => escapeCell(String(c))).join(",")}\n`
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "documents-bulk-upload-template.csv"
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  const parseBulkDocumentsFromCsv = (csvText: string): CreateDocumentDto[] => {
+    const parsed = parseCsv(csvText)
+    if (parsed.length === 0) return []
+
+    const [headerRow, ...dataRows] = parsed
+    const headerMap = new Map<string, number>()
+    headerRow.forEach((h, idx) => headerMap.set(normalizeHeaderKey(h), idx))
+
+    const required = ["name", "type", "fileurl"]
+    const missing = required.filter((h) => !headerMap.has(h))
+    if (missing.length > 0) throw new Error(`Missing required CSV headers: ${missing.join(", ")}`)
+
+    const get = (row: string[], key: string) => {
+      const idx = headerMap.get(key)
+      if (idx === undefined) return ""
+      return (row[idx] ?? "").trim()
+    }
+
+    const normalizeType = (raw: string): DocumentType | "" => {
+      const s = raw.trim().toLowerCase().replace(/[^a-z]/g, "")
+      if (!s) return ""
+      if (s === "agreement") return "Agreement"
+      if (s === "drawing") return "Drawing"
+      if (s === "bill") return "Bill"
+      if (s === "invoice") return "Invoice"
+      if (s === "approval") return "Approval"
+      if (s === "permit") return "Permit"
+      if (s === "receipt") return "Receipt"
+      if (s === "other") return "Other"
+      return ""
+    }
+
+    const rows: CreateDocumentDto[] = []
+    const mismatch: string[] = []
+
+    for (const row of dataRows) {
+      const rowProjectIdRaw = get(row, "projectid")
+      if (rowProjectIdRaw && rowProjectIdRaw !== projectId) mismatch.push(rowProjectIdRaw)
+      const finalProjectId = rowProjectIdRaw || projectId
+
+      const name = get(row, "name")
+      const type = normalizeType(get(row, "type"))
+      const fileUrl = get(row, "fileurl")
+      const fileName = get(row, "filename") || undefined
+      const fileSizeRaw = get(row, "filesize")
+      const fileSize = fileSizeRaw ? parseInt(fileSizeRaw, 10) : undefined
+      const notes = get(row, "notes")
+
+      if (!name || !type || !fileUrl) continue
+
+      rows.push({
+        projectId: finalProjectId,
+        name,
+        type,
+        fileUrl,
+        fileName: fileName || fileUrl.split("/").pop() || "document",
+        fileSize: fileSize !== undefined && !Number.isNaN(fileSize) ? fileSize : 0,
+        notes: notes || undefined,
+      })
+    }
+
+    if (mismatch.length > 0) {
+      throw new Error(`CSV projectId mismatch. All rows must match current project (${projectId}).`)
+    }
+
+    return rows
+  }
+
+  const handleBulkUpload = async () => {
+    setBulkError(null)
+    try {
+      if (bulkRows.length === 0) {
+        setBulkError("No valid rows to upload.")
+        return
+      }
+
+      for (const row of bulkRows) {
+        await createDocument({
+          projectId: row.projectId,
+          name: row.name,
+          type: row.type,
+          fileUrl: row.fileUrl,
+          fileName: row.fileName,
+          fileSize: row.fileSize,
+          notes: row.notes,
+        })
+      }
+
+      const updated = await loadDocumentsByProject(projectId)
+      setProjectDocuments(updated)
+      toast.success("Bulk documents uploaded successfully")
+      setBulkOpen(false)
+      setBulkRows([])
+    } catch (err: any) {
+      const raw = err?.message as string
+      const cleaned = raw?.includes(":") ? raw.split(":").slice(1).join(":").trim() : raw
+      setBulkError(cleaned || "Bulk upload failed")
+    }
   }
 
   const handleDownload = (document: Document) => {
@@ -125,7 +269,22 @@ export function ProjectDocumentsTab({ projectId }: ProjectDocumentsTabProps) {
           <h3 className="text-lg font-semibold">Project Documents</h3>
           <p className="text-sm text-muted-foreground">Manage all documents for this project</p>
         </div>
-        <CreateDocumentButton onCreate={handleCreateDocument} projectId={projectId} />
+        <div className="flex items-center gap-2">
+          <CreateDocumentButton onCreate={handleCreateDocument} projectId={projectId} />
+          {isAdmin && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setBulkOpen(true)
+                setBulkError(null)
+                setBulkRows([])
+              }}
+            >
+              Bulk Upload
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Documents grouped by type */}
@@ -196,6 +355,70 @@ export function ProjectDocumentsTab({ projectId }: ProjectDocumentsTabProps) {
           })}
         </div>
       )}
+
+      {/* Bulk Upload Dialog */}
+      <Dialog
+        open={bulkOpen}
+        onOpenChange={(open) => {
+          setBulkOpen(open)
+          if (!open) {
+            setBulkError(null)
+            setBulkRows([])
+          }
+        }}
+      >
+        <DialogContent className="max-w-2xl max-h-[calc(100vh-1rem)] p-3 hide-scrollbar gap-2">
+          <DialogHeader>
+            <DialogTitle>Bulk Upload Documents</DialogTitle>
+            <DialogDescription className="text-xs">
+              Upload multiple documents for this project only. If any row has a different `projectId`, upload will not proceed.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <Button type="button" variant="outline" onClick={downloadBulkTemplate}>
+                Download CSV Template
+              </Button>
+              <div className="text-xs text-muted-foreground">Required: name,type,fileUrl</div>
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="bulk-documents">Choose CSV file</Label>
+              <Input
+                id="bulk-documents"
+                type="file"
+                accept=".csv,text/csv"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  setBulkError(null)
+                  setBulkRows([])
+                  try {
+                    const text = await file.text()
+                    const rows = parseBulkDocumentsFromCsv(text)
+                    setBulkRows(rows)
+                    if (rows.length === 0) setBulkError("No valid rows found. Check CSV values.")
+                  } catch (err: any) {
+                    setBulkError(err?.message || "Failed to parse CSV.")
+                  }
+                }}
+              />
+            </div>
+
+            {bulkError && <div className="rounded-md bg-destructive/10 p-2 text-xs text-destructive">{bulkError}</div>}
+
+            <div className="flex items-center justify-end gap-2 pt-1">
+              <Button type="button" variant="outline" onClick={() => setBulkOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="button" disabled={bulkRows.length === 0} onClick={handleBulkUpload}>
+                Upload
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -36,7 +36,6 @@ interface SidebarProps {
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", module: "dashboard" },
-  { icon: Gauge, label: "Usage Tracker", href: "/usage", module: "dashboard" }, // always visible like dashboard
   { icon: FolderKanban, label: "Projects", href: "/projects", module: "projects" },
   { icon: KanbanSquare, label: "Tasks", href: "/tasks", module: "tasks" },
   { icon: Users, label: "Leads & Clients", href: "/leads", module: "leads" },
@@ -49,6 +48,7 @@ const menuItems = [
   { icon: FileText, label: "Documents", href: "/documents", module: "documents" },
   { icon: BarChart3, label: "Reports", href: "/reports", module: "reports" },
   { icon: UserPlus, label: "Users", href: "/users", module: "users" },
+  { icon: Gauge, label: "Usage Tracker", href: "/usage", module: "dashboard" }, // always visible like dashboard
   { icon: Settings, label: "Settings", href: "/settings", module: "settings" },
 ]
 
@@ -70,9 +70,9 @@ export const Sidebar = React.memo(function Sidebar({ isCollapsed, onToggle }: Si
       >
         <div className="flex h-full flex-col">
           {/* Toggle Button */}
-          <div className="flex h-12 items-center justify-between border-b border-border/40 px-3 bg-gradient-to-r from-primary/5 to-transparent flex-shrink-0">
+          <div className="flex h-14 items-center justify-between border-b border-border/40 px-3 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm flex-shrink-0 relative z-10">
             {!isCollapsed && (
-              <h2 className="text-sm font-semibold text-foreground">
+              <h2 className="text-lg font-bold text-primary tracking-tight">
                 Super Admin
               </h2>
             )}
@@ -215,9 +215,9 @@ export const Sidebar = React.memo(function Sidebar({ isCollapsed, onToggle }: Si
     >
       <div className="flex h-full flex-col">
         {/* Toggle Button */}
-        <div className="flex h-12 items-center justify-between border-b border-border/40 px-3 bg-gradient-to-r from-primary/5 to-transparent flex-shrink-0">
+        <div className="flex h-14 items-center justify-between border-b border-border/40 px-3 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm flex-shrink-0 relative z-10">
           {!isCollapsed && (
-            <h2 className="text-sm font-semibold text-foreground">
+            <h2 className="text-[17px] font-extrabold text-primary tracking-tight">
               ConstructDesk
             </h2>
           )}

@@ -113,6 +113,22 @@ export function useSiteProgress() {
     }
   }, [progress])
 
+  const bulkCreateProgress = useCallback(async (progressData: any[]) => {
+    try {
+      setError(null)
+      const res = await siteProgressApi.bulkCreate(progressData)
+      if (siteProgressCache) {
+        siteProgressCache.timestamp = 0
+      }
+      return res
+    } catch (err) {
+      const apiError = err as ApiError
+      const errorMessage = apiError.message as string || "Failed to bulk create site progress"
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }, [])
+
   const updateProgress = useCallback(async (id: string, updates: UpdateSiteProgressDto) => {
     try {
       setError(null)
@@ -160,6 +176,7 @@ export function useSiteProgress() {
     loadProgress,
     loadProgressByProject,
     createProgress,
+    bulkCreateProgress,
     updateProgress,
     deleteProgress,
   }

@@ -30,7 +30,7 @@ export const DashboardLayout = React.memo(function DashboardLayout({ children }:
   React.useEffect(() => {
     if (isSuperAdmin && authInitialized && pathname) {
       // Allow admin pages, login, register, and other public pages
-      const allowedPaths = ['/admin', '/login', '/register', '/', '/pricing', '/contact', '/features', '/solutions', '/resources']
+      const allowedPaths = ['/admin', '/login', '/register', '/', '/pricing', '/contact', '/features', '/solutions']
       const isAllowedPath = allowedPaths.some(path => pathname === path || pathname.startsWith(path + '/'))
       
       if (!isAllowedPath && !pathname.startsWith('/admin')) {
@@ -110,13 +110,13 @@ export const DashboardLayout = React.memo(function DashboardLayout({ children }:
       <Sidebar isCollapsed={sidebarCollapsed} onToggle={toggleSidebar} />
         <div
         className={cn(
-          "transition-all duration-300",
+          "transition-all duration-300 flex flex-col h-screen",
           "pl-0", // No padding on mobile
           sidebarCollapsed ? "lg:pl-14" : "lg:pl-[200px]"
         )}
       >
         <Header sidebarCollapsed={sidebarCollapsed} />
-        <main className="px-4 sm:px-5 lg:px-6 pb-4 sm:pb-5 lg:pb-6 pt-12 sm:pt-14 h-screen overflow-hidden">
+        <main className="px-4 sm:px-5 lg:px-6 pb-4 sm:pb-5 lg:pb-6 pt-12 sm:pt-14 flex-1 overflow-y-auto overflow-x-hidden min-h-0">
           <div className="max-w-[1920px] mx-auto w-full h-full flex flex-col min-h-0">
             {children}
           </div>

@@ -105,6 +105,23 @@ export function useLabour() {
     }
   }, [])
 
+  const bulkCreateLabour = useCallback(async (labourData: any[]) => {
+    try {
+      setError(null)
+      const res = await labourApi.bulkCreate(labourData)
+      // Invalidate cache immediately
+      if (labourCache) {
+        labourCache.timestamp = 0
+      }
+      return res
+    } catch (err) {
+      const apiError = err as ApiError
+      const errorMessage = apiError.message as string || "Failed to bulk create labour"
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    }
+  }, [])
+
   const updateLabour = useCallback(async (id: string, updates: UpdateLabourDto) => {
     try {
       setError(null)
@@ -149,6 +166,7 @@ export function useLabour() {
     loadLabour,
     loadLabourByProject,
     createLabour,
+    bulkCreateLabour,
     updateLabour,
     deleteLabour,
   }

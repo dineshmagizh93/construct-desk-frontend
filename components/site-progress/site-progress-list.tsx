@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { MoreVertical, Eye, Edit, Trash2, Search, Plus, X, Calendar, Image as ImageIcon } from "lucide-react"
+import { MoreVertical, Eye, Edit, Trash2, Search, Plus, X, Calendar, Image as ImageIcon, Upload } from "lucide-react"
 import toast from "react-hot-toast"
 import { SiteProgress } from "@/types/site-progress"
 import { Button } from "@/components/ui/button"
@@ -21,6 +21,8 @@ import { cn } from "@/lib/utils"
 import { Pagination } from "@/components/ui/pagination"
 import { SiteProgressForm } from "./site-progress-form"
 import { useSiteProgress } from "@/lib/hooks/use-site-progress"
+import { BulkUploadModal } from "@/components/shared/bulk-upload-modal"
+import { downloadSiteProgressBulkTemplate, parseBulkSiteProgressFromCsv } from "./site-progress-bulk-utils"
 import { useProjects } from "@/lib/hooks/use-projects"
 import { projectsApi } from "@/lib/api/projects"
 import { SiteProgressFormSchema } from "@/lib/validations/site-progress"
@@ -30,7 +32,7 @@ interface SiteProgressListProps {
 }
 
 export function SiteProgressList({ projectId }: SiteProgressListProps) {
-  const { progress, loading, deleteProgress, loadProgress, createProgress } = useSiteProgress()
+  const { progress, loading, deleteProgress, loadProgress, createProgress, bulkCreateProgress } = useSiteProgress()
   const { projects } = useProjects()
   const [searchQuery, setSearchQuery] = React.useState("")
   const [projectFilter, setProjectFilter] = React.useState<string>("all")
@@ -40,6 +42,8 @@ export function SiteProgressList({ projectId }: SiteProgressListProps) {
   const [itemsPerPage, setItemsPerPage] = React.useState(10)
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [progressToDelete, setProgressToDelete] = React.useState<SiteProgress | null>(null)
+
+  const [bulkUploadOpen, setBulkUploadOpen] = React.useState(false)
 
   // Filter progress
   const filteredProgress = React.useMemo(() => {
@@ -131,13 +135,21 @@ export function SiteProgressList({ projectId }: SiteProgressListProps) {
             {projectId ? "Project site progress" : "Track construction site progress"}
           </p>
         </div>
-        <CreateProgressButton
-          projectId={projectId}
-          onCreated={async () => {
-            await loadProgress(projectId, true)
-          }}
-          createProgress={createProgress}
-        />
+        <div className="flex gap-2">
+          {!projectId && (
+            <Button variant="outline" onClick={() => setBulkUploadOpen(true)}>
+              <Upload className="mr-2 h-4 w-4" />
+              Bulk Upload
+            </Button>
+          )}
+          <CreateProgressButton
+            projectId={projectId}
+            onCreated={async () => {
+              await loadProgress(projectId, true)
+            }}
+            createProgress={createProgress}
+          />
+        </div>
       </div>
 
       {/* Filters */}
@@ -265,6 +277,22 @@ export function SiteProgressList({ projectId }: SiteProgressListProps) {
           />
         </div>
       </div>
+
+      {/* Bulk Upload Modal */}
+      <BulkUploadModal
+        open={bulkUploadOpen}
+        onOpenChange={setBulkUploadOpen}
+        title="Bulk Upload Site Progress"
+        description="Upload a CSV file containing site progress entries. Note that Project ID and Date are required."
+        requiredHeaders={["Project ID", "Date"]}
+        onDownloadTemplate={downloadSiteProgressBulkTemplate}
+        onParseCsv={parseBulkSiteProgressFromCsv}
+        onUpload={async (rows) => {
+          const res = await bulkCreateProgress(rows)
+          await loadProgress(projectId, true)
+          return res
+        }}
+      />
 
       {/* Delete Confirmation Dialog */}
       {deleteDialogOpen && (
