@@ -15,7 +15,7 @@ export default function ContactPage() {
       <PublicHeader />
 
       {/* Hero Section */}
-      <section className="pt-20 pb-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-muted/20">
+      <section className="pt-36 lg:pt-40 pb-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-muted/20">
         <div className="container mx-auto max-w-7xl">
           <div className="text-center space-y-3 mb-8">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">

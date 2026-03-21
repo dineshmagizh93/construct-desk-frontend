@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import {
   ArrowRight,
   BarChart3,
+  Briefcase,
   CheckCircle2,
   ChevronRight,
   ClipboardList,
@@ -17,58 +18,131 @@ import {
   Package,
   Shield,
   Star,
+  Users,
   Zap,
 } from "lucide-react"
 
 export default function Home() {
   const router = useRouter()
 
+  const [visitorStats, setVisitorStats] = React.useState({ today: 0, overall: 0, loaded: false });
+
+  React.useEffect(() => {
+    let mounted = true;
+    const trackAndFetchVisits = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+        const hasVisited = sessionStorage.getItem('has_visited_today_crm');
+        
+        if (!hasVisited) {
+          await fetch(`${apiUrl}/visits`, { method: 'POST' }).catch(() => {});
+          sessionStorage.setItem('has_visited_today_crm', 'true');
+        }
+
+        const res = await fetch(`${apiUrl}/visits`);
+        if (res.ok) {
+          const data = await res.json();
+          if (mounted) {
+            setVisitorStats({ today: data.today, overall: data.overall, loaded: true });
+          }
+        } else {
+          if (mounted) setVisitorStats(prev => ({ ...prev, loaded: true }));
+        }
+      } catch (error) {
+        if (mounted) setVisitorStats(prev => ({ ...prev, loaded: true }));
+      }
+    };
+    
+    trackAndFetchVisits();
+    return () => { mounted = false; };
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#fafafa] selection:bg-primary/20 font-sans overflow-x-hidden text-slate-900">
       <PublicHeader />
 
-      {/* Hero Section - Ultra Clean Minimalist */}
-      <section className="relative pt-32 lg:pt-40 pb-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center overflow-hidden">
+      {/* Hero Section - Zig Zag Side by Side */}
+      <section className="relative pt-24 lg:pt-28 pb-16 lg:pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
         {/* Soft floating background orb */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 blur-[100px] rounded-full pointer-events-none -z-10" />
+        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 blur-[100px] rounded-full pointer-events-none -z-10" />
+        <div className="absolute bottom-1/4 right-0 translate-x-1/3 translate-y-1/2 w-[500px] h-[500px] bg-blue-500/5 blur-[120px] rounded-full pointer-events-none -z-10" />
 
-        <div className="container mx-auto max-w-5xl relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-1000 ease-out fill-mode-forwards">
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight max-w-4xl mx-auto leading-[1.1] text-slate-900 mb-6 drop-shadow-sm">
-            Construction Management, 
-            <span className="block text-primary mt-1">Perfectly Refined.</span>
-          </h1>
-          
-          <p className="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed mb-10">
-            A remarkably clean, blazingly fast platform to manage projects, financials, and teams. Experience the clarity your construction business deserves.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" className="h-14 px-8 text-base shadow-xl shadow-primary/20 rounded-full hover:-translate-y-1 transition-transform duration-300 w-full sm:w-auto" onClick={() => router.push("/register")}>
-              Start your free trial
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Button size="lg" variant="outline" className="h-14 px-8 text-base bg-white border-slate-200 rounded-full hover:bg-slate-50 hover:border-slate-300 transition-colors w-full sm:w-auto" onClick={() => router.push("/pricing")}>
-              Explore Pricing
-            </Button>
-          </div>
-          <p className="text-sm text-slate-500 mt-5 font-medium">
-            3-day free trial. No credit card required.
-          </p>
-
-          {/* Hero Image Showcase */}
-          <div className="mt-20 mx-auto max-w-[1100px] relative perspective-[1000px]">
-            {/* Soft shadow underneath */}
-            <div className="absolute -bottom-10 inset-x-10 h-10 bg-black/10 blur-2xl rounded-full"></div>
+        <div className="container mx-auto max-w-7xl relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
             
-            <div className="relative rounded-[24px] overflow-hidden border border-slate-200/50 bg-white/50 p-2 shadow-2xl shadow-slate-300/50 backdrop-blur-sm transform transition-all hover:scale-[1.01] duration-700 ease-out z-20">
-              <div className="rounded-[16px] overflow-hidden border border-slate-100 bg-white shadow-sm ring-1 ring-black/5 relative aspect-[16/9]">
-                <Image
-                  src="/screenshots/dashboard.png"
-                  alt="ConstructDesk Premium Dashboard"
-                  fill
-                  className="object-cover object-top"
-                  priority
-                />
+            {/* Left Column: Text & CTA */}
+            <div className="flex flex-col items-center text-center lg:items-start lg:text-left animate-in fade-in slide-in-from-bottom-8 duration-1000 ease-out fill-mode-forwards">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-sm font-semibold mb-6 shadow-sm">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-600"></span>
+                </span>
+                The #1 Construction Management Platform
+              </div>
+              
+              <h1 className="text-4xl sm:text-5xl lg:text-5xl xl:text-[3.5rem] font-extrabold tracking-tight max-w-[100%] leading-[1.1] text-slate-900 mb-6 xl:whitespace-nowrap">
+                Construction ERP, <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-primary bg-clip-text text-transparent">Built to Save Money.</span>
+              </h1>
+              
+              <p className="text-lg sm:text-xl text-slate-600 max-w-xl leading-relaxed mb-10">
+                The complete platform for every type of construction business. Replace disconnected tools with one unified app to manage projects, materials, labour, and finances.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 w-full">
+                <Button size="lg" className="h-14 px-8 text-base shadow-xl shadow-primary/20 rounded-full hover:-translate-y-1 transition-transform duration-300 w-full sm:w-auto" onClick={() => router.push("/register")}>
+                  Start your free trial
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+                <Button size="lg" variant="outline" className="h-14 px-8 text-base bg-white border-slate-200 rounded-full hover:bg-slate-50 hover:border-slate-300 transition-colors w-full sm:w-auto" onClick={() => router.push("/pricing")}>
+                  Explore Pricing
+                </Button>
+              </div>
+              <p className="text-sm text-slate-500 mt-5 font-medium lg:w-full text-center lg:text-left">
+                3-day free trial. No credit card required.
+              </p>
+
+              {/* Visitor Stats Display */}
+              <div className={`mt-10 lg:mt-12 flex items-center justify-center lg:justify-start gap-8 md:gap-12 transition-opacity duration-1000 ${visitorStats.loaded ? 'opacity-100' : 'opacity-0'}`}>
+                <div className="flex flex-col items-center lg:items-start">
+                  <span className="text-3xl font-black text-slate-800 tracking-tight">{visitorStats.today.toLocaleString()}</span>
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Today's Visits</span>
+                </div>
+                <div className="w-px h-10 bg-slate-300"></div>
+                <div className="flex flex-col items-center lg:items-start">
+                  <span className="text-3xl font-black text-slate-800 tracking-tight">{visitorStats.overall.toLocaleString()}</span>
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Overall Visits</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Hero Image Showcase */}
+            <div className="relative mt-16 lg:mt-40 xl:mt-48 perspective-[1200px] animate-in fade-in slide-in-from-right-8 duration-1000 delay-200 ease-out fill-mode-forwards z-0">
+              {/* Soft shadow underneath */}
+              <div className="absolute -bottom-10 inset-x-10 h-10 bg-black/10 blur-2xl rounded-full"></div>
+              
+              <div className="relative rounded-[24px] overflow-hidden border border-slate-200/50 bg-white/50 p-2 shadow-2xl shadow-slate-300/50 backdrop-blur-sm transform transition-all hover:scale-[1.02] lg:-rotate-y-4 lg:rotate-x-2 duration-700 ease-out">
+                <div className="rounded-[16px] overflow-hidden border border-slate-100 bg-white shadow-sm ring-1 ring-black/5 relative aspect-[16/10]">
+                  <Image
+                    src="/screenshots/dashboard.png"
+                    alt="ConstructDesk Premium Dashboard"
+                    fill
+                    className="object-cover object-top"
+                    priority
+                  />
+                </div>
+              </div>
+              
+              {/* Decorative floating element */}
+              <div className="absolute -left-6 sm:-left-10 lg:-left-12 top-1/4 bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 animate-bounce z-30 transform -rotate-2" style={{ animationDuration: '4s' }}>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="h-8 w-8 sm:h-10 sm:w-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                    <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm font-bold text-slate-900 leading-tight">Project On Track</p>
+                    <p className="text-[10px] sm:text-xs text-slate-500">Updated just now</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -80,11 +154,10 @@ export default function Home() {
         <div className="container mx-auto max-w-6xl">
           <div className="text-center max-w-3xl mx-auto mb-20 space-y-4">
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900">
-              Everything in its proper place.
+              Everything you need in one platform.
             </h2>
             <p className="text-lg text-slate-600">
-              A thoughtfully designed suite of tools that work exactly how you expect them to. 
-              No clutter, no confusion—just pure productivity.
+              Stop juggling between chaotic tools. Our most comprehensive ERP unifies every aspect of your operations, from planning and procurement to execution and accounting.
             </p>
           </div>
 
@@ -92,66 +165,67 @@ export default function Home() {
             {/* Feature 1 */}
             <div className="group bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 ease-out">
               <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-blue-100 transition-all duration-300">
-                <LayoutDashboard className="h-6 w-6 text-blue-600" />
+                <FolderKanban className="h-6 w-6 text-blue-600" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Crystal Clear Dashboard</h3>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Project Management</h3>
               <p className="text-slate-600 leading-relaxed">
-                Track revenue, expenses, and active projects in a beautifully summarized centralized view. Know exactly where your business stands in seconds.
+                Connect your sites and office seamlessly. Track progress, manage assigned tasks, and keep stakeholders instantly aligned with real-time updates.
               </p>
             </div>
 
             {/* Feature 2 */}
             <div className="group bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 ease-out">
-              <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-emerald-100 transition-all duration-300">
-                <FolderKanban className="h-6 w-6 text-emerald-600" />
+              <div className="h-12 w-12 rounded-2xl bg-orange-50 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-orange-100 transition-all duration-300">
+                <Package className="h-6 w-6 text-orange-600" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Project Management</h3>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Material & Inventory</h3>
               <p className="text-slate-600 leading-relaxed">
-                Organize every site perfectly. Tag phases, log daily progress, manage documents securely, and keep stakeholders instantly aligned.
+                Never lose track of materials again. Efficiently track incoming shipments, distribute supplies across sites, and control your material budget.
               </p>
             </div>
 
             {/* Feature 3 */}
             <div className="group bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 ease-out">
               <div className="h-12 w-12 rounded-2xl bg-purple-50 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-purple-100 transition-all duration-300">
-                <CreditCard className="h-6 w-6 text-purple-600" />
+                <Users className="h-6 w-6 text-purple-600" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Flawless Financials</h3>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Labour Management</h3>
               <p className="text-slate-600 leading-relaxed">
-                Say goodbye to scattered receipts. Categorize expenses, monitor payments, and export ledger-ready reports with a single click.
+                Replace paper registers with accurate workforce tracking. Monitor daily attendance, manage labour costs, and maintain perfect payroll records.
               </p>
             </div>
 
             {/* Feature 4 */}
             <div className="group bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 ease-out">
-              <div className="h-12 w-12 rounded-2xl bg-orange-50 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-orange-100 transition-all duration-300">
-                <Package className="h-6 w-6 text-orange-600" />
+              <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-emerald-100 transition-all duration-300">
+                <CreditCard className="h-6 w-6 text-emerald-600" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Inventory Tracking</h3>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Billing & Expenses</h3>
               <p className="text-slate-600 leading-relaxed">
-                Never lose track of materials again. Log incoming shipments, distribute to sites, and monitor available stock with perfect accuracy.
+                Gain full visibility over your project finances. Categorize expenses, monitor payments, track budgets, and optimize cash flow in real-time.
               </p>
             </div>
 
             {/* Feature 5 */}
-            <div className="group bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 ease-out px-8 lg:col-span-2 relative overflow-hidden flex flex-col sm:flex-row items-center gap-8">
-              <div className="absolute right-0 top-0 w-64 h-64 bg-primary/5 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
-              <div className="flex-1 relative z-10">
-                <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
-                  <Shield className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">Enterprise-Grade Security</h3>
-                <p className="text-slate-600 leading-relaxed max-w-md">
-                  Your data is fortified. Assign granular role-based permissions, configure company settings, and let our system automatically block unauthorized access across all modules.
-                </p>
+            <div className="group bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 ease-out">
+              <div className="h-12 w-12 rounded-2xl bg-rose-50 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-rose-100 transition-all duration-300">
+                <Briefcase className="h-6 w-6 text-rose-600" />
               </div>
-              <div className="hidden sm:flex flex-1 justify-end opacity-50 relative z-10 w-full">
-                <div className="w-full max-w-[200px] space-y-3">
-                  <div className="h-10 w-full bg-slate-100 rounded-lg animate-pulse" />
-                  <div className="h-10 w-4/5 bg-slate-100 rounded-lg animate-pulse" style={{animationDelay: "150ms"}} />
-                  <div className="h-10 w-full bg-slate-100 rounded-lg animate-pulse" style={{animationDelay: "300ms"}} />
-                </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Vendor Management</h3>
+              <p className="text-slate-600 leading-relaxed">
+                Manage construction contractors, suppliers, and vendors without the chaos. Monitor progress against work orders and manage vendor payments.
+              </p>
+            </div>
+            
+            {/* Feature 6 */}
+            <div className="group bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 ease-out">
+              <div className="h-12 w-12 rounded-2xl bg-sky-50 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-sky-100 transition-all duration-300">
+                <ClipboardList className="h-6 w-6 text-sky-600" />
               </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Site Progress</h3>
+              <p className="text-slate-600 leading-relaxed">
+                Keep an unshakeable record of daily operations. Log site conditions, upload verifications, and let owners know exactly what is happening today.
+              </p>
             </div>
           </div>
         </div>

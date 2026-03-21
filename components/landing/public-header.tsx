@@ -21,16 +21,19 @@ export function PublicHeader() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/40">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between min-h-[5rem] py-3">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <div className="relative">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">C</span>
-              </div>
+          <Link href="/" className="flex items-center gap-1 sm:gap-2">
+            <div className="relative w-20 h-16 sm:w-28 sm:h-20 shrink-0 flex items-center justify-center mr-1 overflow-hidden mix-blend-multiply">
+              <img 
+                src="/mylogo.png" 
+                alt="CD Logo" 
+                className="absolute inset-0 top-0.5 w-full h-full object-contain scale-[1.8] sm:scale-[2]" 
+              />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              ConstructDesk
+            <span className="text-2xl font-black tracking-tight" style={{ letterSpacing: '-0.02em' }}>
+              <span className="text-blue-700">Construct</span>
+              <span className="text-orange-500">Desk</span>
             </span>
           </Link>
 

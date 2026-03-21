@@ -217,8 +217,9 @@ export const Sidebar = React.memo(function Sidebar({ isCollapsed, onToggle }: Si
         {/* Toggle Button */}
         <div className="flex h-14 items-center justify-between border-b border-border/40 px-3 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm flex-shrink-0 relative z-10">
           {!isCollapsed && (
-            <h2 className="text-[17px] font-extrabold text-primary tracking-tight">
-              ConstructDesk
+            <h2 className="text-[18px] font-black tracking-tight" style={{ letterSpacing: '-0.02em' }}>
+              <span className="text-blue-700">Construct</span>
+              <span className="text-orange-500">Desk</span>
             </h2>
           )}
           <Button

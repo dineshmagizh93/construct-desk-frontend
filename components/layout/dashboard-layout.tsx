@@ -4,6 +4,7 @@ import * as React from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { Sidebar } from "./sidebar"
 import { Header } from "./header"
+import { TrialExpiredLockout } from "./trial-lockout"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { useSuperAdmin } from "@/lib/hooks/use-super-admin"
@@ -22,7 +23,7 @@ export const DashboardLayout = React.memo(function DashboardLayout({ children }:
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false)
   const router = useRouter()
   const pathname = usePathname()
-  const { isAuthenticated, loading } = useAuth()
+  const { isAuthenticated, loading, user } = useAuth()
   const { isSuperAdmin } = useSuperAdmin()
   const [authInitialized, setAuthInitialized] = React.useState(globalAuthChecked)
 
@@ -104,6 +105,14 @@ export const DashboardLayout = React.memo(function DashboardLayout({ children }:
     return null
   }
 
+  // Check if trial has expired
+  const isSettingsOrPricing = pathname === '/settings' || pathname === '/pricing' || pathname?.startsWith('/settings/')
+  const isTrialExpired = user?.company?.subscriptionStatus === 'trial' && 
+    user?.company?.subscriptionEndDate && 
+    new Date() > new Date(user.company.subscriptionEndDate)
+    
+  const shouldLockout = isTrialExpired && !isSettingsOrPricing
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Desktop Sidebar - Hidden on mobile */}
@@ -118,7 +127,7 @@ export const DashboardLayout = React.memo(function DashboardLayout({ children }:
         <Header sidebarCollapsed={sidebarCollapsed} />
         <main className="px-4 sm:px-5 lg:px-6 pb-4 sm:pb-5 lg:pb-6 pt-12 sm:pt-14 flex-1 overflow-y-auto overflow-x-hidden min-h-0">
           <div className="max-w-[1920px] mx-auto w-full h-full flex flex-col min-h-0">
-            {children}
+            {shouldLockout ? <TrialExpiredLockout /> : children}
           </div>
         </main>
       </div>
