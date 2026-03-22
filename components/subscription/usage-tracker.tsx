@@ -128,6 +128,7 @@ export function UsageTracker({ usage }: UsageTrackerProps) {
     typeof rawPlanName === "string" && rawPlanName === rawPlanName.toUpperCase()
       ? rawPlanName.charAt(0) + rawPlanName.slice(1).toLowerCase()
       : rawPlanName
+  const isStarterLikePlan = (usage.plan.planName === 'STARTER' || usage.plan.planName === 'TRIAL')
 
   const storageCurrentGB = usage.storage.current || 0
   const storageLimitGB = usage.storage.limit || usage.plan.storageGB || 0
@@ -184,12 +185,12 @@ export function UsageTracker({ usage }: UsageTrackerProps) {
           <FeatureItem 
             label="Vendor Management"
             enabled={usage.plan.vendorManagement === true}
-            description={usage.plan.planName === 'STARTER' ? 'Limit 10 vendors' : 'Full Access'}
+            description={isStarterLikePlan ? 'Limit 10 vendors' : 'Full Access'}
           />
           <FeatureItem 
             label="Labour Management"
             enabled={usage.plan.labourManagement === true}
-            description={usage.plan.planName === 'STARTER' ? 'Limit 20 workers' : 'Full Access'}
+            description={isStarterLikePlan ? 'Limit 20 workers' : 'Full Access'}
           />
           <FeatureItem 
             label="Advanced Analytics"
