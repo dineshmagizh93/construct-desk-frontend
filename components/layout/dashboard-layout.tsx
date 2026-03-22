@@ -107,9 +107,12 @@ export const DashboardLayout = React.memo(function DashboardLayout({ children }:
 
   // Check if trial has expired
   const isSettingsOrPricing = pathname === '/settings' || pathname === '/pricing' || pathname?.startsWith('/settings/')
-  const isTrialExpired = user?.company?.subscriptionStatus === 'trial' && 
-    user?.company?.subscriptionEndDate && 
-    new Date() > new Date(user.company.subscriptionEndDate)
+  const isTrial = user?.company?.subscriptionStatus === 'trial'
+  const trialEndDate = user?.company?.subscriptionEndDate ? new Date(user.company.subscriptionEndDate) : null
+  const isTrialExpired = !!(isTrial && trialEndDate && new Date() > trialEndDate)
+  const trialDaysLeft = trialEndDate
+    ? Math.max(0, Math.ceil((trialEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0
     
   const shouldLockout = isTrialExpired && !isSettingsOrPricing
 
@@ -127,6 +130,12 @@ export const DashboardLayout = React.memo(function DashboardLayout({ children }:
         <Header sidebarCollapsed={sidebarCollapsed} />
         <main className="px-4 sm:px-5 lg:px-6 pb-4 sm:pb-5 lg:pb-6 pt-12 sm:pt-14 flex-1 overflow-y-auto overflow-x-hidden min-h-0">
           <div className="max-w-[1920px] mx-auto w-full h-full flex flex-col min-h-0">
+            {isTrial && !isTrialExpired && trialEndDate && (
+              <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                Your 3-day free trial is active. {trialDaysLeft} day{trialDaysLeft === 1 ? '' : 's'} left
+                (ends on {trialEndDate.toLocaleDateString()}).
+              </div>
+            )}
             {shouldLockout ? <TrialExpiredLockout /> : children}
           </div>
         </main>

@@ -15,10 +15,11 @@ export function SubscriptionSection() {
   const { user } = useAuth()
   const [loading, setLoading] = React.useState(false)
 
-  const subscriptionPlan = user?.company?.subscriptionPlan || "STARTER"
-  const subscriptionStatus = user?.company?.subscriptionStatus || "active"
+  const subscriptionPlan = user?.company?.subscriptionPlan || "TRIAL"
+  const subscriptionStatus = user?.company?.subscriptionStatus || "trial"
 
   const planLabels: Record<string, string> = {
+    TRIAL: "3-Day Free Trial",
     STARTER: "Starter",
     GROWTH: "Growth",
     PROFESSIONAL: "Professional",
@@ -42,8 +43,14 @@ export function SubscriptionSection() {
   }
 
   const isActive = subscriptionStatus === "active"
+  const isTrial = subscriptionStatus === "trial"
   const isPastDue = subscriptionStatus === "past_due"
   const isCancelled = subscriptionStatus === "cancelled"
+  const subscriptionEndDate = user?.company?.subscriptionEndDate
+  const isTrialExpired = isTrial && !!subscriptionEndDate && new Date() > new Date(subscriptionEndDate)
+  const trialDaysLeft = isTrial && subscriptionEndDate
+    ? Math.max(0, Math.ceil((new Date(subscriptionEndDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0
 
   return (
     <Card>
@@ -57,6 +64,11 @@ export function SubscriptionSection() {
             <Badge variant="default" className="bg-green-500">
               <CheckCircle className="h-3 w-3 mr-1" />
               Active
+            </Badge>
+          )}
+          {isTrial && (
+            <Badge variant={isTrialExpired ? "destructive" : "secondary"}>
+              {isTrialExpired ? "Trial Ended" : `Trial: ${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left`}
             </Badge>
           )}
           {isPastDue && (
@@ -83,7 +95,7 @@ export function SubscriptionSection() {
           </div>
           {user?.company?.subscriptionEndDate && (
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Renews On</span>
+              <span className="text-sm text-muted-foreground">{isTrial ? "Trial Ends On" : "Renews On"}</span>
               <span className="text-sm">
                 {new Date(user.company.subscriptionEndDate).toLocaleDateString()}
               </span>

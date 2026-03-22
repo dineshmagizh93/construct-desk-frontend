@@ -16,12 +16,12 @@ export function useSuperAdmin() {
   // Check if email matches super admin emails
   const superAdminEmails = [
     'dineshemur@gmail.com',
-    'admin@constructdesk.com',
+    'admin@constructdesk.in',
   ]
   
   const isSuperAdmin = 
     superAdminEmails.includes(user.email) ||
-    user.email.endsWith('@constructdesk.com')
+    user.email.endsWith('@constructdesk.in')
 
   return {
     isSuperAdmin,

@@ -21,16 +21,20 @@ export function DemoForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    toast.success("Demo request submitted! We'll contact you soon.")
-    setFormData({ name: "", phone: "", email: "" })
-    setIsSubmitting(false)
-    
-    // Optionally redirect to registration
-    // router.push("/register")
+    try {
+      const res = await fetch('/api/demo-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) throw new Error('Failed');
+      toast.success("Demo request submitted! We'll contact you soon.")
+      setFormData({ name: "", phone: "", email: "" })
+    } catch (error) {
+      toast.error("Failed to submit request. Please try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (

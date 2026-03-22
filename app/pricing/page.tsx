@@ -258,7 +258,7 @@ export default function PricingPage() {
       <PublicHeader />
 
       {/* Hero Section */}
-      <section className="pt-24 pb-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-muted/20">
+      <section className="pt-36 lg:pt-40 pb-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-muted/20">
         <div className="container mx-auto max-w-7xl">
           <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
             <div className="text-center md:text-left space-y-3 max-w-3xl">

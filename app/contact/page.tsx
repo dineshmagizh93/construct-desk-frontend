@@ -45,8 +45,8 @@ export default function ContactPage() {
                     <p className="text-sm text-muted-foreground ml-8 mb-1">
                       Interested in learning more about ConstructDesk? Our sales team is ready to help.
                     </p>
-                    <a href="mailto:sales@constructdesk.com" className="text-sm text-primary ml-8 hover:underline">
-                      sales@constructdesk.com
+                    <a href="mailto:sales@constructdesk.in" className="text-sm text-primary ml-8 hover:underline">
+                      sales@constructdesk.in
                     </a>
                   </div>
 
@@ -58,8 +58,8 @@ export default function ContactPage() {
                     <p className="text-sm text-muted-foreground ml-8 mb-1">
                       Need technical assistance? Our support team is available 24/7.
                     </p>
-                    <a href="mailto:support@constructdesk.com" className="text-sm text-primary ml-8 hover:underline">
-                      support@constructdesk.com
+                    <a href="mailto:support@constructdesk.in" className="text-sm text-primary ml-8 hover:underline">
+                      support@constructdesk.in
                     </a>
                   </div>
 
@@ -71,8 +71,8 @@ export default function ContactPage() {
                     <p className="text-sm text-muted-foreground ml-8 mb-1">
                       For general questions or partnerships, contact us at:
                     </p>
-                    <a href="mailto:info@constructdesk.com" className="text-sm text-primary ml-8 hover:underline">
-                      info@constructdesk.com
+                    <a href="mailto:info@constructdesk.in" className="text-sm text-primary ml-8 hover:underline">
+                      info@constructdesk.in
                     </a>
                   </div>
 
