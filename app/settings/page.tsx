@@ -6,9 +6,26 @@ import { UserProfileSection } from "@/components/settings/user-profile-section"
 import { SubscriptionSection } from "@/components/settings/subscription-section"
 import { PageHeader } from "@/components/ui/page-header"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { useSearchParams } from "next/navigation"
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = React.useState<"company" | "account" | "subscription">("company")
+  const searchParams = useSearchParams()
+  const initialTabParam = (searchParams?.get("tab") || "").toLowerCase()
+  const initialTab =
+    initialTabParam === "subscription"
+      ? "subscription"
+      : initialTabParam === "account"
+      ? "account"
+      : "company"
+  const [activeTab, setActiveTab] = React.useState<"company" | "account" | "subscription">(initialTab as any)
+
+  // Keep tab in sync if URL query changes while on page (client-side navigations)
+  React.useEffect(() => {
+    const qp = (searchParams?.get("tab") || "").toLowerCase()
+    const nextTab =
+      qp === "subscription" ? "subscription" : qp === "account" ? "account" : "company"
+    setActiveTab(nextTab as any)
+  }, [searchParams])
 
   return (
     <div className="flex flex-col h-full min-h-0">
