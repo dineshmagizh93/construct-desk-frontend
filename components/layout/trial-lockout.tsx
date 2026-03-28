@@ -41,7 +41,7 @@ export function TrialExpiredLockout() {
             <Button 
               size="lg" 
               className="flex-1 rounded-full bg-primary hover:bg-primary/90 text-white shadow-md hover:-translate-y-0.5 transition-all"
-              onClick={() => router.push("/settings")}
+              onClick={() => router.push("/settings?tab=subscription")}
             >
               <CreditCard className="mr-2 h-4 w-4" />
               Upgrade Now
