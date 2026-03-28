@@ -161,33 +161,31 @@ export function CompanyProfileForm() {
   }
 
   return (
-    <Card className="border-0 shadow-none bg-transparent">
-      <CardHeader className="pb-4 px-0">
-        <CardTitle className="flex items-center gap-2 text-2xl">
-          <Building2 className="h-6 w-6 text-primary" />
+    <Card className="rounded-[1.5rem] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.92))] shadow-[0_18px_42px_rgba(15,23,42,0.05)]">
+      <CardHeader className="px-6 pb-1 pt-4 sm:px-7">
+        <CardTitle className="flex items-center gap-2 text-[1.3rem] leading-none">
+          <Building2 className="h-4 w-4 text-primary" />
           Company Profile
         </CardTitle>
-        <CardDescription className="text-base">Manage your company information, location, and regional preferences</CardDescription>
+        <CardDescription className="text-[12px]">Manage your company information, location, and regional preferences</CardDescription>
       </CardHeader>
-      <CardContent className="px-0">
+      <CardContent className="px-6 pb-5 sm:px-7">
         {loading ? (
           <div className="flex items-center justify-center p-8">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             <span className="ml-2 text-muted-foreground">Loading company profile...</span>
           </div>
         ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="pb-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="pb-1">
             {error && (
               <div className="rounded-lg bg-destructive/10 p-4 mb-4 text-sm text-destructive border border-destructive/20 flex items-center">
                 {error}
               </div>
             )}
             
-            {/* 3-Column Main Form Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4">
+            <div className="mt-3 grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-3">
               
-              {/* Left Column */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div className="space-y-2">
                   <Label htmlFor="companyName" className="font-medium">
                     Company Name <span className="text-destructive">*</span>
@@ -215,8 +213,7 @@ export function CompanyProfileForm() {
                 </div>
               </div>
 
-              {/* Middle Column */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div className="space-y-2">
                   <Label htmlFor="address" className="font-medium">Street Address</Label>
                   <Input id="address" {...register("address")} placeholder="123 Builder St, Suite 100" className="h-9" />
@@ -238,8 +235,7 @@ export function CompanyProfileForm() {
                 </div>
               </div>
 
-              {/* Right Column */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div className="space-y-2">
                   <Label htmlFor="country" className="font-medium">Country</Label>
                   <Controller name="country" control={control} render={({ field }) => <CountrySelector value={field.value} onChange={(val) => { field.onChange(val); setValue('state', '') }} className="h-9" />} />
@@ -262,20 +258,19 @@ export function CompanyProfileForm() {
               </div>
             </div>
 
-          {/* Save Button */}
-            <div className="flex items-center justify-between pt-4 mt-6 border-t border-border/60">
+            <div className="mt-4 flex items-center justify-between border-t border-border/60 pt-3">
               <p className="text-sm font-medium">
-                {isSaved && <span className="text-green-600 dark:text-green-400 bg-green-500/10 px-3 py-1.5 rounded-full inline-flex items-center"><Save className="w-3 h-3 mr-1"/> Changes saved successfully!</span>}
+                {isSaved && <span className="inline-flex items-center rounded-full bg-green-500/10 px-3 py-1.5 text-green-600 dark:text-green-400"><Save className="mr-1 h-3 w-3"/> Changes saved successfully!</span>}
               </p>
-              <Button type="submit" disabled={isSaving} size="lg" className="shadow-sm">
+              <Button type="submit" disabled={isSaving} className="shadow-sm">
                 {isSaving ? (
                   <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Saving...
                   </>
                 ) : (
                   <>
-                    <Save className="mr-2 h-5 w-5" />
+                    <Save className="mr-2 h-4 w-4" />
                     Save Changes
                   </>
                 )}
@@ -287,4 +282,3 @@ export function CompanyProfileForm() {
     </Card>
   )
 }
-

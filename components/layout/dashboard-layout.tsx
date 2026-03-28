@@ -117,21 +117,20 @@ export const DashboardLayout = React.memo(function DashboardLayout({ children }:
   const shouldLockout = isTrialExpired && !isSettingsOrPricing
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Desktop Sidebar - Hidden on mobile */}
+    <div className="app-shell min-h-screen">
       <Sidebar isCollapsed={sidebarCollapsed} onToggle={toggleSidebar} />
-        <div
+      <div
         className={cn(
-          "transition-all duration-300 flex flex-col h-screen",
-          "pl-0", // No padding on mobile
-          sidebarCollapsed ? "lg:pl-14" : "lg:pl-[200px]"
+          "flex h-screen flex-col transition-all duration-300",
+          "pl-0",
+          sidebarCollapsed ? "lg:pl-16" : "lg:pl-[200px]"
         )}
       >
         <Header sidebarCollapsed={sidebarCollapsed} />
-        <main className="px-4 sm:px-5 lg:px-6 pb-4 sm:pb-5 lg:pb-6 pt-12 sm:pt-14 flex-1 overflow-y-auto overflow-x-hidden min-h-0">
-          <div className="max-w-[1920px] mx-auto w-full h-full flex flex-col min-h-0">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 pb-4 pt-16 sm:px-5 sm:pb-5 sm:pt-16 lg:px-6 lg:pb-6 min-h-0">
+          <div className="mx-auto flex h-full min-h-0 w-full max-w-[1920px] flex-col">
             {isTrial && !isTrialExpired && trialEndDate && (
-              <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <div className="mb-4 rounded-2xl border border-amber-200/80 bg-[linear-gradient(90deg,rgba(255,251,235,0.98),rgba(255,247,214,0.95))] px-4 py-3 text-sm text-amber-900 shadow-[0_12px_30px_rgba(180,83,9,0.08)]">
                 Your 3-day free trial is active. {trialDaysLeft} day{trialDaysLeft === 1 ? '' : 's'} left
                 (ends on {trialEndDate.toLocaleDateString()}).
               </div>
@@ -143,4 +142,3 @@ export const DashboardLayout = React.memo(function DashboardLayout({ children }:
     </div>
   )
 })
-

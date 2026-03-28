@@ -58,21 +58,22 @@ export const Sidebar = React.memo(function Sidebar({ isCollapsed, onToggle }: Si
   const router = useRouter()
   const { canAccess, loading: permissionsLoading } = usePermissions()
   const { isSuperAdmin } = useSuperAdmin()
+  const expandedWidthClass = "w-[200px]"
+  const collapsedWidthClass = "w-16"
   
   // For super admin, only show admin link, hide all normal CRM modules
   if (isSuperAdmin) {
     return (
       <aside
         className={cn(
-          "hidden lg:flex fixed left-0 top-0 z-30 h-screen border-r border-border/40 bg-card/95 backdrop-blur-md shadow-lg transition-all duration-300",
-          isCollapsed ? "w-14" : "w-[200px]"
+          "fixed left-0 top-0 z-30 hidden h-screen border-r border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.96))] shadow-[0_18px_48px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all duration-300 lg:flex",
+          isCollapsed ? collapsedWidthClass : expandedWidthClass
         )}
       >
         <div className="flex h-full flex-col">
-          {/* Toggle Button */}
-          <div className="flex h-14 items-center justify-between border-b border-border/40 px-3 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm flex-shrink-0 relative z-10">
+          <div className="relative z-10 flex h-16 flex-shrink-0 items-center gap-2 border-b border-slate-200/80 px-3">
             {!isCollapsed && (
-              <h2 className="text-lg font-bold text-primary tracking-tight">
+              <h2 className="min-w-0 flex-1 truncate text-lg font-bold tracking-tight text-primary">
                 Super Admin
               </h2>
             )}
@@ -80,7 +81,10 @@ export const Sidebar = React.memo(function Sidebar({ isCollapsed, onToggle }: Si
               variant="ghost"
               size="icon"
               onClick={onToggle}
-              className="ml-auto h-7 w-7 hover:bg-primary/10 transition-colors"
+              className={cn(
+                "h-8 w-8 rounded-full border border-slate-200 bg-white/90 transition-colors hover:bg-primary/10",
+                isCollapsed ? "mx-auto" : "ml-auto shrink-0"
+              )}
               aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               {isCollapsed ? (
@@ -91,31 +95,30 @@ export const Sidebar = React.memo(function Sidebar({ isCollapsed, onToggle }: Si
             </Button>
           </div>
 
-          {/* Navigation Menu - Only Super Admin */}
-          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+          <div className="flex-1 min-h-0 overflow-hidden">
             <nav className="px-2 py-2">
               <Link
                 href="/admin"
                 prefetch={true}
                 className={cn(
-                  "relative flex items-center gap-2.5 rounded-[8px] px-3 h-[40px] text-[13px] font-medium transition-all duration-200 group flex-shrink-0 mb-0.5",
+                  "group relative mb-1 flex h-[38px] flex-shrink-0 items-center gap-2 rounded-xl px-2.5 text-[12.5px] font-medium transition-all duration-200",
                   pathname === "/admin" && !pathname?.startsWith("/admin/companies")
-                    ? "bg-primary/10 text-primary font-semibold shadow-sm"
-                    : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground",
+                    ? "bg-[linear-gradient(90deg,rgba(37,99,235,0.12),rgba(59,130,246,0.08))] text-primary shadow-sm"
+                    : "text-slate-500 hover:bg-white hover:text-slate-900",
                   isCollapsed && "justify-center px-2"
                 )}
                 title={isCollapsed ? "Super Admin Dashboard" : undefined}
               >
                 {pathname === "/admin" && !pathname?.startsWith("/admin/companies") && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
+                  <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-primary" />
                 )}
                 <Shield
                   className={cn(
-                    "h-4 w-4 flex-shrink-0 transition-all",
+                    "h-[15px] w-[15px] flex-shrink-0 transition-all",
                     isCollapsed && "mx-auto",
                     pathname === "/admin" && !pathname?.startsWith("/admin/companies")
                       ? "text-primary"
-                      : "text-muted-foreground group-hover:text-foreground"
+                      : "text-slate-500 group-hover:text-slate-900"
                   )}
                 />
                 {!isCollapsed && (
@@ -128,22 +131,22 @@ export const Sidebar = React.memo(function Sidebar({ isCollapsed, onToggle }: Si
                 href="/admin/companies"
                 prefetch={true}
                 className={cn(
-                  "relative flex items-center gap-2.5 rounded-[8px] px-3 h-[40px] text-[13px] font-medium transition-all duration-200 group flex-shrink-0 mb-0.5",
+                  "group relative mb-1 flex h-[38px] flex-shrink-0 items-center gap-2 rounded-xl px-2.5 text-[12.5px] font-medium transition-all duration-200",
                   pathname?.startsWith("/admin/companies")
-                    ? "bg-primary/10 text-primary font-semibold shadow-sm"
-                    : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground",
+                    ? "bg-[linear-gradient(90deg,rgba(37,99,235,0.12),rgba(59,130,246,0.08))] text-primary shadow-sm"
+                    : "text-slate-500 hover:bg-white hover:text-slate-900",
                   isCollapsed && "justify-center px-2"
                 )}
                 title={isCollapsed ? "Companies" : undefined}
               >
                 {pathname?.startsWith("/admin/companies") && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
+                  <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-primary" />
                 )}
                 <Building2
                   className={cn(
-                    "h-4 w-4 flex-shrink-0 transition-all",
+                    "h-[15px] w-[15px] flex-shrink-0 transition-all",
                     isCollapsed && "mx-auto",
-                    pathname?.startsWith("/admin/companies") ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                    pathname?.startsWith("/admin/companies") ? "text-primary" : "text-slate-500 group-hover:text-slate-900"
                   )}
                 />
                 {!isCollapsed && (
@@ -156,22 +159,22 @@ export const Sidebar = React.memo(function Sidebar({ isCollapsed, onToggle }: Si
                 href="/admin/analytics"
                 prefetch={true}
                 className={cn(
-                  "relative flex items-center gap-2.5 rounded-[8px] px-3 h-[40px] text-[13px] font-medium transition-all duration-200 group flex-shrink-0 mb-0.5",
+                  "group relative mb-1 flex h-[38px] flex-shrink-0 items-center gap-2 rounded-xl px-2.5 text-[12.5px] font-medium transition-all duration-200",
                   pathname?.startsWith("/admin/analytics")
-                    ? "bg-primary/10 text-primary font-semibold shadow-sm"
-                    : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground",
+                    ? "bg-[linear-gradient(90deg,rgba(37,99,235,0.12),rgba(59,130,246,0.08))] text-primary shadow-sm"
+                    : "text-slate-500 hover:bg-white hover:text-slate-900",
                   isCollapsed && "justify-center px-2"
                 )}
                 title={isCollapsed ? "Analytics" : undefined}
               >
                 {pathname?.startsWith("/admin/analytics") && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
+                  <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-primary" />
                 )}
                 <BarChart3
                   className={cn(
-                    "h-4 w-4 flex-shrink-0 transition-all",
+                    "h-[15px] w-[15px] flex-shrink-0 transition-all",
                     isCollapsed && "mx-auto",
-                    pathname?.startsWith("/admin/analytics") ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                    pathname?.startsWith("/admin/analytics") ? "text-primary" : "text-slate-500 group-hover:text-slate-900"
                   )}
                 />
                 {!isCollapsed && (
@@ -209,15 +212,14 @@ export const Sidebar = React.memo(function Sidebar({ isCollapsed, onToggle }: Si
   return (
     <aside
       className={cn(
-        "hidden lg:flex fixed left-0 top-0 z-30 h-screen border-r border-border/40 bg-card/95 backdrop-blur-md shadow-lg transition-all duration-300",
-        isCollapsed ? "w-14" : "w-[200px]"
+        "fixed left-0 top-0 z-30 hidden h-screen border-r border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.96))] shadow-[0_18px_48px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all duration-300 lg:flex",
+        isCollapsed ? collapsedWidthClass : expandedWidthClass
       )}
     >
       <div className="flex h-full flex-col">
-        {/* Toggle Button */}
-        <div className="flex h-14 items-center justify-between border-b border-border/40 px-3 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm flex-shrink-0 relative z-10">
+        <div className="relative z-10 flex h-16 flex-shrink-0 items-center gap-2 border-b border-slate-200/80 px-3">
           {!isCollapsed && (
-            <h2 className="text-[18px] font-black tracking-tight" style={{ letterSpacing: '-0.02em' }}>
+            <h2 className="min-w-0 flex-1 truncate text-[17px] font-black tracking-tight" style={{ letterSpacing: '-0.02em' }}>
               <span className="text-blue-700">Construct</span>
               <span className="text-orange-500">Desk</span>
             </h2>
@@ -226,7 +228,10 @@ export const Sidebar = React.memo(function Sidebar({ isCollapsed, onToggle }: Si
             variant="ghost"
             size="icon"
             onClick={onToggle}
-            className="ml-auto h-7 w-7 hover:bg-primary/10 transition-colors"
+            className={cn(
+              "h-8 w-8 rounded-full border border-slate-200 bg-white/90 transition-colors hover:bg-primary/10",
+              isCollapsed ? "mx-auto" : "ml-auto shrink-0"
+            )}
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {isCollapsed ? (
@@ -237,33 +242,31 @@ export const Sidebar = React.memo(function Sidebar({ isCollapsed, onToggle }: Si
           </Button>
         </div>
 
-        {/* Navigation Menu */}
-        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+        <div className="flex-1 min-h-0 overflow-hidden">
           <nav className="px-2 py-2">
-            {/* Super Admin Link */}
             {isSuperAdmin && (
               <Link
                 href="/admin"
                 prefetch={true}
                 className={cn(
-                  "relative flex items-center gap-2.5 rounded-[8px] px-3 h-[40px] text-[13px] font-medium transition-all duration-200 group flex-shrink-0 mb-2",
+                  "group relative mb-2 flex h-[38px] flex-shrink-0 items-center gap-2 rounded-xl px-2.5 text-[12.5px] font-medium transition-all duration-200",
                   pathname === "/admin" || pathname?.startsWith("/admin/")
-                    ? "bg-primary/10 text-primary font-semibold shadow-sm"
-                    : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground",
+                    ? "bg-[linear-gradient(90deg,rgba(37,99,235,0.12),rgba(59,130,246,0.08))] text-primary shadow-sm"
+                    : "text-slate-500 hover:bg-white hover:text-slate-900",
                   isCollapsed && "justify-center px-2"
                 )}
                 title={isCollapsed ? "Super Admin" : undefined}
               >
                 {(pathname === "/admin" || pathname?.startsWith("/admin/")) && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
+                  <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-primary" />
                 )}
                 <Shield
                   className={cn(
-                    "h-4 w-4 flex-shrink-0 transition-all",
+                    "h-[15px] w-[15px] flex-shrink-0 transition-all",
                     isCollapsed && "mx-auto",
                     pathname === "/admin" || pathname?.startsWith("/admin/")
                       ? "text-primary"
-                      : "text-muted-foreground group-hover:text-foreground"
+                      : "text-slate-500 group-hover:text-slate-900"
                   )}
                 />
                 {!isCollapsed && (
@@ -274,9 +277,8 @@ export const Sidebar = React.memo(function Sidebar({ isCollapsed, onToggle }: Si
               </Link>
             )}
             
-            {/* Divider for super admin section */}
             {isSuperAdmin && (
-              <div className="h-px bg-border/40 mx-2 mb-2" />
+              <div className="mx-2 mb-2 h-px bg-slate-200/80" />
             )}
             
             {menuItems.filter((item) => {
@@ -300,22 +302,22 @@ export const Sidebar = React.memo(function Sidebar({ isCollapsed, onToggle }: Si
                 prefetch={true}
                 onClick={(e) => handleLinkClick(e, item.href)}
                 className={cn(
-                  "relative flex items-center gap-2.5 rounded-[8px] px-3 h-[40px] text-[13px] font-medium transition-all duration-200 group flex-shrink-0 mb-0.5",
+                  "group relative mb-1 flex h-[38px] flex-shrink-0 items-center gap-2 rounded-xl px-2.5 text-[12.5px] font-medium transition-all duration-200",
                   isActive
-                    ? "bg-primary/10 text-primary font-semibold shadow-sm"
-                    : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground",
+                    ? "bg-[linear-gradient(90deg,rgba(37,99,235,0.12),rgba(59,130,246,0.08))] text-primary shadow-sm"
+                    : "text-slate-500 hover:bg-white hover:text-slate-900",
                   isCollapsed && "justify-center px-2"
                 )}
                 title={isCollapsed ? item.label : undefined}
               >
               {isActive && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
+                <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-primary" />
               )}
               <Icon
                 className={cn(
-                  "h-4 w-4 flex-shrink-0 transition-all",
+                  "h-[15px] w-[15px] flex-shrink-0 transition-all",
                   isCollapsed && "mx-auto",
-                  isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                  isActive ? "text-primary" : "text-slate-500 group-hover:text-slate-900"
                 )}
               />
               {!isCollapsed && (
@@ -332,4 +334,3 @@ export const Sidebar = React.memo(function Sidebar({ isCollapsed, onToggle }: Si
     </aside>
   )
 })
-

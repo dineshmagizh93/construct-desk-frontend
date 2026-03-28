@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Menu, User, Settings, LogOut, ArrowUp } from "lucide-react"
+import { Menu, User, Settings, LogOut, ArrowUp, Sparkles } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -33,51 +33,48 @@ export const Header = React.memo(function Header({ sidebarCollapsed }: HeaderPro
   return (
     <header
       className={cn(
-        "fixed top-0 z-20 flex h-12 sm:h-14 items-center gap-2 sm:gap-3 border-b border-border/40 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 px-3 sm:px-4 lg:px-6 shadow-sm transition-all duration-300",
-        "left-0 right-0", // Full width on mobile
-        sidebarCollapsed ? "lg:left-14" : "lg:left-[200px]"
+        "fixed top-0 z-20 flex h-16 items-center gap-2 border-b border-slate-200/80 bg-white/78 px-3 shadow-[0_10px_32px_rgba(15,23,42,0.05)] backdrop-blur-xl transition-all duration-300 sm:gap-3 sm:px-4 lg:px-6",
+        "left-0 right-0",
+        sidebarCollapsed ? "lg:left-16" : "lg:left-[200px]"
       )}
     >
-      {/* Mobile Menu Button */}
       <MobileSidebar>
-        <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8">
+        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full border border-slate-200 bg-white shadow-sm lg:hidden">
           <Menu className="h-4 w-4" />
           <span className="sr-only">Toggle menu</span>
         </Button>
       </MobileSidebar>
 
-      {/* Company Name */}
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1 lg:pl-4">
         {user?.company?.name ? (
-          <h1 className="text-sm sm:text-base font-medium text-foreground truncate">
+          <h1 className="truncate text-sm font-semibold text-slate-900 sm:text-base">
             {user.company.name}
           </h1>
         ) : (
-          <h1 className="text-sm sm:text-base font-medium text-foreground truncate">
+          <h1 className="truncate text-sm font-semibold text-slate-900 sm:text-base">
             ConstructDesk
           </h1>
         )}
       </div>
 
-      {/* Upgrade Button - Show for non-Enterprise plans */}
       {user?.company?.subscriptionPlan && user.company.subscriptionPlan !== 'ENTERPRISE' && (
         <Button
           variant="default"
           size="sm"
-          className="hidden sm:flex items-center gap-2 h-8 px-3 rounded-full shadow-sm"
+          className="hidden h-9 items-center gap-2 rounded-full bg-[linear-gradient(135deg,#2563eb,#1d4ed8_48%,#f97316)] px-4 text-white shadow-[0_16px_34px_rgba(37,99,235,0.24)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_rgba(37,99,235,0.3)] sm:flex"
           onClick={() => router.push('/pricing')}
         >
+          <Sparkles className="h-3.5 w-3.5" />
           <ArrowUp className="h-3.5 w-3.5" />
           <span className="font-semibold">Upgrade</span>
         </Button>
       )}
 
-      {/* User Avatar & Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger>
-          <div className="flex items-center gap-2 rounded-full hover:bg-accent p-1 transition-colors">
-            <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
-              <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+          <div className="flex items-center gap-2 rounded-full border border-slate-200/80 bg-white/85 p-1 shadow-sm transition-colors hover:bg-slate-50">
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className="bg-[linear-gradient(135deg,#2563eb,#4f46e5)] text-xs text-white">
                 {user?.firstName && user?.lastName
                   ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
                   : <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
@@ -115,4 +112,3 @@ export const Header = React.memo(function Header({ sidebarCollapsed }: HeaderPro
     </header>
   )
 })
-

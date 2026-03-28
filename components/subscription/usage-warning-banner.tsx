@@ -50,8 +50,7 @@ export function UsageWarningBanner({ usage, onDismiss }: UsageWarningBannerProps
   return (
     <div
       className={cn(
-        "bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 text-yellow-900 dark:text-yellow-200",
-        "px-4 py-3 flex items-center justify-between gap-4",
+        "flex items-center justify-between gap-4 rounded-2xl border border-amber-200/80 bg-[linear-gradient(90deg,rgba(255,251,235,0.98),rgba(255,247,214,0.92))] px-4 py-3 text-amber-900 shadow-[0_14px_36px_rgba(180,83,9,0.08)]",
         "animate-in slide-in-from-top"
       )}
     >

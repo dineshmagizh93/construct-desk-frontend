@@ -29,18 +29,18 @@ export function DashboardCard({
   return (
     <div
       className={cn(
-        "relative flex items-center justify-between p-4 rounded-[10px] border border-border/50 bg-card shadow-sm hover:shadow-md transition-all duration-200 hover:border-primary/20",
-        "h-[90px]",
+        "relative overflow-hidden rounded-[1.35rem] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.92))] p-5 shadow-[0_18px_42px_rgba(15,23,42,0.05)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_48px_rgba(15,23,42,0.08)]",
+        "h-[108px]",
         className
       )}
     >
-      {/* Left Side - Content */}
+      <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-slate-100 via-slate-200/60 to-transparent" />
       <div className="flex-1 min-w-0 pr-2">
-        <p className="text-[13px] text-muted-foreground font-medium mb-1 truncate">
+        <p className="mb-2 truncate text-[12px] font-semibold uppercase tracking-[0.16em] text-slate-500">
           {title}
         </p>
         <div className="flex items-baseline gap-2">
-          <p className="text-[22px] font-bold text-foreground leading-none">
+          <p className="text-[24px] font-bold leading-none text-foreground">
             {value}
           </p>
           {trend && (
@@ -56,16 +56,15 @@ export function DashboardCard({
           )}
         </div>
         {secondaryInfo && (
-          <p className="text-[12px] text-muted-foreground mt-1.5 truncate">
+          <p className="mt-2 truncate text-[13px] text-muted-foreground">
             {secondaryInfo}
           </p>
         )}
       </div>
 
-      {/* Right Side - Icon */}
       <div
         className={cn(
-          "h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0",
+          "flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl ring-1 ring-black/5",
           iconBgColor
         )}
       >

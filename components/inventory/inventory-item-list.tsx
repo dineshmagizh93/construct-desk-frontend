@@ -32,9 +32,12 @@ interface InventoryItemListProps {
   onCreateItem?: () => void
   onAddClick?: boolean
   onAddClickClear?: () => void
+  hideInlineBulkButton?: boolean
+  onBulkClick?: boolean
+  onBulkClickClear?: () => void
 }
 
-export function InventoryItemList({ onCreateItem, onAddClick, onAddClickClear }: InventoryItemListProps) {
+export function InventoryItemList({ onCreateItem, onAddClick, onAddClickClear, hideInlineBulkButton, onBulkClick, onBulkClickClear }: InventoryItemListProps) {
   const { items, loading, deleteItem, loadItems, bulkCreateItems } = useInventoryItems()
   const [searchQuery, setSearchQuery] = React.useState("")
   const [categoryFilter, setCategoryFilter] = React.useState<InventoryCategory | "all">("all")
@@ -53,6 +56,12 @@ export function InventoryItemList({ onCreateItem, onAddClick, onAddClickClear }:
     }
   }, [onAddClick, onAddClickClear])
 
+  React.useEffect(() => {
+    if (onBulkClick) {
+      setBulkUploadOpen(true)
+      if (onBulkClickClear) onBulkClickClear()
+    }
+  }, [onBulkClick, onBulkClickClear])
   // Filter items
   const filteredItems = React.useMemo(() => {
     return items.filter((item) => {
@@ -172,12 +181,14 @@ export function InventoryItemList({ onCreateItem, onAddClick, onAddClickClear }:
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="flex flex-wrap gap-2 flex-shrink-0">
-        <Button variant="outline" onClick={() => setBulkUploadOpen(true)} className="mr-2">
-          <Upload className="mr-2 h-4 w-4" />
-          Bulk Upload
-        </Button>
-      </div>
+      {!hideInlineBulkButton && (
+        <div className="flex flex-wrap gap-2 flex-shrink-0">
+          <Button variant="outline" onClick={() => setBulkUploadOpen(true)} className="mr-2">
+            <Upload className="mr-2 h-4 w-4" />
+            Bulk Upload
+          </Button>
+        </div>
+      )}
       {/* Filters */}
       <FilterBar
         searchValue={searchQuery}
@@ -199,7 +210,7 @@ export function InventoryItemList({ onCreateItem, onAddClick, onAddClickClear }:
       />
 
       {/* Table Container - Takes remaining space */}
-      <div className="flex-1 flex flex-col min-h-0 rounded-[10px] border border-border/50 overflow-hidden bg-card shadow-sm mt-3">
+      <div className={`flex-1 flex flex-col min-h-0 rounded-[10px] border border-border/50 overflow-hidden bg-card shadow-sm ${hideInlineBulkButton ? 'mt-2' : 'mt-3'}`}>
         {/* Table Wrapper - Scrollable area that fills space */}
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
           <div

@@ -375,8 +375,7 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
   }
 
   return (
-    <div className="flex flex-col flex-1 h-full w-full min-h-0">
-      {/* Header */}
+    <div className="flex h-full min-h-0 w-full flex-1 flex-col">
       <PageHeader
         title="Projects"
         subtitle="Manage your construction projects"
@@ -391,7 +390,6 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
         }
       />
 
-      {/* Filters */}
       <FilterBar
         searchValue={searchQuery}
         onSearchChange={(value) => {
@@ -420,7 +418,7 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
               setStatusFilter(e.target.value as ProjectStatus | "all")
               setCurrentPage(1)
             }}
-            className="h-[40px] w-[160px] text-[13px]"
+            className="h-[42px] w-[170px] text-[13px]"
           >
             <option value="all">All Status</option>
             <option value="Planning">Planning</option>
@@ -431,9 +429,7 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
         }
       />
 
-      {/* Table Container - Takes remaining space */}
-      <div className="flex-1 flex flex-col min-h-0 rounded-[10px] border border-border/50 overflow-hidden bg-card shadow-sm mt-3">
-        {/* Table Wrapper - Scrollable area that fills space */}
+      <div className="panel-surface mt-1 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.35rem]">
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
           <div
             className={cn(
@@ -511,7 +507,7 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
                       <TableCell className="whitespace-nowrap">
                         {new Date(project.endDate).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}
                       </TableCell>
-                      <TableCell className="relative text-center px-2" style={{ zIndex: openDropdownId === project.id ? 9999 : 1 }}>
+                      <TableCell className="relative px-2 text-center" style={{ zIndex: openDropdownId === project.id ? 9999 : 1 }}>
                         <ProjectActionsMenu
                           project={project}
                           onDelete={handleDelete}
@@ -528,8 +524,7 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
           </div>
         </div>
 
-        {/* Pagination - Pinned to bottom of viewport */}
-        <div className="flex-shrink-0 border-t border-border/40 bg-muted/30">
+        <div className="flex-shrink-0 border-t border-slate-200/80">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -585,11 +580,11 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
-            <div className="flex flex-col gap-3 rounded-md bg-muted/50 p-4 text-sm border">
+            <div className="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 text-sm">
               <div>
                 <span className="font-semibold text-foreground">Required headers:</span>
                 <p className="text-muted-foreground mt-1 text-xs break-all">
-                  <code className="bg-background px-1 py-0.5 rounded border">projectId</code>, <code className="bg-background px-1 py-0.5 rounded border">name</code>, <code className="bg-background px-1 py-0.5 rounded border">clientName</code>, <code className="bg-background px-1 py-0.5 rounded border">location</code>, <code className="bg-background px-1 py-0.5 rounded border">status</code>, <code className="bg-background px-1 py-0.5 rounded border">startDate</code>, <code className="bg-background px-1 py-0.5 rounded border">endDate</code>
+                  <code className="rounded border bg-background px-1 py-0.5">projectId</code>, <code className="rounded border bg-background px-1 py-0.5">name</code>, <code className="rounded border bg-background px-1 py-0.5">clientName</code>, <code className="rounded border bg-background px-1 py-0.5">location</code>, <code className="rounded border bg-background px-1 py-0.5">status</code>, <code className="rounded border bg-background px-1 py-0.5">startDate</code>, <code className="rounded border bg-background px-1 py-0.5">endDate</code>
                 </p>
               </div>
               <Button
@@ -641,7 +636,7 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
             )}
 
             {bulkSummary && (
-              <div className="rounded-md border border-border/40 p-3 text-sm">
+              <div className="rounded-2xl border border-slate-200/80 p-3 text-sm">
                 <div className="font-medium">Parsed CSV summary</div>
                 <div className="text-muted-foreground mt-1 text-xs">
                   Requested rows: <span className="font-semibold text-foreground">{bulkSummary.requested}</span> &bull; Unique projects: <span className="font-semibold text-foreground">{bulkSummary.unique}</span>
@@ -859,4 +854,3 @@ function CreateProjectButton({
     </>
   )
 }
-

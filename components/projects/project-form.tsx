@@ -184,4 +184,3 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
     </form>
   )
 }
-

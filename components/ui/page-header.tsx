@@ -29,7 +29,7 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "flex items-center justify-between pb-3 border-b border-border/40 mb-4 mt-6",
+        "mb-5 mt-1 flex items-center justify-between rounded-[1.5rem] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(248,250,252,0.88))] px-5 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.05)]",
         className
       )}
     >
@@ -38,7 +38,7 @@ export function PageHeader({
           {title}
         </h1>
         {subtext && (
-          <p className="text-[12px] text-muted-foreground mt-0.5">
+          <p className="mt-1 text-[12px] text-muted-foreground">
             {subtext}
           </p>
         )}

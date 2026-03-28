@@ -14,6 +14,14 @@ export function SubscriptionSection() {
   const router = useRouter()
   const { user } = useAuth()
   const [loading, setLoading] = React.useState(false)
+  const [details, setDetails] = React.useState<{
+    plan: string
+    status: string
+    startDate?: string
+    endDate?: string | null
+    razorpaySubscriptionId?: string | null
+    autoRenew: boolean
+  } | null>(null)
 
   const subscriptionPlan = user?.company?.subscriptionPlan || "TRIAL"
   const subscriptionStatus = user?.company?.subscriptionStatus || "trial"
@@ -40,6 +48,34 @@ export function SubscriptionSection() {
 
   const handleUpgrade = () => {
     router.push("/pricing")
+  }
+
+  React.useEffect(() => {
+    const load = async () => {
+      try {
+        const d = await subscriptionApi.getDetails()
+        setDetails(d)
+      } catch {
+        // ignore
+      }
+    }
+    load()
+  }, [])
+
+  const handleCancelAutoRenew = async () => {
+    if (!details?.autoRenew) return
+    if (!confirm("Cancel auto-renew? Your subscription stays active until period end.")) return
+    try {
+      setLoading(true)
+      await subscriptionApi.cancelAutoRenew()
+      const d = await subscriptionApi.getDetails()
+      setDetails(d)
+      toast.success("Auto-renew cancelled")
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to cancel auto-renew")
+    } finally {
+      setLoading(false)
+    }
   }
 
   const isActive = subscriptionStatus === "active"
@@ -88,22 +124,26 @@ export function SubscriptionSection() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Current Plan</span>
-            <span className="font-semibold">{planLabels[subscriptionPlan] || subscriptionPlan}</span>
+        <div className="grid gap-3 md:grid-cols-2">
+          <div>
+            <div className="text-sm text-muted-foreground">Current Plan</div>
+            <div className="mt-1 font-semibold">{planLabels[subscriptionPlan] || subscriptionPlan}</div>
           </div>
-          {user?.company?.subscriptionEndDate && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">{isTrial ? "Trial Ends On" : "Renews On"}</span>
-              <span className="text-sm">
-                {new Date(user.company.subscriptionEndDate).toLocaleDateString()}
-              </span>
-            </div>
-          )}
+          <div>
+            <div className="text-sm text-muted-foreground">Subscribed on</div>
+            <div className="mt-1 text-sm">{details?.startDate ? new Date(details.startDate).toLocaleDateString() : "—"}</div>
+          </div>
+          <div>
+            <div className="text-sm text-muted-foreground">{details?.autoRenew ? "Next renewal on" : "Ends on"}</div>
+            <div className="mt-1 text-sm">{details?.endDate ? new Date(details.endDate).toLocaleDateString() : "—"}</div>
+          </div>
+          <div>
+            <div className="text-sm text-muted-foreground">Auto‑renew</div>
+            <div className="mt-1 text-sm">{details?.autoRenew ? "On" : "Off"}</div>
+          </div>
         </div>
 
-        {subscriptionPlan !== "ENTERPRISE" && (
+        {subscriptionPlan !== "ENTERPRISE" && !isActive && (
           <Button
             variant="outline"
             className="w-full"
@@ -114,19 +154,25 @@ export function SubscriptionSection() {
           </Button>
         )}
 
-        {user?.company?.stripeCustomerId && (
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={handleManageSubscription}
-            disabled={loading}
-          >
-            {loading ? "Loading..." : "Manage Subscription"}
-            <ExternalLink className="ml-2 h-4 w-4" />
-          </Button>
+        {isActive && (
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              onClick={handleManageSubscription}
+              disabled={loading}
+            >
+              {loading ? "Loading..." : "Manage Subscription"}
+              <ExternalLink className="ml-2 h-4 w-4" />
+            </Button>
+            {details?.autoRenew && (
+              <Button variant="destructive" onClick={handleCancelAutoRenew} disabled={loading}>
+                Cancel Auto‑Renew
+              </Button>
+            )}
+          </div>
         )}
 
-        {!user?.company?.stripeCustomerId && subscriptionPlan === "STARTER" && (
+        {!isActive && subscriptionPlan === "STARTER" && (
           <p className="text-xs text-muted-foreground text-center">
             Upgrade to a paid plan to manage your subscription
           </p>

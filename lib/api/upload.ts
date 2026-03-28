@@ -7,6 +7,17 @@ export interface UploadResponse {
 }
 
 export const uploadApi = {
+  formatUploadError(message: unknown): string {
+    const raw = Array.isArray(message) ? message.join(", ") : (message ?? "Upload failed");
+    if (typeof raw !== "string") return "Upload failed";
+
+    // Make backend-enforced errors more user-friendly in the UI toast.
+    // Examples:
+    // - "STORAGE_LIMIT_EXCEEDED: Your Starter plan includes 10.00GB storage...."
+    // - "SYSTEM_STORAGE_LIMIT: System storage capacity reached...."
+    const cleaned = raw.replace(/^(STORAGE_LIMIT_EXCEEDED|SYSTEM_STORAGE_LIMIT|TRIAL_EXPIRED)\s*:\s*/i, "");
+    return cleaned;
+  },
   async uploadDocument(file: File): Promise<UploadResponse> {
     const formData = new FormData();
     formData.append('file', file);
@@ -27,7 +38,7 @@ export const uploadApi = {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Upload failed' }));
-      throw new Error(error.message || 'Upload failed');
+      throw new Error(uploadApi.formatUploadError(error?.message));
     }
 
     return response.json();
@@ -55,7 +66,7 @@ export const uploadApi = {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Upload failed' }));
-      throw new Error(error.message || 'Upload failed');
+      throw new Error(uploadApi.formatUploadError(error?.message));
     }
 
     return response.json();

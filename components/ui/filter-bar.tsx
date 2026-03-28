@@ -28,38 +28,35 @@ export function FilterBar({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 mb-3 h-[40px] flex-shrink-0",
+        "panel-surface mb-4 flex flex-wrap items-center gap-3 rounded-[1.25rem] p-3",
         className
       )}
     >
-      {/* Search */}
-      <div className="relative flex-1 min-w-0">
+      <div className="relative min-w-0 flex-1">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder={searchPlaceholder}
-          className="h-[40px] pl-9 pr-9 text-[13px]"
+          className="h-[42px] rounded-xl pl-9 pr-9 text-[13px]"
         />
         {searchValue && (
           <button
             onClick={() => onSearchChange("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-muted-foreground hover:bg-slate-100 hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>
         )}
       </div>
 
-      {/* Filters */}
       {filters && <div className="flex items-center gap-2">{filters}</div>}
 
-      {/* Action Button */}
       {actionButton && (
         <Button
           onClick={actionButton.onClick}
           size="sm"
-          className="h-[40px] px-4 flex-shrink-0"
+          className="h-[42px] flex-shrink-0 px-4"
         >
           {actionButton.icon || <Plus className="h-4 w-4 mr-2" />}
           {actionButton.label}

@@ -17,9 +17,9 @@ export default function SettingsPage() {
         subtitle="Manage your company profile and personal account settings"
       />
 
-      <div className="flex-shrink-0 mb-4 mt-2">
+      <div className="mb-3 flex-shrink-0">
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-          <TabsList className="h-9">
+          <TabsList className="h-10 rounded-2xl">
             <TabsTrigger value="company" className="text-[13px]">Company Profile</TabsTrigger>
             <TabsTrigger value="account" className="text-[13px]">Personal Account</TabsTrigger>
             <TabsTrigger value="subscription" className="text-[13px]">Subscription</TabsTrigger>
@@ -27,21 +27,21 @@ export default function SettingsPage() {
         </Tabs>
       </div>
 
-      <div className="flex-1 overflow-y-auto pr-2 min-h-0">
+      <div className="min-h-0 flex-1">
         <Tabs value={activeTab}>
-          <TabsContent value="company" className="mt-0 pb-6 h-full">
+          <TabsContent value="company" className="mt-0 h-full">
             <div className="w-full">
               <CompanyProfileForm />
             </div>
           </TabsContent>
           
-          <TabsContent value="account" className="mt-0 pb-6 h-full">
+          <TabsContent value="account" className="mt-0 h-full">
             <div className="w-full">
               <UserProfileSection />
             </div>
           </TabsContent>
 
-          <TabsContent value="subscription" className="mt-0 pb-6 h-full">
+          <TabsContent value="subscription" className="mt-0 h-full">
             <div className="w-full">
               <SubscriptionSection />
             </div>
@@ -51,4 +51,3 @@ export default function SettingsPage() {
     </div>
   )
 }
-

@@ -13,6 +13,13 @@ export interface PortalSessionResponse {
 }
 
 export const subscriptionApi = {
+  async subscribe(
+    planName: PlanName,
+    billingPeriod: BillingPeriod,
+  ): Promise<{ subscriptionId: string; keyId: string }> {
+    return apiClient.post('/subscription/subscribe', { planName, billingPeriod });
+  },
+
   /**
    * Create a Stripe checkout session
    */
@@ -39,5 +46,20 @@ export const subscriptionApi = {
    */
   async createPortalSession(): Promise<PortalSessionResponse> {
     return apiClient.get<PortalSessionResponse>('/subscription/portal');
+  },
+
+  async getDetails(): Promise<{
+    plan: string;
+    status: string;
+    startDate?: string;
+    endDate?: string | null;
+    razorpaySubscriptionId?: string | null;
+    autoRenew: boolean;
+  }> {
+    return apiClient.get('/subscription/details');
+  },
+
+  async cancelAutoRenew(): Promise<{ status: string; endsOn?: string | null }> {
+    return apiClient.post('/subscription/cancel', {});
   },
 };

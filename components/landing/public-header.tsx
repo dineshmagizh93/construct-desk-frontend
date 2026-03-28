@@ -3,9 +3,8 @@
 import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ChevronDown, Menu, X } from "lucide-react"
+import { ArrowRight, ChevronDown, LogIn, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
 
 export function PublicHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
@@ -19,12 +18,11 @@ export function PublicHeader() {
   ]
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/40">
+    <header className="fixed left-0 right-0 top-0 z-50 border-b border-white/60 bg-white/80 backdrop-blur-xl">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between min-h-[5rem] py-3">
-          {/* Logo */}
+        <div className="flex min-h-[5rem] items-center justify-between py-3">
           <Link href="/" className="flex items-center gap-1 sm:gap-2">
-            <div className="relative w-20 h-16 sm:w-28 sm:h-20 shrink-0 flex items-center justify-center mr-1 overflow-hidden mix-blend-multiply">
+            <div className="relative mr-1 flex h-16 w-20 shrink-0 items-center justify-center overflow-hidden mix-blend-multiply sm:h-20 sm:w-28">
               <img 
                 src="/mylogo.png" 
                 alt="CD Logo" 
@@ -37,13 +35,12 @@ export function PublicHeader() {
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden items-center gap-2 rounded-full border border-slate-200/80 bg-white/90 px-3 py-2 shadow-sm lg:flex">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                className="flex items-center gap-1 rounded-full px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
               >
                 {item.label}
                 <ChevronDown className="h-3 w-3" />
@@ -51,47 +48,62 @@ export function PublicHeader() {
             ))}
           </nav>
 
-          {/* CTA Button */}
-          <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" onClick={() => router.push("/login")}>
+          <div className="hidden items-center gap-3 md:flex">
+            <Button
+              variant="ghost"
+              className="h-11 rounded-full border border-slate-200/80 bg-white/90 px-5 text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+              onClick={() => router.push("/login")}
+            >
+              <LogIn className="mr-2 h-4 w-4" />
               Sign In
             </Button>
-            <Button onClick={() => router.push("/register")}>
+            <Button
+              className="group h-11 rounded-full bg-[linear-gradient(135deg,#2563eb,#1d4ed8_48%,#f97316)] px-5 text-white shadow-[0_16px_34px_rgba(37,99,235,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_rgba(37,99,235,0.34)]"
+              onClick={() => router.push("/register")}
+            >
               Get Started
+              <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
             </Button>
           </div>
 
-          {/* Mobile Menu Button */}
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="rounded-full border border-slate-200 bg-white shadow-sm md:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
         </div>
 
-        {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border/40">
-            <nav className="flex flex-col gap-4">
+          <div className="border-t border-slate-200/70 py-4 md:hidden">
+            <nav className="flex flex-col gap-2 rounded-[1.5rem] border border-slate-200/80 bg-white p-3 shadow-[0_16px_35px_rgba(15,23,42,0.08)]">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  className="rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
                 >
                   {item.label}
                 </Link>
               ))}
-              <div className="flex flex-col gap-2 pt-4 border-t border-border/40">
-                <Button variant="outline" onClick={() => { router.push("/login"); setMobileMenuOpen(false); }}>
+              <div className="flex flex-col gap-2 border-t border-slate-200/70 pt-4">
+                <Button
+                  variant="outline"
+                  className="h-11 rounded-full border-slate-200 bg-white text-slate-700 shadow-sm hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                  onClick={() => { router.push("/login"); setMobileMenuOpen(false); }}
+                >
+                  <LogIn className="mr-2 h-4 w-4" />
                   Sign In
                 </Button>
-                <Button onClick={() => { router.push("/register"); setMobileMenuOpen(false); }}>
+                <Button
+                  className="h-11 rounded-full bg-[linear-gradient(135deg,#2563eb,#1d4ed8_48%,#f97316)] text-white shadow-[0_16px_30px_rgba(37,99,235,0.24)]"
+                  onClick={() => { router.push("/register"); setMobileMenuOpen(false); }}
+                >
                   Get Started
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </nav>

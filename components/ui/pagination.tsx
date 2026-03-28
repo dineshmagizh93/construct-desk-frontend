@@ -86,7 +86,7 @@ export function Pagination({
   }
 
   return (
-    <div className={cn("flex flex-col sm:flex-row items-center justify-between gap-3 w-full px-4 py-3 bg-background", className)}>
+    <div className={cn("flex w-full flex-col items-center justify-between gap-3 bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(248,250,252,0.92))] px-4 py-3 sm:flex-row", className)}>
       <div className="flex items-center gap-4 flex-wrap">
         <div className="text-sm text-muted-foreground whitespace-nowrap">
           Showing <span className="font-medium text-foreground">{startItem}</span> -{" "}
@@ -103,7 +103,7 @@ export function Pagination({
               id="page-size"
               value={itemsPerPage}
               onChange={handlePageSizeChange}
-              className="h-9 rounded-lg border border-input bg-background px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 min-w-[80px]"
+              className="min-w-[80px] rounded-xl border border-slate-200 bg-white px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 h-9"
             >
               {pageSizeOptions.map((size) => (
                 <option key={size} value={size}>
@@ -122,7 +122,7 @@ export function Pagination({
             size="sm"
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="h-9 px-3"
+            className="h-9 rounded-xl px-3"
             aria-label="Previous page"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
@@ -150,7 +150,7 @@ export function Pagination({
                   size="sm"
                   onClick={() => onPageChange(pageNum)}
                   className={cn(
-                    "h-9 min-w-[36px]",
+                    "h-9 min-w-[36px] rounded-xl",
                     currentPage === pageNum && "bg-primary text-primary-foreground"
                   )}
                   aria-label={`Page ${pageNum}`}
@@ -167,7 +167,7 @@ export function Pagination({
             size="sm"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="h-9 px-3"
+            className="h-9 rounded-xl px-3"
             aria-label="Next page"
           >
             <span>NEXT</span>
