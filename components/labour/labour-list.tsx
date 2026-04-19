@@ -29,6 +29,7 @@ import { LabourFormSchema } from "@/lib/validations/labour"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { projectsApi } from "@/lib/api/projects"
 import toast from "react-hot-toast"
+import { formatDateDMY } from "@/lib/utils/date"
 
 interface LabourListProps {
   projectId?: string
@@ -348,7 +349,7 @@ export function LabourList({ projectId, onCreateLabour }: LabourListProps) {
                     <TableCell className="font-semibold whitespace-nowrap">
                       {formatCurrency(entry.headcount * entry.costPerDay)}
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">{new Date(entry.date).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}</TableCell>
+                    <TableCell className="whitespace-nowrap">{formatDateDMY(entry.date)}</TableCell>
                     <TableCell className="relative text-center">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/ui/page-header"
 import { adminApi, AdminDashboardStats } from "@/lib/api/admin"
 import { useSuperAdmin } from "@/lib/hooks/use-super-admin"
 import { useRouter } from "next/navigation"
+import { formatDateDMY } from "@/lib/utils/date"
 import {
   Building2,
   Users,
@@ -362,7 +363,7 @@ export default function AdminDashboardPage() {
                     </div>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {new Date(company.createdAt).toLocaleDateString()}
+                    {formatDateDMY(company.createdAt)}
                   </div>
                 </div>
               ))

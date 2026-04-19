@@ -24,22 +24,31 @@ import { cn } from "@/lib/utils"
 import { Pagination } from "@/components/ui/pagination"
 import { LeadForm } from "./lead-form"
 import { useLeads } from "@/lib/hooks/use-leads"
+import { LeadListParams } from "@/lib/api/leads"
 import { LeadFormSchema } from "@/lib/validations/lead"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BulkUploadModal } from "@/components/shared/bulk-upload-modal"
 import { LEAD_BULK_HEADERS, generateLeadCsvTemplate, parseBulkLeadsFromCsv } from "./lead-bulk-utils"
+import { formatDateDMY } from "@/lib/utils/date"
 
 interface LeadListProps {
   onCreateLead: () => void
 }
 
 export function LeadList({ onCreateLead }: LeadListProps) {
-  const { leads, loading, createLead, deleteLead, convertToClient, loadLeads, bulkCreateLeads } = useLeads()
   const [activeTab, setActiveTab] = React.useState<"all" | "leads" | "clients">("all")
   const [searchQuery, setSearchQuery] = React.useState("")
   const [statusFilter, setStatusFilter] = React.useState<LeadStatus | "all">("all")
   const [currentPage, setCurrentPage] = React.useState(1)
   const [itemsPerPage, setItemsPerPage] = React.useState(10)
+  const listParams = React.useMemo<LeadListParams>(() => ({
+    page: currentPage,
+    limit: itemsPerPage,
+    type: activeTab === "all" ? undefined : activeTab === "leads" ? "LEAD" : "CLIENT",
+    status: statusFilter === "all" ? undefined : statusFilter,
+    search: searchQuery || undefined,
+  }), [activeTab, currentPage, itemsPerPage, searchQuery, statusFilter])
+  const { leads, total, loading, createLead, deleteLead, convertToClient, loadLeads, bulkCreateLeads } = useLeads(listParams)
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [convertDialogOpen, setConvertDialogOpen] = React.useState(false)
   const [leadToDelete, setLeadToDelete] = React.useState<Lead | null>(null)
@@ -47,33 +56,7 @@ export function LeadList({ onCreateLead }: LeadListProps) {
   const [openDropdownId, setOpenDropdownId] = React.useState<string | null>(null)
   const [bulkUploadOpen, setBulkUploadOpen] = React.useState(false)
 
-  // Filter leads based on tab, search, and status
-  const filteredLeads = React.useMemo(() => {
-    return leads.filter((lead) => {
-      // Tab filter
-      const matchesTab =
-        activeTab === "all" ||
-        (activeTab === "leads" && lead.type === "LEAD") ||
-        (activeTab === "clients" && lead.type === "CLIENT")
-
-      // Search filter
-      const matchesSearch =
-        lead.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        lead.phone.toLowerCase().includes(searchQuery.toLowerCase())
-
-      // Status filter
-      const matchesStatus = statusFilter === "all" || lead.status === statusFilter
-
-      return matchesTab && matchesSearch && matchesStatus
-    })
-  }, [leads, activeTab, searchQuery, statusFilter])
-
-  // Pagination
-  const totalPages = Math.max(1, Math.ceil(filteredLeads.length / itemsPerPage))
-  const paginatedLeads = filteredLeads.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  )
+  const totalPages = Math.max(1, Math.ceil(total / itemsPerPage))
 
   // Reset to page 1 when filters change
   React.useEffect(() => {
@@ -109,7 +92,7 @@ export function LeadList({ onCreateLead }: LeadListProps) {
       setDeleteDialogOpen(false)
       setLeadToDelete(null)
       // Recalculate total pages after deletion
-      const newTotalPages = Math.max(1, Math.ceil((filteredLeads.length - 1) / itemsPerPage))
+      const newTotalPages = Math.max(1, Math.ceil(Math.max(total - 1, 0) / itemsPerPage))
       if (currentPage > newTotalPages && newTotalPages > 0) {
         setCurrentPage(newTotalPages)
       }
@@ -243,14 +226,14 @@ export function LeadList({ onCreateLead }: LeadListProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredLeads.length === 0 ? (
+                {leads.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     No leads or clients found
                   </TableCell>
                 </TableRow>
               ) : (
-                paginatedLeads.map((lead) => (
+                  leads.map((lead) => (
                   <TableRow key={lead.id}>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-1.5 min-w-0">
@@ -280,7 +263,7 @@ export function LeadList({ onCreateLead }: LeadListProps) {
                         {lead.assignedTo || "Unassigned"}
                       </span>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">{new Date(lead.createdAt).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}</TableCell>
+                    <TableCell className="whitespace-nowrap">{formatDateDMY(lead.createdAt)}</TableCell>
                     <TableCell className="relative text-center">
                       <LeadActionsMenu
                         lead={lead}
@@ -302,7 +285,7 @@ export function LeadList({ onCreateLead }: LeadListProps) {
             currentPage={currentPage}
             totalPages={totalPages}
             itemsPerPage={itemsPerPage}
-            totalItems={filteredLeads.length}
+            totalItems={total}
             onPageChange={setCurrentPage}
             onItemsPerPageChange={setItemsPerPage}
           />

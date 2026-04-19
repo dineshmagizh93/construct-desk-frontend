@@ -2,48 +2,66 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { Document } from "@/types/document"
-import { documentsApi, CreateDocumentDto, UpdateDocumentDto } from "@/lib/api/documents"
+import { documentsApi, CreateDocumentDto, UpdateDocumentDto, DocumentListParams } from "@/lib/api/documents"
 import { ApiError } from "@/lib/api/client"
 
 // Simple cache to prevent unnecessary refetches
-let documentsCache: { data: Document[]; timestamp: number; projectId?: string } | null = null
+let documentsCache: { data: Document[]; total: number; timestamp: number; key: string } | null = null
 const CACHE_DURATION = 120000 // 2 minutes
 
-export function useDocuments() {
+export function useDocuments(params?: DocumentListParams) {
+  const cacheKey = JSON.stringify(params ?? {})
   // Initialize with cache if available to prevent loading state
   const [documents, setDocuments] = useState<Document[]>(() => {
     const now = Date.now()
-    if (documentsCache && (now - documentsCache.timestamp) < CACHE_DURATION) {
+    if (documentsCache && (now - documentsCache.timestamp) < CACHE_DURATION && documentsCache.key === cacheKey) {
       return documentsCache.data
     }
     return []
   })
+  const [total, setTotal] = useState(() => {
+    const now = Date.now()
+    if (documentsCache && (now - documentsCache.timestamp) < CACHE_DURATION && documentsCache.key === cacheKey) {
+      return documentsCache.total
+    }
+    return 0
+  })
   const [loading, setLoading] = useState(() => {
     // Only show loading if no cache available
     const now = Date.now()
-    return !(documentsCache && (now - documentsCache.timestamp) < CACHE_DURATION)
+    return !(documentsCache && (now - documentsCache.timestamp) < CACHE_DURATION && documentsCache.key === cacheKey)
   })
   const [error, setError] = useState<string | null>(null)
 
   const loadDocuments = useCallback(async (projectId?: string, force = false) => {
+    const effectiveParams = projectId ? { ...params, projectId } : params
+    const effectiveKey = JSON.stringify(effectiveParams ?? {})
     // Use cache if available and not stale
     const now = Date.now()
-    if (!force && documentsCache && (now - documentsCache.timestamp) < CACHE_DURATION && documentsCache.projectId === projectId) {
+    if (!force && documentsCache && (now - documentsCache.timestamp) < CACHE_DURATION && documentsCache.key === effectiveKey) {
       setDocuments(documentsCache.data)
+      setTotal(documentsCache.total)
       setLoading(false)
       return
     }
 
     try {
       // Only set loading if we don't have cached data
-      if (!documentsCache || force || documentsCache.projectId !== projectId) {
+      if (!documentsCache || force || documentsCache.key !== effectiveKey) {
         setLoading(true)
       }
       setError(null)
-      const data = await documentsApi.getAll(projectId)
-      setDocuments(data)
-      // Update cache
-      documentsCache = { data, timestamp: now, projectId }
+      if (effectiveParams?.page || effectiveParams?.limit || effectiveParams?.type || effectiveParams?.search || effectiveParams?.startDate || effectiveParams?.endDate) {
+        const response = await documentsApi.getPage(effectiveParams)
+        setDocuments(response.items)
+        setTotal(response.total)
+        documentsCache = { data: response.items, total: response.total, timestamp: now, key: effectiveKey }
+      } else {
+        const data = await documentsApi.getAll(projectId)
+        setDocuments(data)
+        setTotal(data.length)
+        documentsCache = { data, total: data.length, timestamp: now, key: effectiveKey }
+      }
     } catch (err) {
       const apiError = err as ApiError
       let errorMessage = apiError.message as string || "Failed to load documents"
@@ -61,14 +79,14 @@ export function useDocuments() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [params])
 
   useEffect(() => {
     const now = Date.now()
-    if (!documentsCache || (now - documentsCache.timestamp) >= CACHE_DURATION) {
+    if (!documentsCache || (now - documentsCache.timestamp) >= CACHE_DURATION || documentsCache.key !== cacheKey) {
       loadDocuments()
     }
-  }, [loadDocuments])
+  }, [cacheKey, loadDocuments])
 
   const loadDocumentsByProject = useCallback(async (projectId: string) => {
     try {
@@ -161,6 +179,7 @@ export function useDocuments() {
 
   return {
     documents,
+    total,
     loading,
     error,
     loadDocuments,

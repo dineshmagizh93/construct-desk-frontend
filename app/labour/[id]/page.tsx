@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
+import { formatDateDMY } from "@/lib/utils/date"
 
 export default function LabourDetailsPage() {
   const params = useParams()
@@ -53,7 +54,7 @@ export default function LabourDetailsPage() {
   const totalCost = labour.headcount * labour.costPerDay
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4 pt-3 sm:pt-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.push("/labour")}>
@@ -122,12 +123,7 @@ export default function LabourDetailsPage() {
               <div>
                 <p className="text-sm font-medium">Date</p>
                 <p className="text-sm text-muted-foreground">
-                  {new Date(labour.date).toLocaleDateString("en-US", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
+                  {formatDateDMY(labour.date)}
                 </p>
               </div>
             </div>
@@ -155,13 +151,13 @@ export default function LabourDetailsPage() {
             <div>
               <p className="text-sm font-medium mb-1">Created</p>
               <p className="text-sm text-muted-foreground">
-                {new Date(labour.createdAt).toLocaleDateString()}
+                {formatDateDMY(labour.createdAt)}
               </p>
             </div>
             <div>
               <p className="text-sm font-medium mb-1">Last Updated</p>
               <p className="text-sm text-muted-foreground">
-                {new Date(labour.updatedAt).toLocaleDateString()}
+                {formatDateDMY(labour.updatedAt)}
               </p>
             </div>
           </CardContent>

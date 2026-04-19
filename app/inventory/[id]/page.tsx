@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { formatCurrency } from "@/lib/utils/currency"
 import { useInventoryTransactions } from "@/lib/hooks/use-inventory"
+import { formatDateDMY } from "@/lib/utils/date"
 
 export default function InventoryItemDetailsPage() {
   const params = useParams()
@@ -55,7 +56,7 @@ export default function InventoryItemDetailsPage() {
   const stockValue = item.unitPrice ? item.currentStock * item.unitPrice : 0
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4 pt-3 sm:pt-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.push("/inventory")}>
@@ -190,7 +191,7 @@ export default function InventoryItemDetailsPage() {
                           {transaction.type} - {transaction.quantity} {item.unit}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(transaction.transactionDate).toLocaleDateString()}
+                          {formatDateDMY(transaction.transactionDate)}
                         </p>
                       </div>
                     </div>

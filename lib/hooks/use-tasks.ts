@@ -1,15 +1,15 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Task, TaskFilters, CreateTaskDto, UpdateTaskDto, UpdateTaskPositionDto, TaskComment } from "@/lib/api/tasks"
+import { Task, TaskFilters, TaskListParams, CreateTaskDto, UpdateTaskDto, UpdateTaskPositionDto, TaskComment } from "@/lib/api/tasks"
 import { tasksApi } from "@/lib/api/tasks"
 import { ApiError } from "@/lib/api/client"
 
 // Simple cache to prevent unnecessary refetches
-let tasksCache: { data: Task[]; timestamp: number; filters?: string } | null = null
+let tasksCache: { data: Task[]; total: number; timestamp: number; filters?: string } | null = null
 const CACHE_DURATION = 120000 // 2 minutes
 
-export function useTasks(filters?: TaskFilters) {
+export function useTasks(filters?: TaskListParams) {
   // Initialize with cache if available to prevent loading state
   const cacheKey = filters ? JSON.stringify(filters) : "default"
   const [tasks, setTasks] = useState<Task[]>(() => {
@@ -18,6 +18,13 @@ export function useTasks(filters?: TaskFilters) {
       return tasksCache.data
     }
     return []
+  })
+  const [total, setTotal] = useState(() => {
+    const now = Date.now()
+    if (tasksCache && (now - tasksCache.timestamp) < CACHE_DURATION && tasksCache.filters === cacheKey) {
+      return tasksCache.total
+    }
+    return 0
   })
   const [loading, setLoading] = useState(() => {
     // Only show loading if no cache available
@@ -31,6 +38,7 @@ export function useTasks(filters?: TaskFilters) {
     const now = Date.now()
     if (!force && tasksCache && (now - tasksCache.timestamp) < CACHE_DURATION && tasksCache.filters === cacheKey) {
       setTasks(tasksCache.data)
+      setTotal(tasksCache.total)
       setLoading(false)
       return
     }
@@ -41,10 +49,17 @@ export function useTasks(filters?: TaskFilters) {
         setLoading(true)
       }
       setError(null)
-      const data = await tasksApi.getAll(filters)
-      setTasks(data)
-      // Update cache
-      tasksCache = { data, timestamp: now, filters: cacheKey }
+      if (filters?.page || filters?.limit) {
+        const response = await tasksApi.getPage(filters)
+        setTasks(response.items)
+        setTotal(response.total)
+        tasksCache = { data: response.items, total: response.total, timestamp: now, filters: cacheKey }
+      } else {
+        const data = await tasksApi.getAll(filters)
+        setTasks(data)
+        setTotal(data.length)
+        tasksCache = { data, total: data.length, timestamp: now, filters: cacheKey }
+      }
     } catch (err) {
       const apiError = err as ApiError
       let errorMessage = apiError.message as string || "Failed to load tasks"
@@ -153,6 +168,7 @@ export function useTasks(filters?: TaskFilters) {
 
   return {
     tasks,
+    total,
     loading,
     error,
     loadTasks,

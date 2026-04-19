@@ -55,13 +55,37 @@ export interface UpdateCompanyDto {
   currency?: string;
 }
 
+let companyMeCache: Company | null = null;
+let companyMeCacheTimestamp = 0;
+let companyMeRequestInFlight: Promise<Company> | null = null;
+const COMPANY_ME_CACHE_DURATION = 60 * 1000;
+
 export const companyApi = {
   async getMe(): Promise<Company> {
-    return apiClient.get<Company>('/company/me');
+    const now = Date.now();
+    if (companyMeCache && now - companyMeCacheTimestamp < COMPANY_ME_CACHE_DURATION) {
+      return companyMeCache;
+    }
+
+    if (!companyMeRequestInFlight) {
+      companyMeRequestInFlight = apiClient.get<Company>('/company/me');
+    }
+
+    try {
+      const company = await companyMeRequestInFlight;
+      companyMeCache = company;
+      companyMeCacheTimestamp = now;
+      return company;
+    } finally {
+      companyMeRequestInFlight = null;
+    }
   },
 
   async update(data: UpdateCompanyDto): Promise<Company> {
-    return apiClient.put<Company>('/company', data);
+    const updated = await apiClient.put<Company>('/company', data);
+    companyMeCache = updated;
+    companyMeCacheTimestamp = Date.now();
+    return updated;
   },
 
   async getUsageStats(): Promise<PlanUsageStats> {

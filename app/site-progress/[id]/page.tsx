@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { useState } from "react"
+import { formatDateDMY } from "@/lib/utils/date"
 
 export default function SiteProgressDetailsPage() {
   const params = useParams()
@@ -52,67 +53,66 @@ export default function SiteProgressDetailsPage() {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push("/site-progress")}>
+    <div className="space-y-4 pt-3 sm:pt-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon-sm" onClick={() => router.push("/site-progress")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Site Progress</h1>
-            <p className="text-muted-foreground text-xs mt-0">
+            <h1 className="text-xl font-bold tracking-tight leading-none">Site Progress</h1>
+            <p className="text-muted-foreground text-xs mt-1">
               <Link href={`/projects/${progress.projectId}`} className="hover:underline">
                 {progress.projectName}
               </Link>
             </p>
           </div>
         </div>
-        <Button variant="outline" onClick={() => router.push(`/site-progress/${progress.id}/edit`)}>
+        <Button size="sm" variant="outline" onClick={() => router.push(`/site-progress/${progress.id}/edit`)}>
           Edit
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Date
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-lg">{new Date(progress.date).toLocaleDateString("en-US", {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}</p>
-        </CardContent>
-      </Card>
-
-      {progress.notes && (
+      <div className="grid gap-4 lg:grid-cols-[360px_1fr]">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Notes
+          <CardHeader className="py-3">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Calendar className="h-4 w-4" />
+              Date
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{progress.notes}</p>
+          <CardContent className="pt-2">
+            <p className="text-base font-semibold">{formatDateDMY(progress.date)}</p>
           </CardContent>
         </Card>
-      )}
+
+        {progress.notes && (
+          <Card>
+            <CardHeader className="py-3">
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <FileText className="h-4 w-4" />
+                Notes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
+                {progress.notes}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
       {progress.photos.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ImageIcon className="h-5 w-5" />
+          <CardHeader className="py-3">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <ImageIcon className="h-4 w-4" />
               Photos ({progress.photos.length})
             </CardTitle>
-            <CardDescription>Click on any photo to view in full size</CardDescription>
+            <CardDescription className="text-xs">Click on any photo to view in full size</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {progress.photos.map((photo, index) => (
                 <div

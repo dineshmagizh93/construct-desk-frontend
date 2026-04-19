@@ -20,13 +20,14 @@ import {
 } from "@/components/ui/popover"
 
 interface CountrySelectorProps {
+  id?: string
   value?: string
   onChange: (value: string) => void
   disabled?: boolean
   className?: string
 }
 
-export function CountrySelector({ value, onChange, disabled, className }: CountrySelectorProps) {
+export function CountrySelector({ id, value, onChange, disabled, className }: CountrySelectorProps) {
   const [open, setOpen] = React.useState(false)
   const countries = React.useMemo(() => {
     const allCountries = Country.getAllCountries()
@@ -42,6 +43,7 @@ export function CountrySelector({ value, onChange, disabled, className }: Countr
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          id={id}
           variant="outline"
           role="combobox"
           aria-expanded={open}
@@ -103,6 +105,7 @@ export function CountrySelector({ value, onChange, disabled, className }: Countr
 }
 
 interface StateSelectorProps {
+  id?: string
   countryName?: string
   value?: string
   onChange: (value: string) => void
@@ -110,7 +113,7 @@ interface StateSelectorProps {
   className?: string
 }
 
-export function StateSelector({ countryName, value, onChange, disabled, className }: StateSelectorProps) {
+export function StateSelector({ id, countryName, value, onChange, disabled, className }: StateSelectorProps) {
   const [open, setOpen] = React.useState(false)
 
   const states = React.useMemo(() => {
@@ -137,6 +140,7 @@ export function StateSelector({ countryName, value, onChange, disabled, classNam
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          id={id}
           variant="outline"
           role="combobox"
           aria-expanded={open}

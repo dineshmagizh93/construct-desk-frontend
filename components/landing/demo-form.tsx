@@ -76,6 +76,7 @@ export function DemoForm() {
                 placeholder="Name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                maxLength={80}
                 required
               />
             </div>
@@ -96,6 +97,7 @@ export function DemoForm() {
                   className="pl-12"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  maxLength={20}
                   required
                 />
               </div>
@@ -111,6 +113,7 @@ export function DemoForm() {
                 placeholder="Email Address"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                maxLength={100}
                 required
               />
             </div>

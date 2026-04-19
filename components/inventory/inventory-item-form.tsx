@@ -89,6 +89,7 @@ export function InventoryItemForm({ item, onSubmit, onCancel }: InventoryItemFor
           id="name"
           {...register("name", { required: "Item name is required" })}
           placeholder="Enter item name"
+          maxLength={100}
         />
         {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
       </div>
@@ -100,6 +101,7 @@ export function InventoryItemForm({ item, onSubmit, onCancel }: InventoryItemFor
           {...register("description")}
           placeholder="Enter item description"
           rows={3}
+          maxLength={250}
         />
       </div>
 
@@ -130,6 +132,7 @@ export function InventoryItemForm({ item, onSubmit, onCancel }: InventoryItemFor
             id="unit"
             {...register("unit", { required: "Unit is required" })}
             placeholder="kg, pcs, m, etc."
+            maxLength={20}
           />
           {errors.unit && <p className="text-sm text-destructive">{errors.unit.message}</p>}
         </div>
@@ -177,6 +180,7 @@ export function InventoryItemForm({ item, onSubmit, onCancel }: InventoryItemFor
             id="sku"
             {...register("sku")}
             placeholder="Stock Keeping Unit"
+            maxLength={50}
           />
         </div>
 
@@ -186,6 +190,7 @@ export function InventoryItemForm({ item, onSubmit, onCancel }: InventoryItemFor
             id="location"
             {...register("location")}
             placeholder="Warehouse, Site, etc."
+            maxLength={100}
           />
         </div>
       </div>
@@ -196,6 +201,7 @@ export function InventoryItemForm({ item, onSubmit, onCancel }: InventoryItemFor
           id="vendorId"
           {...register("vendorId")}
           placeholder="Vendor ID (optional)"
+          maxLength={100}
         />
       </div>
 
@@ -206,6 +212,7 @@ export function InventoryItemForm({ item, onSubmit, onCancel }: InventoryItemFor
           {...register("notes")}
           placeholder="Additional notes"
           rows={2}
+          maxLength={250}
         />
       </div>
 

@@ -96,6 +96,7 @@ export function TaskForm({ open, onOpenChange, onSubmit, projects, users, initia
               {...register("title")}
               placeholder="Enter task title"
               className="mt-1"
+              maxLength={120}
               required
             />
             {errors.title && (
@@ -114,6 +115,7 @@ export function TaskForm({ open, onOpenChange, onSubmit, projects, users, initia
               placeholder="Enter task description"
               className="mt-1"
               rows={4}
+              maxLength={500}
               required
             />
             {errors.description && (
@@ -257,6 +259,7 @@ export function TaskForm({ open, onOpenChange, onSubmit, projects, users, initia
               {...register("labels")}
               placeholder="e.g., Frontend, Bug, Urgent"
               className="mt-1"
+              maxLength={120}
             />
           </div>
 

@@ -91,7 +91,7 @@ export function LeadForm({ lead, onSubmit, onCancel }: LeadFormProps) {
         <Label htmlFor="name">
           Name <span className="text-destructive">*</span>
         </Label>
-        <Input id="name" {...register("name")} placeholder="Enter full name" required />
+        <Input id="name" {...register("name")} placeholder="Enter full name" required maxLength={80} />
         {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
       </div>
 
@@ -99,7 +99,7 @@ export function LeadForm({ lead, onSubmit, onCancel }: LeadFormProps) {
         <Label htmlFor="phone">
           Phone <span className="text-destructive">*</span>
         </Label>
-        <Input id="phone" {...register("phone")} placeholder="Enter phone number" required />
+        <Input id="phone" {...register("phone")} placeholder="Enter phone number" required maxLength={20} />
         {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
       </div>
 
@@ -110,6 +110,7 @@ export function LeadForm({ lead, onSubmit, onCancel }: LeadFormProps) {
           type="email"
           {...register("email")}
           placeholder="Enter email address (optional)"
+          maxLength={100}
         />
         {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
       </div>
@@ -185,6 +186,7 @@ export function LeadForm({ lead, onSubmit, onCancel }: LeadFormProps) {
           {...register("notes")}
           placeholder="Enter any additional notes"
           rows={4}
+          maxLength={250}
         />
         {errors.notes && <p className="text-sm text-destructive">{errors.notes.message}</p>}
       </div>

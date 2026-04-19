@@ -161,7 +161,7 @@ export function DocumentForm({ document, projectId, onSubmit, onCancel }: Docume
           <Label htmlFor="name">
             Document Name <span className="text-destructive">*</span>
           </Label>
-          <Input id="name" {...register("name")} placeholder="Enter document name" />
+          <Input id="name" {...register("name")} placeholder="Enter document name" maxLength={120} />
           {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
         </div>
 
@@ -238,7 +238,7 @@ export function DocumentForm({ document, projectId, onSubmit, onCancel }: Docume
 
       <div className="space-y-2">
         <Label htmlFor="notes">Notes</Label>
-        <Textarea id="notes" {...register("notes")} placeholder="Enter any additional notes" rows={3} />
+        <Textarea id="notes" {...register("notes")} placeholder="Enter any additional notes" rows={3} maxLength={250} />
         {errors.notes && <p className="text-sm text-destructive">{errors.notes.message}</p>}
       </div>
 

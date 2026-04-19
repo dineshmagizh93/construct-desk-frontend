@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Calendar, User, AlertCircle } from "lucide-react"
-import { format } from "date-fns"
+import { formatDateDMY } from "@/lib/utils/date"
 
 interface TaskCardProps {
   task: Task
@@ -104,7 +104,7 @@ export function TaskCard({ task, onDragStart, onClick, isDragging }: TaskCardPro
             {task.dueDate && (
               <div className={`flex items-center gap-0.5 text-[10px] ${isOverdue ? "text-destructive" : "text-muted-foreground"}`}>
                 <Calendar className="h-2.5 w-2.5" />
-                {format(new Date(task.dueDate), "MMM d")}
+                {formatDateDMY(task.dueDate)}
               </div>
             )}
           </div>

@@ -5,7 +5,7 @@ import Link from "next/link"
 import { MoreVertical, Eye, Edit, Trash2, Search, Plus, X, Upload, Download } from "lucide-react"
 import toast from "react-hot-toast"
 import { Project, ProjectStatus } from "@/types/project"
-import { CreateProjectDto } from "@/lib/api/projects"
+import { CreateProjectDto, ProjectListParams } from "@/lib/api/projects"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
@@ -30,18 +30,25 @@ import { ProjectFormSchema } from "@/lib/validations/project"
 import { TableSkeleton } from "@/components/ui/loading-skeleton"
 import { useRole } from "@/lib/hooks/use-role"
 import { Label } from "@/components/ui/label"
+import { formatDateDMY } from "@/lib/utils/date"
 
 interface ProjectListProps {
   onCreateProject: (data: ProjectFormSchema) => Promise<any>
 }
 
 export function ProjectList({ onCreateProject }: ProjectListProps) {
-  const { projects, loading, error, createProject, updateProject, deleteProject, loadProjects, bulkCreateProjects } = useProjects()
-  const { isAdmin } = useRole()
   const [searchQuery, setSearchQuery] = React.useState("")
   const [statusFilter, setStatusFilter] = React.useState<ProjectStatus | "all">("all")
   const [currentPage, setCurrentPage] = React.useState(1)
   const [itemsPerPage, setItemsPerPage] = React.useState(10)
+  const listParams = React.useMemo<ProjectListParams>(() => ({
+    page: currentPage,
+    limit: itemsPerPage,
+    search: searchQuery || undefined,
+    status: statusFilter === "all" ? undefined : statusFilter,
+  }), [currentPage, itemsPerPage, searchQuery, statusFilter])
+  const { projects, total, loading, error, createProject, updateProject, deleteProject, loadProjects, bulkCreateProjects } = useProjects(listParams)
+  const { isAdmin } = useRole()
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [projectToDelete, setProjectToDelete] = React.useState<Project | null>(null)
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
@@ -228,6 +235,10 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
         continue
       }
 
+      if (new Date(endDate) < new Date(startDate)) {
+        throw new Error("End date must be greater than the start date")
+      }
+
       const progress = (() => {
         const progressRaw = get(row, "progress")
         const p = toInt(progressRaw)
@@ -260,23 +271,7 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
 
 
 
-  // Filter projects
-  const filteredProjects = React.useMemo(() => {
-    return projects.filter((project) => {
-      const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.projectId.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesStatus = statusFilter === "all" || project.status === statusFilter
-      return matchesSearch && matchesStatus
-    })
-  }, [projects, searchQuery, statusFilter])
-
-  // Pagination
-  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / itemsPerPage))
-  const paginatedProjects = filteredProjects.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  )
+  const totalPages = Math.max(1, Math.ceil(total / itemsPerPage))
 
   // Reset to page 1 when filters change
   React.useEffect(() => {
@@ -311,8 +306,7 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
       toast.success("Project deleted successfully")
       setDeleteDialogOpen(false)
       setProjectToDelete(null)
-      // Recalculate total pages after deletion
-      const newTotalPages = Math.max(1, Math.ceil((filteredProjects.length - 1) / itemsPerPage))
+      const newTotalPages = Math.max(1, Math.ceil(Math.max(total - 1, 0) / itemsPerPage))
       if (currentPage > newTotalPages && newTotalPages > 0) {
         setCurrentPage(newTotalPages)
       }
@@ -321,7 +315,7 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
       toast.error(errorMessage)
       // Keep dialog open on error so user can retry
     }
-  }, [projectToDelete, deleteProject, loadProjects, filteredProjects.length, itemsPerPage, currentPage, setCurrentPage])
+  }, [projectToDelete, deleteProject, loadProjects, total, itemsPerPage, currentPage, setCurrentPage])
 
   const getStatusBadgeVariant = (status: ProjectStatus) => {
     switch (status) {
@@ -339,7 +333,7 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
   }
 
   // Only show loading if we have no projects at all (initial load)
-  if (loading && projects.length === 0) {
+  if (loading && projects.length === 0 && total === 0) {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -445,23 +439,22 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
                   <TableHead>Client</TableHead>
                   <TableHead>Location</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Progress</TableHead>
                   <TableHead>Start Date</TableHead>
                   <TableHead>End Date</TableHead>
                   <TableHead className="text-center px-2">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProjects.length === 0 ? (
+                {projects.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                      {projects.length === 0
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      {total === 0
                         ? "No projects found. Create your first project to get started."
                         : "No projects match your filters."}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  paginatedProjects.map((project) => (
+                  projects.map((project) => (
                     <TableRow key={project.id}>
                       <TableCell className="font-medium whitespace-nowrap">
                         <Link
@@ -472,40 +465,29 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
                           {project.projectId}
                         </Link>
                       </TableCell>
-                      <TableCell className="font-medium">
+                      <TableCell className="max-w-[260px]">
                         <Link
                           href={`/projects/${project.id}`}
-                          className="hover:underline"
+                          className="font-medium break-words hover:underline"
                           title={project.name}
                         >
                           {project.name}
                         </Link>
                       </TableCell>
-                      <TableCell title={project.clientName || "-"}>
-                        {project.clientName || "-"}
+                      <TableCell className="max-w-[200px] break-words" title={project.clientName || "-"}>
+                        <span className="break-words">{project.clientName || "-"}</span>
                       </TableCell>
-                      <TableCell title={project.location || "-"}>
-                        {project.location || "-"}
+                      <TableCell className="max-w-[220px] break-words" title={project.location || "-"}>
+                        <span className="break-words">{project.location || "-"}</span>
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         <Badge variant={getStatusBadgeVariant(project.status)}>{project.status}</Badge>
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-12 bg-secondary rounded-full h-1.5 flex-shrink-0">
-                            <div
-                              className="bg-primary h-1.5 rounded-full"
-                              style={{ width: `${project.progress}%` }}
-                            />
-                          </div>
-                          <span className="text-xs text-muted-foreground whitespace-nowrap">{project.progress}%</span>
-                        </div>
+                        {formatDateDMY(project.startDate)}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
-                        {new Date(project.startDate).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {new Date(project.endDate).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}
+                        {formatDateDMY(project.endDate)}
                       </TableCell>
                       <TableCell className="relative px-2 text-center" style={{ zIndex: openDropdownId === project.id ? 9999 : 1 }}>
                         <ProjectActionsMenu
@@ -529,7 +511,7 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
             currentPage={currentPage}
             totalPages={totalPages}
             itemsPerPage={itemsPerPage}
-            totalItems={filteredProjects.length}
+            totalItems={total}
             onPageChange={setCurrentPage}
             onItemsPerPageChange={setItemsPerPage}
           />

@@ -2,48 +2,66 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { Payment } from "@/types/payment"
-import { paymentsApi, CreatePaymentDto, UpdatePaymentDto } from "@/lib/api/payments"
+import { paymentsApi, CreatePaymentDto, UpdatePaymentDto, PaymentListParams } from "@/lib/api/payments"
 import { ApiError } from "@/lib/api/client"
 
 // Simple cache to prevent unnecessary refetches
-let paymentsCache: { data: Payment[]; timestamp: number; projectId?: string } | null = null
+let paymentsCache: { data: Payment[]; total: number; timestamp: number; key: string } | null = null
 const CACHE_DURATION = 120000 // 2 minutes
 
-export function usePayments() {
+export function usePayments(params?: PaymentListParams) {
+  const cacheKey = JSON.stringify(params ?? {})
   // Initialize with cache if available to prevent loading state
   const [payments, setPayments] = useState<Payment[]>(() => {
     const now = Date.now()
-    if (paymentsCache && (now - paymentsCache.timestamp) < CACHE_DURATION) {
+    if (paymentsCache && (now - paymentsCache.timestamp) < CACHE_DURATION && paymentsCache.key === cacheKey) {
       return paymentsCache.data
     }
     return []
   })
+  const [total, setTotal] = useState(() => {
+    const now = Date.now()
+    if (paymentsCache && (now - paymentsCache.timestamp) < CACHE_DURATION && paymentsCache.key === cacheKey) {
+      return paymentsCache.total
+    }
+    return 0
+  })
   const [loading, setLoading] = useState(() => {
     // Only show loading if no cache available
     const now = Date.now()
-    return !(paymentsCache && (now - paymentsCache.timestamp) < CACHE_DURATION)
+    return !(paymentsCache && (now - paymentsCache.timestamp) < CACHE_DURATION && paymentsCache.key === cacheKey)
   })
   const [error, setError] = useState<string | null>(null)
 
   const loadPayments = useCallback(async (projectId?: string, force = false) => {
+    const effectiveParams = projectId ? { ...params, projectId } : params
+    const effectiveKey = JSON.stringify(effectiveParams ?? {})
     // Use cache if available and not stale
     const now = Date.now()
-    if (!force && paymentsCache && (now - paymentsCache.timestamp) < CACHE_DURATION && paymentsCache.projectId === projectId) {
+    if (!force && paymentsCache && (now - paymentsCache.timestamp) < CACHE_DURATION && paymentsCache.key === effectiveKey) {
       setPayments(paymentsCache.data)
+      setTotal(paymentsCache.total)
       setLoading(false)
       return
     }
 
     try {
       // Only set loading if we don't have cached data
-      if (!paymentsCache || force || paymentsCache.projectId !== projectId) {
+      if (!paymentsCache || force || paymentsCache.key !== effectiveKey) {
         setLoading(true)
       }
       setError(null)
-      const data = await paymentsApi.getAll(projectId)
-      setPayments(data)
-      // Update cache
-      paymentsCache = { data, timestamp: now, projectId }
+      if (effectiveParams?.page || effectiveParams?.limit || effectiveParams?.status || effectiveParams?.search || effectiveParams?.dueDate) {
+        const response = await paymentsApi.getPage(effectiveParams)
+        setPayments(response.items)
+        setTotal(response.total)
+        paymentsCache = { data: response.items, total: response.total, timestamp: now, key: effectiveKey }
+      } else {
+        const data = await paymentsApi.getAll(projectId)
+        setPayments(data)
+        setTotal(data.length)
+        paymentsCache = { data, total: data.length, timestamp: now, key: effectiveKey }
+      }
     } catch (err) {
       const apiError = err as ApiError
       let errorMessage = apiError.message as string || "Failed to load payments"
@@ -61,14 +79,14 @@ export function usePayments() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [params])
 
   useEffect(() => {
     const now = Date.now()
-    if (!paymentsCache || (now - paymentsCache.timestamp) >= CACHE_DURATION) {
+    if (!paymentsCache || (now - paymentsCache.timestamp) >= CACHE_DURATION || paymentsCache.key !== cacheKey) {
       loadPayments()
     }
-  }, [loadPayments])
+  }, [cacheKey, loadPayments])
 
   const loadPaymentsByProject = useCallback(async (projectId: string) => {
     try {
@@ -161,6 +179,7 @@ export function usePayments() {
 
   return {
     payments,
+    total,
     loading,
     error,
     loadPayments,

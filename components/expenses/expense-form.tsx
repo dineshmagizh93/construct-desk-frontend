@@ -23,6 +23,7 @@ interface ExpenseFormProps {
 }
 
 export function ExpenseForm({ expense, projectId, onSubmit, onCancel }: ExpenseFormProps) {
+  const EXPENSE_NOTES_MAX = 250
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [projects, setProjects] = React.useState<Project[]>([])
 
@@ -65,6 +66,13 @@ export function ExpenseForm({ expense, projectId, onSubmit, onCancel }: ExpenseF
 
   const selectedCategory = watch("category")
   const selectedProjectId = watch("projectId")
+  const notes = watch("notes") || ""
+
+  React.useEffect(() => {
+    if (notes.length > EXPENSE_NOTES_MAX) {
+      setValue("notes", notes.slice(0, EXPENSE_NOTES_MAX), { shouldValidate: true })
+    }
+  }, [notes, setValue])
 
   const onFormSubmit = async (data: ExpenseFormSchema) => {
     try {
@@ -150,14 +158,19 @@ export function ExpenseForm({ expense, projectId, onSubmit, onCancel }: ExpenseF
           <Label htmlFor="paidTo">
             Paid To <span className="text-destructive">*</span>
           </Label>
-          <Input id="paidTo" {...register("paidTo")} placeholder="Enter recipient name" required />
+          <Input id="paidTo" {...register("paidTo")} placeholder="Enter recipient name" required maxLength={80} />
           {errors.paidTo && <p className="text-sm text-destructive">{errors.paidTo.message}</p>}
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notes">Notes</Label>
-        <Textarea id="notes" {...register("notes")} placeholder="Enter any additional notes" rows={3} />
+        <div className="flex items-center justify-between gap-2">
+          <Label htmlFor="notes">Notes</Label>
+          <p className="text-xs text-muted-foreground">
+            {EXPENSE_NOTES_MAX - notes.length} characters left
+          </p>
+        </div>
+        <Textarea id="notes" {...register("notes")} placeholder="Enter any additional notes" rows={3} maxLength={250} />
         {errors.notes && <p className="text-sm text-destructive">{errors.notes.message}</p>}
       </div>
 
@@ -171,6 +184,7 @@ export function ExpenseForm({ expense, projectId, onSubmit, onCancel }: ExpenseF
           type="url"
           {...register("attachment")}
           placeholder="Enter attachment URL (e.g., invoice link)"
+          maxLength={500}
         />
         {errors.attachment && <p className="text-sm text-destructive">{errors.attachment.message}</p>}
         <p className="text-xs text-muted-foreground">Enter a URL to an invoice or receipt document</p>

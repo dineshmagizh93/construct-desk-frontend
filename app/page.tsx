@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import {
   ArrowRight,
   Briefcase,
-  CheckCircle2,
   ClipboardList,
   CreditCard,
   FolderKanban,
@@ -75,37 +74,7 @@ export default function Home() {
     },
   ]
 
-  const [visitorStats, setVisitorStats] = React.useState({ today: 0, overall: 0, loaded: false });
-
-  React.useEffect(() => {
-    let mounted = true;
-    const trackAndFetchVisits = async () => {
-      try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-        const hasVisited = sessionStorage.getItem('has_visited_today_crm');
-        
-        if (!hasVisited) {
-          await fetch(`${apiUrl}/visits`, { method: 'POST' }).catch(() => {});
-          sessionStorage.setItem('has_visited_today_crm', 'true');
-        }
-
-        const res = await fetch(`${apiUrl}/visits`);
-        if (res.ok) {
-          const data = await res.json();
-          if (mounted) {
-            setVisitorStats({ today: data.today, overall: data.overall, loaded: true });
-          }
-        } else {
-          if (mounted) setVisitorStats(prev => ({ ...prev, loaded: true }));
-        }
-      } catch (error) {
-        if (mounted) setVisitorStats(prev => ({ ...prev, loaded: true }));
-      }
-    };
-    
-    trackAndFetchVisits();
-    return () => { mounted = false; };
-  }, []);
+  const [visitorStats] = React.useState({ today: 0, overall: 0, loaded: true });
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.14),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(249,115,22,0.14),_transparent_22%),linear-gradient(180deg,#f7fbff_0%,#f2f6fc_42%,#ffffff_100%)] text-slate-900 selection:bg-primary/20">
@@ -121,14 +90,6 @@ export default function Home() {
         <div className="container mx-auto max-w-7xl relative z-10">
           <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-8">
             <div className="animate-in flex flex-col items-center text-center duration-1000 ease-out fill-mode-forwards slide-in-from-bottom-8 lg:items-start lg:text-left">
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-200/80 bg-white/80 px-4 py-2 text-sm font-semibold text-blue-700 shadow-[0_10px_30px_rgba(37,99,235,0.08)] backdrop-blur">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75"></span>
-                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-600"></span>
-                </span>
-                The #1 Construction Management Platform
-              </div>
-
               <div className="relative rounded-[2rem] border border-white/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(255,255,255,0.72))] p-6 shadow-[0_28px_100px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:p-8 lg:p-9">
                 <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/80 to-transparent" />
                 <h1 className="mb-5 max-w-[100%] text-4xl font-extrabold leading-[1.05] tracking-tight text-slate-900 sm:text-5xl lg:text-5xl xl:text-[3.6rem]">
@@ -184,39 +145,21 @@ export default function Home() {
 
                 <div className="relative overflow-hidden rounded-[1.7rem] border border-slate-200/80 bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] ring-1 ring-black/5">
                   <div className="absolute inset-x-0 top-0 h-20 bg-[linear-gradient(180deg,rgba(248,250,252,0.92),rgba(248,250,252,0))]" />
-                  <div className="relative aspect-[16/10]">
-                    <Image
-                      src="/screenshots/dashboard.png"
-                      alt="ConstructDesk Premium Dashboard"
-                      fill
-                      className="object-cover object-top"
-                      priority
-                    />
+                  <div className="relative aspect-[16/10] bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.2),_transparent_32%),radial-gradient(circle_at_bottom_right,_rgba(249,115,22,0.18),_transparent_28%),linear-gradient(180deg,#f8fbff_0%,#eef4fb_100%)] p-3 sm:p-4">
+                    <div className="relative h-full overflow-hidden rounded-[1.3rem] border border-slate-200/80 bg-white shadow-sm">
+                      <Image
+                        src="/screenshots/dashboard.png"
+                        alt="ConstructDesk dashboard preview"
+                        fill
+                        priority
+                        className="object-cover object-top"
+                        sizes="(min-width: 1024px) 42vw, 92vw"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="absolute -left-3 top-1/4 z-30 rotate-[-3deg] rounded-2xl border border-white/80 bg-white/92 p-3 shadow-[0_20px_45px_rgba(15,23,42,0.14)] backdrop-blur sm:-left-10 sm:p-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100">
-                    <CheckCircle2 className="h-5 w-5 text-emerald-600 sm:h-6 sm:w-6" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold leading-tight text-slate-900">Project On Track</p>
-                    <p className="text-xs text-slate-500">Updated just now</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="absolute -bottom-5 right-2 z-30 rounded-2xl border border-slate-200/80 bg-slate-900 px-5 py-4 text-white shadow-[0_18px_40px_rgba(15,23,42,0.22)] sm:right-6">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Unified Operations</p>
-                <p className="mt-2 text-sm font-medium text-slate-100">
-                  Projects, materials, labour, and finances in one place.
-                </p>
-                <div className="mt-3 h-1.5 rounded-full bg-white/10">
-                  <div className="h-1.5 w-3/4 rounded-full bg-gradient-to-r from-blue-500 to-emerald-400" />
-                </div>
-              </div>
             </div>
           </div>
         </div>

@@ -9,6 +9,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'All fields are required.' }, { status: 400 });
     }
 
+    if (
+      String(name).length > 80 ||
+      String(phone).length > 20 ||
+      String(email).length > 100
+    ) {
+      return NextResponse.json(
+        { error: 'Input exceeds allowed character limit.' },
+        { status: 400 },
+      );
+    }
+
     const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
     const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
     const smtpUser = process.env.SMTP_USER || '';

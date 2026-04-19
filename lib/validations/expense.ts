@@ -20,9 +20,14 @@ export const expenseFormSchema = z.object({
     }),
   ]),
   date: z.string().min(1, "Date is required"),
-  paidTo: z.string().trim().min(1, "Paid To is required").min(2, "Paid To must be at least 2 characters"),
-  notes: z.string().optional(),
-  attachment: z.string().url("Invalid URL").optional().or(z.literal("")),
+  paidTo: z
+    .string()
+    .trim()
+    .min(1, "Paid To is required")
+    .min(2, "Paid To must be at least 2 characters")
+    .max(80, "Paid To must be 80 characters or less"),
+  notes: z.string().max(250, "Notes must be 250 characters or less").optional(),
+  attachment: z.string().url("Invalid URL").max(500, "Attachment URL must be 500 characters or less").optional().or(z.literal("")),
 })
 
 export type ExpenseFormSchema = z.infer<typeof expenseFormSchema>

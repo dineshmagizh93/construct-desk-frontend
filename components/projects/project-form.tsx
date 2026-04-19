@@ -19,6 +19,8 @@ interface ProjectFormProps {
 }
 
 export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
+  const PROJECT_NAME_MAX = 45
+  const PROJECT_DESCRIPTION_MAX = 250
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   const {
@@ -55,6 +57,25 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
   })
 
   const status = watch("status")
+  const startDate = watch("startDate")
+  const projectName = watch("name") || ""
+  const description = watch("description") || ""
+  const projectNameRemaining = PROJECT_NAME_MAX - projectName.length
+  const descriptionRemaining = PROJECT_DESCRIPTION_MAX - description.length
+  const todayDateString = React.useMemo(() => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, "0")
+    const day = String(now.getDate()).padStart(2, "0")
+    return `${year}-${month}-${day}`
+  }, [])
+  const isFutureStartDate = Boolean(startDate) && startDate > todayDateString
+
+  React.useEffect(() => {
+    if (isFutureStartDate && status !== "Planning") {
+      setValue("status", "Planning")
+    }
+  }, [isFutureStartDate, setValue, status])
 
   const onFormSubmit = async (data: ProjectFormSchema) => {
     try {
@@ -85,10 +106,21 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="name">
-          Project Name <span className="text-destructive">*</span>
-        </Label>
-        <Input id="name" {...register("name")} placeholder="Enter project name" required />
+        <div className="flex items-center justify-between gap-2">
+          <Label htmlFor="name">
+            Project Name <span className="text-destructive">*</span>
+          </Label>
+          <p className={`text-xs ${projectNameRemaining < 10 ? "text-destructive" : "text-muted-foreground"}`}>
+            {projectNameRemaining} characters left
+          </p>
+        </div>
+        <Input
+          id="name"
+          {...register("name")}
+          placeholder="Enter project name"
+          maxLength={PROJECT_NAME_MAX}
+          required
+        />
         {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
       </div>
 
@@ -96,7 +128,7 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
         <Label htmlFor="clientName">
           Client Name <span className="text-destructive">*</span>
         </Label>
-        <Input id="clientName" {...register("clientName")} placeholder="Enter client name" required />
+        <Input id="clientName" {...register("clientName")} placeholder="Enter client name" required maxLength={100} />
         {errors.clientName && <p className="text-sm text-destructive">{errors.clientName.message}</p>}
       </div>
 
@@ -104,17 +136,23 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
         <Label htmlFor="location">
           Location <span className="text-destructive">*</span>
         </Label>
-        <Input id="location" {...register("location")} placeholder="Enter location" required />
+        <Input id="location" {...register("location")} placeholder="Enter location" required maxLength={150} />
         {errors.location && <p className="text-sm text-destructive">{errors.location.message}</p>}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
+        <div className="flex items-center justify-between gap-2">
+          <Label htmlFor="description">Description</Label>
+          <p className={`text-xs ${descriptionRemaining < 20 ? "text-destructive" : "text-muted-foreground"}`}>
+            {descriptionRemaining} characters left
+          </p>
+        </div>
         <Textarea
           id="description"
           {...register("description")}
           placeholder="Enter project description"
           rows={4}
+          maxLength={PROJECT_DESCRIPTION_MAX}
         />
         {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
       </div>
@@ -146,12 +184,18 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
           {...register("status")}
           onChange={(e) => setValue("status", e.target.value as Project["status"])}
           value={status}
+          disabled={isFutureStartDate}
         >
           <option value="Planning">Planning</option>
           <option value="In Progress">In Progress</option>
           <option value="On Hold">On Hold</option>
           <option value="Completed">Completed</option>
         </Select>
+        {isFutureStartDate && (
+          <p className="text-xs text-muted-foreground">
+            Status is locked to Planning until the start date reaches today or past.
+          </p>
+        )}
         {errors.status && <p className="text-sm text-destructive">{errors.status.message}</p>}
       </div>
 

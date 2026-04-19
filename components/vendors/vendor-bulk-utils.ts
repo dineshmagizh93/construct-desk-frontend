@@ -70,6 +70,9 @@ export const parseBulkVendorsFromCsv = (text: string) => {
       throw new Error(`Row ${i + 1}: Name, Type, and Phone are required fields.`)
     }
 
+    if (name.length > 100) throw new Error(`Row ${i + 1}: Vendor name must be 100 characters or less.`)
+    if (phone.length > 20) throw new Error(`Row ${i + 1}: Phone must be 20 characters or less.`)
+
     const mapType = (input: string): VendorType | 'Other' => {
       const t = input.toLowerCase()
       if (t.includes('material')) return 'Material Supplier'
@@ -81,17 +84,33 @@ export const parseBulkVendorsFromCsv = (text: string) => {
       return 'Other'
     }
 
+    const contactPerson = contactPersonIdx >= 0 ? row[contactPersonIdx]?.trim() || undefined : undefined
+    const email = emailIdx >= 0 ? row[emailIdx]?.trim() || undefined : undefined
+    const address = addressIdx >= 0 ? row[addressIdx]?.trim() || undefined : undefined
+    const city = cityIdx >= 0 ? row[cityIdx]?.trim() || undefined : undefined
+    const state = stateIdx >= 0 ? row[stateIdx]?.trim() || undefined : undefined
+    const country = countryIdx >= 0 ? row[countryIdx]?.trim() || undefined : undefined
+    const notes = notesIdx >= 0 ? row[notesIdx]?.trim() || undefined : undefined
+
+    if (contactPerson && contactPerson.length > 100) throw new Error(`Row ${i + 1}: Contact person must be 100 characters or less.`)
+    if (email && email.length > 100) throw new Error(`Row ${i + 1}: Email must be 100 characters or less.`)
+    if (address && address.length > 150) throw new Error(`Row ${i + 1}: Address must be 150 characters or less.`)
+    if (city && city.length > 60) throw new Error(`Row ${i + 1}: City must be 60 characters or less.`)
+    if (state && state.length > 60) throw new Error(`Row ${i + 1}: State must be 60 characters or less.`)
+    if (country && country.length > 60) throw new Error(`Row ${i + 1}: Country must be 60 characters or less.`)
+    if (notes && notes.length > 250) throw new Error(`Row ${i + 1}: Notes must be 250 characters or less.`)
+
     parsedVendors.push({
       name,
       type: mapType(rawType),
       phone,
-      contactPerson: contactPersonIdx >= 0 ? row[contactPersonIdx]?.trim() || undefined : undefined,
-      email: emailIdx >= 0 ? row[emailIdx]?.trim() || undefined : undefined,
-      address: addressIdx >= 0 ? row[addressIdx]?.trim() || undefined : undefined,
-      city: cityIdx >= 0 ? row[cityIdx]?.trim() || undefined : undefined,
-      state: stateIdx >= 0 ? row[stateIdx]?.trim() || undefined : undefined,
-      country: countryIdx >= 0 ? row[countryIdx]?.trim() || undefined : undefined,
-      notes: notesIdx >= 0 ? row[notesIdx]?.trim() || undefined : undefined,
+      contactPerson,
+      email,
+      address,
+      city,
+      state,
+      country,
+      notes,
       status: statusIdx >= 0 ? (row[statusIdx]?.trim().toLowerCase() === 'inactive' ? 'Inactive' : 'Active') : 'Active'
     })
   }

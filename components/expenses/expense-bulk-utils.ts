@@ -51,6 +51,10 @@ export const parseBulkExpensesFromCsv = (text: string) => {
       continue
     }
 
+    if (projectId.length > 100) throw new Error("Project ID must be 100 characters or less")
+    if (paidTo.length > 80) throw new Error("Paid To must be 80 characters or less")
+    if (notes && notes.length > 250) throw new Error("Notes must be 250 characters or less")
+
     const amount = parseFloat(amountStr)
     if (isNaN(amount)) continue
 

@@ -1,17 +1,14 @@
-export type Currency = "USD" | "INR"
+export type Currency = "INR"
 
 export const CURRENCY_SYMBOLS: Record<Currency, string> = {
-  USD: "$",
   INR: "₹",
 }
 
 export const CURRENCY_NAMES: Record<Currency, string> = {
-  USD: "US Dollar",
   INR: "Indian Rupee",
 }
 
 export const CURRENCY_LOCALES: Record<Currency, string> = {
-  USD: "en-US",
   INR: "en-IN",
 }
 
@@ -20,15 +17,7 @@ export const CURRENCY_LOCALES: Record<Currency, string> = {
  * First checks localStorage, then falls back to default
  */
 export function getCurrency(): Currency {
-  if (typeof window === "undefined") return "USD"
-  
-  // Try to get from localStorage first (for client-side)
-  const stored = localStorage.getItem("company_currency")
-  if (stored === "USD" || stored === "INR") {
-    return stored
-  }
-  
-  return "USD" // Default
+  return "INR"
 }
 
 /**
@@ -36,10 +25,7 @@ export function getCurrency(): Currency {
  * This should be used in components that have access to useAuth
  */
 export function getCurrencyFromAuth(user: any): Currency {
-  if (user?.company?.currency === "USD" || user?.company?.currency === "INR") {
-    return user.company.currency
-  }
-  return getCurrency()
+  return "INR"
 }
 
 /**
@@ -82,20 +68,7 @@ export function formatCurrencyCustom(
  * Use this in components that have access to useAuth
  */
 export function useCurrency(user?: any): Currency {
-  // First try to get from user's company
-  if (user?.company?.currency === "USD" || user?.company?.currency === "INR") {
-    return user.company.currency
-  }
-  
-  // Fallback to localStorage
-  if (typeof window !== "undefined") {
-    const stored = localStorage.getItem("company_currency")
-    if (stored === "USD" || stored === "INR") {
-      return stored
-    }
-  }
-  
-  return "USD"
+  return "INR"
 }
 
 /**
@@ -103,6 +76,6 @@ export function useCurrency(user?: any): Currency {
  */
 export function setCurrency(currency: Currency): void {
   if (typeof window === "undefined") return
-  localStorage.setItem("company_currency", currency)
+  localStorage.setItem("company_currency", "INR")
 }
 

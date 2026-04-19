@@ -29,7 +29,9 @@ import { downloadPaymentBulkTemplate, parseBulkPaymentsFromCsv } from "./payment
 import { usePayments } from "@/lib/hooks/use-payments"
 import { useProjects } from "@/lib/hooks/use-projects"
 import { projectsApi } from "@/lib/api/projects"
+import { PaymentListParams } from "@/lib/api/payments"
 import { PaymentFormSchema } from "@/lib/validations/payment"
+import { formatDateDMY } from "@/lib/utils/date"
 
 interface PaymentListProps {
   projectId?: string
@@ -37,49 +39,29 @@ interface PaymentListProps {
 }
 
 export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
-  const { payments, loading, deletePayment, loadPayments, bulkCreatePayments } = usePayments()
+  const [currentPage, setCurrentPage] = React.useState(1)
+  const [itemsPerPage, setItemsPerPage] = React.useState(10)
   const { projects } = useProjects()
   const [searchQuery, setSearchQuery] = React.useState("")
   const [projectFilter, setProjectFilter] = React.useState<string>("all")
   const [statusFilter, setStatusFilter] = React.useState<PaymentStatus | "all">("all")
   const [dueDateFilter, setDueDateFilter] = React.useState("")
-  const [currentPage, setCurrentPage] = React.useState(1)
-  const [itemsPerPage, setItemsPerPage] = React.useState(10)
+  const listParams = React.useMemo<PaymentListParams>(() => ({
+    page: currentPage,
+    limit: itemsPerPage,
+    projectId: projectId || (projectFilter !== "all" ? projectFilter : undefined),
+    status: statusFilter === "all" ? undefined : statusFilter,
+    search: searchQuery || undefined,
+    dueDate: dueDateFilter || undefined,
+  }), [currentPage, dueDateFilter, itemsPerPage, projectFilter, projectId, searchQuery, statusFilter])
+  const { payments, total, loading, deletePayment, loadPayments, bulkCreatePayments } = usePayments(listParams)
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [paymentToDelete, setPaymentToDelete] = React.useState<Payment | null>(null)
   const [openDropdownId, setOpenDropdownId] = React.useState<string | null>(null)
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
   const [bulkUploadOpen, setBulkUploadOpen] = React.useState(false)
 
-  // Filter payments
-  const filteredPayments = React.useMemo(() => {
-    return payments.filter((payment) => {
-      // Project filter - if projectId is provided, only show that project's payments
-      const matchesProject = projectId
-        ? payment.projectId === projectId
-        : projectFilter === "all" || payment.projectId === projectFilter
-
-      // Search filter
-      const matchesSearch =
-        payment.milestone.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        payment.projectName.toLowerCase().includes(searchQuery.toLowerCase())
-
-      // Status filter
-      const matchesStatus = statusFilter === "all" || payment.status === statusFilter
-
-      // Due date filter
-      const matchesDueDate = !dueDateFilter || payment.dueDate === dueDateFilter
-
-      return matchesProject && matchesSearch && matchesStatus && matchesDueDate
-    })
-  }, [payments, projectId, projectFilter, searchQuery, statusFilter, dueDateFilter])
-
-  // Pagination
-  const totalPages = Math.max(1, Math.ceil(filteredPayments.length / itemsPerPage))
-  const paginatedPayments = filteredPayments.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  )
+  const totalPages = Math.max(1, Math.ceil(total / itemsPerPage))
 
   // Reset to page 1 when filters change
   React.useEffect(() => {
@@ -115,7 +97,7 @@ export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
       setDeleteDialogOpen(false)
       setPaymentToDelete(null)
       // Recalculate total pages after deletion
-      const newTotalPages = Math.max(1, Math.ceil((filteredPayments.length - 1) / itemsPerPage))
+      const newTotalPages = Math.max(1, Math.ceil(Math.max(total - 1, 0) / itemsPerPage))
       if (currentPage > newTotalPages && newTotalPages > 0) {
         setCurrentPage(newTotalPages)
       }
@@ -248,14 +230,14 @@ export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPayments.length === 0 ? (
+                {payments.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     No payments found
                   </TableCell>
                 </TableRow>
               ) : (
-                paginatedPayments.map((payment) => (
+                  payments.map((payment) => (
                   <TableRow key={payment.id}>
                     <TableCell className="font-medium w-[24%]">
                       <span
@@ -271,7 +253,7 @@ export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
                       </span>
                     </TableCell>
                     <TableCell className="font-medium whitespace-nowrap w-[15%]">{formatCurrency(payment.amount)}</TableCell>
-                    <TableCell className="whitespace-nowrap w-[14%]">{new Date(payment.dueDate).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}</TableCell>
+                    <TableCell className="whitespace-nowrap w-[14%]">{formatDateDMY(payment.dueDate)}</TableCell>
                     <TableCell className="whitespace-nowrap w-[15%]">
                       <Badge variant={getStatusBadgeVariant(payment.status)}>{payment.status}</Badge>
                     </TableCell>
@@ -292,13 +274,13 @@ export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
         </div>
 
         {/* Summary */}
-        {filteredPayments.length > 0 && (
+        {payments.length > 0 && (
           <div className="flex justify-end gap-4 text-[13px] px-4 py-2.5 border-t border-border/40 bg-muted/30 flex-shrink-0">
             <div>
               <span className="text-muted-foreground">Total: </span>
               <span className="font-semibold">
                 {formatCurrency(
-                  filteredPayments.reduce((sum, p) => sum + p.amount, 0)
+                  payments.reduce((sum, p) => sum + p.amount, 0)
                 )}
               </span>
             </div>
@@ -306,7 +288,7 @@ export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
               <span className="text-muted-foreground">Paid: </span>
               <span className="font-semibold text-green-600">
                 {formatCurrency(
-                  filteredPayments.filter((p) => p.status === "Paid").reduce((sum, p) => sum + p.amount, 0)
+                  payments.filter((p) => p.status === "Paid").reduce((sum, p) => sum + p.amount, 0)
                 )}
               </span>
             </div>
@@ -314,7 +296,7 @@ export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
               <span className="text-muted-foreground">Pending: </span>
               <span className="font-semibold text-yellow-600">
                 {formatCurrency(
-                  filteredPayments.filter((p) => p.status === "Pending").reduce((sum, p) => sum + p.amount, 0)
+                  payments.filter((p) => p.status === "Pending").reduce((sum, p) => sum + p.amount, 0)
                 )}
               </span>
             </div>
@@ -327,7 +309,7 @@ export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
             currentPage={currentPage}
             totalPages={totalPages}
             itemsPerPage={itemsPerPage}
-            totalItems={filteredPayments.length}
+            totalItems={total}
             onPageChange={setCurrentPage}
             onItemsPerPageChange={setItemsPerPage}
           />

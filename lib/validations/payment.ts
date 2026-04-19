@@ -3,7 +3,12 @@ import { z } from "zod"
 export const paymentFormSchema = z
   .object({
     projectId: z.string().min(1, "Project is required"),
-    milestone: z.string().trim().min(1, "Milestone name is required").min(2, "Milestone must be at least 2 characters"),
+    milestone: z
+      .string()
+      .trim()
+      .min(1, "Milestone name is required")
+      .min(2, "Milestone must be at least 2 characters")
+      .max(80, "Milestone name must be 80 characters or less"),
     amount: z.union([
       z.number().min(0.01, "Amount must be greater than 0"),
       z.string().min(1, "Amount is required").transform((val) => {
@@ -23,7 +28,7 @@ export const paymentFormSchema = z
       required_error: "Status is required",
     }),
     paidDate: z.string().optional(),
-    notes: z.string().optional(),
+    notes: z.string().max(250, "Notes must be 250 characters or less").optional(),
   })
   .refine(
     (data) => {

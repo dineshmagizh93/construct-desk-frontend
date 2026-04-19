@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import { PaginatedResponse, PaginationParams } from './pagination';
 
 export enum TaskStatus {
   TODO = 'To Do',
@@ -112,7 +113,23 @@ export interface TaskFilters {
   search?: string;
 }
 
+export interface TaskListParams extends TaskFilters, PaginationParams {}
+
 export const tasksApi = {
+  async getPage(filters?: TaskListParams): Promise<PaginatedResponse<Task>> {
+    const params = new URLSearchParams();
+    if (filters?.projectId) params.append('projectId', filters.projectId);
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.assignedTo) params.append('assignedTo', filters.assignedTo);
+    if (filters?.priority) params.append('priority', filters.priority);
+    if (filters?.search) params.append('search', filters.search);
+    if (filters?.page) params.append('page', String(filters.page));
+    if (filters?.limit) params.append('limit', String(filters.limit));
+
+    const query = params.toString();
+    return apiClient.get<PaginatedResponse<Task>>(`/tasks${query ? `?${query}` : ''}`);
+  },
+
   async getAll(filters?: TaskFilters): Promise<Task[]> {
     const params = new URLSearchParams();
     if (filters?.projectId) params.append('projectId', filters.projectId);

@@ -24,12 +24,14 @@ import { BulkUploadModal } from "@/components/shared/bulk-upload-modal"
 import { downloadDocumentBulkTemplate, parseBulkDocumentsFromCsv } from "./document-bulk-utils"
 import { useDocuments } from "@/lib/hooks/use-documents"
 import { useProjects } from "@/lib/hooks/use-projects"
+import { DocumentListParams } from "@/lib/api/documents"
 import { DocumentFormSchema } from "@/lib/validations/document"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { projectsApi } from "@/lib/api/projects"
 import toast from "react-hot-toast"
 import { usePlanLimits } from "@/lib/hooks/use-plan-limits"
 import { ApiError } from "@/lib/api/client"
+import { formatDateDMY } from "@/lib/utils/date"
 
 interface DocumentListProps {
   projectId?: string
@@ -37,7 +39,8 @@ interface DocumentListProps {
 }
 
 export function DocumentList({ projectId, onCreateDocument }: DocumentListProps) {
-  const { documents, loading, deleteDocument, createDocument, updateDocument, loadDocuments, bulkCreateDocuments } = useDocuments()
+  const [currentPage, setCurrentPage] = React.useState(1)
+  const [itemsPerPage, setItemsPerPage] = React.useState(10)
   const { projects } = useProjects()
   const { handleError, UpgradeModalComponent } = usePlanLimits()
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -45,8 +48,16 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
   const [typeFilter, setTypeFilter] = React.useState<DocumentType | "all">("all")
   const [startDate, setStartDate] = React.useState("")
   const [endDate, setEndDate] = React.useState("")
-  const [currentPage, setCurrentPage] = React.useState(1)
-  const [itemsPerPage, setItemsPerPage] = React.useState(10)
+  const listParams = React.useMemo<DocumentListParams>(() => ({
+    page: currentPage,
+    limit: itemsPerPage,
+    projectId: projectId || (projectFilter !== "all" ? projectFilter : undefined),
+    type: typeFilter === "all" ? undefined : typeFilter,
+    search: searchQuery || undefined,
+    startDate: startDate || undefined,
+    endDate: endDate || undefined,
+  }), [currentPage, endDate, itemsPerPage, projectFilter, projectId, searchQuery, startDate, typeFilter])
+  const { documents, total, loading, deleteDocument, createDocument, updateDocument, loadDocuments, bulkCreateDocuments } = useDocuments(listParams)
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [documentToDelete, setDocumentToDelete] = React.useState<Document | null>(null)
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
@@ -54,36 +65,7 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
   const [editDialogOpen, setEditDialogOpen] = React.useState(false)
   const [documentToEdit, setDocumentToEdit] = React.useState<Document | null>(null)
 
-  // Filter documents
-  const filteredDocuments = React.useMemo(() => {
-    return documents.filter((doc) => {
-      // Project filter
-      const matchesProject = projectId
-        ? doc.projectId === projectId
-        : projectFilter === "all" || doc.projectId === projectFilter
-
-      // Search filter
-      const matchesSearch =
-        searchQuery === "" || doc.name.toLowerCase().includes(searchQuery.toLowerCase())
-
-      // Type filter
-      const matchesType = typeFilter === "all" || doc.type === typeFilter
-
-      // Date range filter
-      const docDate = new Date(doc.uploadedAt)
-      const matchesStartDate = !startDate || docDate >= new Date(startDate)
-      const matchesEndDate = !endDate || docDate <= new Date(endDate)
-
-      return matchesProject && matchesSearch && matchesType && matchesStartDate && matchesEndDate
-    })
-  }, [documents, projectId, projectFilter, searchQuery, typeFilter, startDate, endDate])
-
-  // Pagination
-  const totalPages = Math.max(1, Math.ceil(filteredDocuments.length / itemsPerPage))
-  const paginatedDocuments = filteredDocuments.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  )
+  const totalPages = Math.max(1, Math.ceil(total / itemsPerPage))
 
   // Reset to page 1 when filters change
   React.useEffect(() => {
@@ -114,7 +96,7 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
       setDeleteDialogOpen(false)
       setDocumentToDelete(null)
       // Recalculate total pages after deletion
-      const newTotalPages = Math.max(1, Math.ceil((filteredDocuments.length - 1) / itemsPerPage))
+      const newTotalPages = Math.max(1, Math.ceil(Math.max(total - 1, 0) / itemsPerPage))
       if (currentPage > newTotalPages && newTotalPages > 0) {
         setCurrentPage(newTotalPages)
       }
@@ -334,7 +316,7 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredDocuments.length === 0 ? (
+              {documents.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                     <div className="flex flex-col items-center justify-center py-4">
@@ -345,7 +327,7 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
                   </TableCell>
                 </TableRow>
               ) : (
-                paginatedDocuments.map((doc) => (
+                documents.map((doc) => (
                   <TableRow key={doc.id}>
                     <TableCell className="font-medium">
                       <span className="truncate block" title={doc.projectName}>
@@ -361,7 +343,7 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
                     <TableCell className="whitespace-nowrap">
                       <Badge variant={getTypeBadgeVariant(doc.type)}>{doc.type}</Badge>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">{new Date(doc.uploadedAt).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}</TableCell>
+                    <TableCell className="whitespace-nowrap">{formatDateDMY(doc.uploadedAt)}</TableCell>
                     <TableCell className="relative text-center">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -417,7 +399,7 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
             currentPage={currentPage}
             totalPages={totalPages}
             itemsPerPage={itemsPerPage}
-            totalItems={filteredDocuments.length}
+            totalItems={total}
             onPageChange={setCurrentPage}
             onItemsPerPageChange={setItemsPerPage}
           />

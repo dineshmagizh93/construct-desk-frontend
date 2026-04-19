@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { setAuthToken } from "@/lib/config"
 import { authApi } from "@/lib/api/auth"
-import { ArrowRight, Building2, CheckCircle2, LogIn, ShieldCheck } from "lucide-react"
+import { ArrowRight, Building2, CheckCircle2, Eye, EyeOff, LogIn, ShieldCheck } from "lucide-react"
 
 export const dynamic = "force-dynamic"
 
@@ -30,6 +30,7 @@ function LoginPageContent() {
   const [error, setError] = React.useState<string | null>(null)
   const [isLoading, setIsLoading] = React.useState(false)
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null)
+  const [showPassword, setShowPassword] = React.useState(false)
 
   React.useEffect(() => {
     if (searchParams.get("passwordReset") === "true") {
@@ -171,13 +172,23 @@ function LoginPageContent() {
                       Forgot password?
                     </Link>
                   </div>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    {...register("password")}
-                    className="h-11 rounded-xl border-slate-200 bg-white/90 px-4 shadow-sm focus-visible:ring-blue-200"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      {...register("password")}
+                      className="h-11 rounded-xl border-slate-200 bg-white/90 px-4 pr-11 shadow-sm focus-visible:ring-blue-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-600"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
                   {errors.password && (
                     <p className="text-sm text-destructive">{errors.password.message}</p>
                   )}

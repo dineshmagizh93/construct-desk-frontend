@@ -5,14 +5,12 @@ import { useForm } from "react-hook-form"
 import { Building2, Save, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { ApiError } from "@/lib/api/client"
 import { companyApi, UpdateCompanyDto } from "@/lib/api/company"
 import { setCurrency, Currency, CURRENCY_NAMES } from "@/lib/utils/currency"
-import { Select } from "@/components/ui/select"
 import { CountrySelector, StateSelector } from "@/components/ui/country-state-selector"
 import { Controller } from "react-hook-form"
 
@@ -58,11 +56,10 @@ export function CompanyProfileForm() {
       country: "",
       taxId: "",
       website: "",
-      currency: "USD",
+      currency: "INR",
     },
   })
 
-  const selectedCurrency = watch("currency")
   const selectedCountry = watch("country")
 
   // Load company data
@@ -70,7 +67,7 @@ export function CompanyProfileForm() {
     const loadCompany = async () => {
       try {
         setLoading(true)
-        const data = await fetch('/api/company').then(res => res.json())
+        const data = await companyApi.getMe()
         reset({
           companyName: data.name || "",
           email: data.email || "",
@@ -82,12 +79,10 @@ export function CompanyProfileForm() {
           country: data.country || "",
           taxId: data.taxId || "",
           website: data.website || "",
-          currency: (data.currency as Currency) || "USD",
+          currency: "INR",
         })
         // Store currency in localStorage for quick access
-        if (data.currency) {
-          setCurrency(data.currency as Currency)
-        }
+        setCurrency("INR")
       } catch (err) {
         console.error("Failed to load company:", err)
         // If API fails, use user's company data from auth
@@ -103,11 +98,9 @@ export function CompanyProfileForm() {
             country: "",
             taxId: "",
             website: "",
-            currency: (user.company.currency as Currency) || "USD",
+            currency: "INR",
           })
-          if (user.company.currency) {
-            setCurrency(user.company.currency as Currency)
-          }
+          setCurrency("INR")
         }
       } finally {
         setLoading(false)
@@ -134,13 +127,13 @@ export function CompanyProfileForm() {
         country: data.country || undefined,
         taxId: data.taxId || undefined,
         website: data.website || undefined,
-        currency: data.currency,
+        currency: "INR",
       }
 
       await companyApi.update(updateData)
       
       // Store currency in localStorage for quick access
-      setCurrency(data.currency)
+      setCurrency("INR")
       
       setIsSaved(true)
       setTimeout(() => setIsSaved(false), 3000)
@@ -190,7 +183,7 @@ export function CompanyProfileForm() {
                   <Label htmlFor="companyName" className="font-medium">
                     Company Name <span className="text-destructive">*</span>
                   </Label>
-                  <Input id="companyName" {...register("companyName", { required: "Company name is required" })} placeholder="Enter company name" className="h-9" />
+                  <Input id="companyName" {...register("companyName", { required: "Company name is required" })} placeholder="Enter company name" className="h-9" maxLength={100} />
                   {errors.companyName && <p className="text-sm text-destructive font-medium">{errors.companyName.message}</p>}
                 </div>
 
@@ -198,62 +191,59 @@ export function CompanyProfileForm() {
                   <Label htmlFor="email" className="font-medium">
                     Email Address <span className="text-destructive">*</span>
                   </Label>
-                  <Input id="email" type="email" {...register("email", { required: "Email is required", pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: "Invalid email" }})} placeholder="contact@company.com" className="h-9" />
+                  <Input id="email" type="email" {...register("email", { required: "Email is required", pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: "Invalid email" }})} placeholder="contact@company.com" className="h-9" maxLength={100} />
                   {errors.email && <p className="text-sm text-destructive font-medium">{errors.email.message}</p>}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="phone" className="font-medium">Phone Number</Label>
-                  <Input id="phone" type="tel" {...register("phone")} placeholder="+1 (555) 123-4567" className="h-9" />
+                  <Input id="phone" type="tel" {...register("phone")} placeholder="+1 (555) 123-4567" className="h-9" maxLength={20} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="website" className="font-medium">Website</Label>
-                  <Input id="website" type="url" {...register("website")} placeholder="https://www.company.com" className="h-9" />
+                  <Input id="website" type="url" {...register("website")} placeholder="https://www.company.com" className="h-9" maxLength={120} />
                 </div>
               </div>
 
               <div className="space-y-3">
                 <div className="space-y-2">
                   <Label htmlFor="address" className="font-medium">Street Address</Label>
-                  <Input id="address" {...register("address")} placeholder="123 Builder St, Suite 100" className="h-9" />
+                  <Input id="address" {...register("address")} placeholder="123 Builder St, Suite 100" className="h-9" maxLength={150} />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="city" className="font-medium">City</Label>
-                  <Input id="city" {...register("city")} placeholder="City" className="h-9" />
+                  <Input id="city" {...register("city")} placeholder="City" className="h-9" maxLength={60} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="state" className="font-medium">State / Province</Label>
-                  <Controller name="state" control={control} render={({ field }) => <StateSelector countryName={selectedCountry} value={field.value} onChange={field.onChange} className="h-9" />} />
+                  <Controller name="state" control={control} render={({ field }) => <StateSelector id="state" countryName={selectedCountry} value={field.value} onChange={field.onChange} className="h-9" />} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="zipCode" className="font-medium">Postal / Zip</Label>
-                  <Input id="zipCode" {...register("zipCode")} placeholder="Zip Code" className="h-9" />
+                  <Input id="zipCode" {...register("zipCode")} placeholder="Zip Code" className="h-9" maxLength={20} />
                 </div>
               </div>
 
               <div className="space-y-3">
                 <div className="space-y-2">
                   <Label htmlFor="country" className="font-medium">Country</Label>
-                  <Controller name="country" control={control} render={({ field }) => <CountrySelector value={field.value} onChange={(val) => { field.onChange(val); setValue('state', '') }} className="h-9" />} />
+                  <Controller name="country" control={control} render={({ field }) => <CountrySelector id="country" value={field.value} onChange={(val) => { field.onChange(val); setValue('state', '') }} className="h-9" />} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="taxId" className="font-medium">Tax ID / VAT Number</Label>
-                  <Input id="taxId" {...register("taxId")} placeholder="Tax Identification Number" className="h-9" />
+                  <Input id="taxId" {...register("taxId")} placeholder="Tax Identification Number" className="h-9" maxLength={50} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="currency" className="font-medium">
                     Default Currency <span className="text-destructive">*</span>
                   </Label>
-                  <Select id="currency" value={selectedCurrency} onChange={(e) => setValue("currency", e.target.value as Currency)} className="h-9 w-full">
-                    <option value="USD">{CURRENCY_NAMES.USD} (USD)</option>
-                    <option value="INR">{CURRENCY_NAMES.INR} (INR)</option>
-                  </Select>
+                  <Input id="currency" value={`${CURRENCY_NAMES.INR} (INR)`} className="h-9 w-full" disabled readOnly />
                 </div>
               </div>
             </div>

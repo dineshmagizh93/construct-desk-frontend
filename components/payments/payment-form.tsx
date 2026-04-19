@@ -105,7 +105,7 @@ export function PaymentForm({ payment, projectId, onSubmit, onCancel }: PaymentF
         <Label htmlFor="milestone">
           Milestone Name <span className="text-destructive">*</span>
         </Label>
-        <Input id="milestone" {...register("milestone")} placeholder="Enter milestone name" required />
+        <Input id="milestone" {...register("milestone")} placeholder="Enter milestone name" required maxLength={80} />
         {errors.milestone && <p className="text-sm text-destructive">{errors.milestone.message}</p>}
       </div>
 
@@ -164,7 +164,7 @@ export function PaymentForm({ payment, projectId, onSubmit, onCancel }: PaymentF
 
       <div className="space-y-2">
         <Label htmlFor="notes">Notes</Label>
-        <Textarea id="notes" {...register("notes")} placeholder="Enter any additional notes" rows={4} />
+        <Textarea id="notes" {...register("notes")} placeholder="Enter any additional notes" rows={4} maxLength={250} />
         {errors.notes && <p className="text-sm text-destructive">{errors.notes.message}</p>}
       </div>
 

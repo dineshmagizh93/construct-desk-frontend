@@ -11,151 +11,64 @@ import {
   TrendingUp, 
   TrendingDown,
   Users, 
-  DollarSign, 
   FolderKanban,
   Receipt,
   CreditCard,
   Package,
   AlertTriangle,
-  ArrowRight,
-  UserPlus,
-  FileText,
-  Truck,
-  HardHat,
-  BarChart3,
-  Plus,
-  Eye
+  ArrowRight
 } from "lucide-react"
-import { useProjects } from "@/lib/hooks/use-projects"
-import { useExpenses } from "@/lib/hooks/use-expenses"
-import { usePayments } from "@/lib/hooks/use-payments"
-import { useLeads } from "@/lib/hooks/use-leads"
+import { dashboardApi, DashboardSummary } from "@/lib/api/dashboard"
 import { useInventoryItems, useLowStockItems } from "@/lib/hooks/use-inventory"
 import { usePlanUsage } from "@/lib/hooks/use-plan-usage"
 import { formatCurrency } from "@/lib/utils/currency"
-import { Project } from "@/types/project"
-import { Payment } from "@/types/payment"
-import { Expense } from "@/types/expense"
-import { Lead } from "@/types/lead"
-import { InventoryItem } from "@/lib/api/inventory"
 import { UsageWarningBanner } from "@/components/subscription/usage-warning-banner"
-import { UsageTracker } from "@/components/subscription/usage-tracker"
 
 export default function DashboardPage() {
-  const { projects, loading: projectsLoading } = useProjects()
-  const { expenses, loading: expensesLoading } = useExpenses()
-  const { payments, loading: paymentsLoading } = usePayments()
-  const { leads, loading: leadsLoading } = useLeads()
   const { items: inventoryItems, loading: inventoryLoading } = useInventoryItems()
   const { items: lowStockItems, loading: lowStockLoading } = useLowStockItems()
   const { usage: planUsage } = usePlanUsage()
+  const [summary, setSummary] = React.useState<DashboardSummary | null>(null)
+  const [summaryLoading, setSummaryLoading] = React.useState(true)
 
-  const loading = projectsLoading || expensesLoading || paymentsLoading || leadsLoading || inventoryLoading
+  React.useEffect(() => {
+    let active = true
 
-  // Calculate financial metrics
-  const financialMetrics = React.useMemo(() => {
-    const totalPayments = payments
-      .filter(p => p.status === "Paid")
-      .reduce((sum, p) => sum + p.amount, 0)
-    
-    const pendingPayments = payments
-      .filter(p => p.status === "Pending")
-      .reduce((sum, p) => sum + p.amount, 0)
-    
-    const overduePayments = payments
-      .filter(p => p.status === "Overdue")
-      .reduce((sum, p) => sum + p.amount, 0)
-    
-    const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0)
-    
-    const netProfit = totalPayments - totalExpenses
-
-    return {
-      totalPayments,
-      pendingPayments,
-      overduePayments,
-      totalExpenses,
-      netProfit,
+    const loadSummary = async () => {
+      try {
+        setSummaryLoading(true)
+        const data = await dashboardApi.getSummary()
+        if (active) {
+          setSummary(data)
+        }
+      } catch (error) {
+        console.error("Failed to load dashboard summary:", error)
+        if (active) {
+          setSummary(null)
+        }
+      } finally {
+        if (active) {
+          setSummaryLoading(false)
+        }
+      }
     }
-  }, [payments, expenses])
 
-  // Calculate leads metrics
-  const leadsMetrics = React.useMemo(() => {
-    const totalLeads = leads.filter(l => l.type === "LEAD").length
-    const totalClients = leads.filter(l => l.type === "CLIENT").length
-    const newLeads = leads.filter(l => l.status === "New").length
-    const converted = leads.filter(l => l.status === "Converted").length
+    loadSummary()
 
-    return {
-      totalLeads,
-      totalClients,
-      newLeads,
-      converted,
+    return () => {
+      active = false
     }
-  }, [leads])
+  }, [])
 
-  // Calculate project metrics
-  const projectMetrics = React.useMemo(() => {
-    const total = projects.length
-    const inProgress = projects.filter(p => p.status === "In Progress").length
-    const completed = projects.filter(p => p.status === "Completed").length
-    const planning = projects.filter(p => p.status === "Planning").length
-    const onHold = projects.filter(p => p.status === "On Hold").length
-    
-    const totalBudget = projects.reduce((sum, p) => {
-      return sum + (p.estimatedBudget || 0)
-    }, 0)
-    
-    const avgProgress = projects.length > 0
-      ? Math.round(projects.reduce((sum, p) => sum + p.progress, 0) / projects.length)
-      : 0
-
-    return {
-      total,
-      inProgress,
-      completed,
-      planning,
-      onHold,
-      totalBudget,
-      avgProgress,
-    }
-  }, [projects])
-
-  // Get recent projects
-  const recentProjects = React.useMemo(() => {
-    return [...projects]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 5)
-  }, [projects])
-
-  // Get recent payments
-  const recentPayments = React.useMemo(() => {
-    return [...payments]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 5)
-  }, [payments])
-
-  // Get recent expenses
-  const recentExpenses = React.useMemo(() => {
-    return [...expenses]
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 5)
-  }, [expenses])
-
-  // Get recent leads
-  const recentLeads = React.useMemo(() => {
-    return [...leads]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 5)
-  }, [leads])
+  const loading = summaryLoading || inventoryLoading || lowStockLoading
+  const financialMetrics = summary?.metrics.financial
+  const leadsMetrics = summary?.metrics.leads
+  const projectMetrics = summary?.metrics.projects
+  const recentProjects = summary?.recentProjects ?? []
+  const recentLeads = summary?.recentLeads ?? []
 
   // Inventory value
-  const inventoryValue = React.useMemo(() => {
-    return inventoryItems.reduce((sum, item) => {
-      const stockValue = item.unitPrice ? item.currentStock * item.unitPrice : 0
-      return sum + stockValue
-    }, 0)
-  }, [inventoryItems])
+  const inventoryValue = summary?.metrics.inventory.inventoryValue ?? 0
 
   if (loading) {
     return (
@@ -164,6 +77,14 @@ export default function DashboardPage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading dashboard...</p>
         </div>
+      </div>
+    )
+  }
+
+  if (!summary || !financialMetrics || !leadsMetrics || !projectMetrics) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <p className="text-muted-foreground">Unable to load dashboard summary.</p>
       </div>
     )
   }
@@ -198,7 +119,7 @@ export default function DashboardPage() {
           <DashboardCard
             title="Total Expenses"
             value={formatCurrency(financialMetrics.totalExpenses)}
-            secondaryInfo={`${expenses.length} expense entries`}
+            secondaryInfo={`${financialMetrics.expenseCount} expense entries`}
             icon={Receipt}
             iconColor="text-red-600"
             iconBgColor="bg-red-500/10"
@@ -210,7 +131,6 @@ export default function DashboardPage() {
             icon={financialMetrics.netProfit >= 0 ? TrendingUp : TrendingDown}
             iconColor={financialMetrics.netProfit >= 0 ? "text-green-600" : "text-red-600"}
             iconBgColor={financialMetrics.netProfit >= 0 ? "bg-green-500/10" : "bg-red-500/10"}
-            className={financialMetrics.netProfit >= 0 ? "" : ""}
           />
         </div>
 
@@ -234,14 +154,14 @@ export default function DashboardPage() {
           <DashboardCard
             title="Inventory Value"
             value={formatCurrency(inventoryValue)}
-            secondaryInfo={`${inventoryItems.length} items`}
+            secondaryInfo={`${summary?.metrics.inventory.totalItems ?? inventoryItems.length} items`}
             icon={Package}
             iconColor="text-orange-600"
             iconBgColor="bg-orange-500/10"
           />
           <DashboardCard
             title="Low Stock Items"
-            value={lowStockItems.length}
+            value={summary?.metrics.inventory.lowStockCount ?? lowStockItems.length}
             secondaryInfo="Items below minimum stock"
             icon={AlertTriangle}
             iconColor="text-yellow-600"
@@ -466,6 +386,13 @@ export default function DashboardPage() {
                     <span className="text-[13px]">On Hold</span>
                   </div>
                   <span className="text-[13px] font-semibold">{projectMetrics.onHold}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                    <span className="text-[13px]">Overdue</span>
+                  </div>
+                  <span className="text-[13px] font-semibold text-red-600">{projectMetrics.overdue}</span>
                 </div>
               </div>
             </CardContent>

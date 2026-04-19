@@ -2,48 +2,66 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { Lead } from "@/types/lead"
-import { leadsApi, CreateLeadDto, UpdateLeadDto } from "@/lib/api/leads"
+import { leadsApi, CreateLeadDto, UpdateLeadDto, LeadListParams } from "@/lib/api/leads"
 import { ApiError } from "@/lib/api/client"
 
 // Simple cache to prevent unnecessary refetches
-let leadsCache: { data: Lead[]; timestamp: number; type?: string } | null = null
+let leadsCache: { data: Lead[]; total: number; timestamp: number; key: string } | null = null
 const CACHE_DURATION = 120000 // 2 minutes
 
-export function useLeads() {
+export function useLeads(params?: LeadListParams) {
+  const cacheKey = JSON.stringify(params ?? {})
   // Initialize with cache if available to prevent loading state
   const [leads, setLeads] = useState<Lead[]>(() => {
     const now = Date.now()
-    if (leadsCache && (now - leadsCache.timestamp) < CACHE_DURATION) {
+    if (leadsCache && (now - leadsCache.timestamp) < CACHE_DURATION && leadsCache.key === cacheKey) {
       return leadsCache.data
     }
     return []
   })
+  const [total, setTotal] = useState(() => {
+    const now = Date.now()
+    if (leadsCache && (now - leadsCache.timestamp) < CACHE_DURATION && leadsCache.key === cacheKey) {
+      return leadsCache.total
+    }
+    return 0
+  })
   const [loading, setLoading] = useState(() => {
     // Only show loading if no cache available
     const now = Date.now()
-    return !(leadsCache && (now - leadsCache.timestamp) < CACHE_DURATION)
+    return !(leadsCache && (now - leadsCache.timestamp) < CACHE_DURATION && leadsCache.key === cacheKey)
   })
   const [error, setError] = useState<string | null>(null)
 
   const loadLeads = useCallback(async (type?: string, force = false) => {
+    const effectiveParams = type ? { ...params, type } : params
+    const effectiveKey = JSON.stringify(effectiveParams ?? {})
     // Use cache if available and not stale
     const now = Date.now()
-    if (!force && leadsCache && (now - leadsCache.timestamp) < CACHE_DURATION && leadsCache.type === type) {
+    if (!force && leadsCache && (now - leadsCache.timestamp) < CACHE_DURATION && leadsCache.key === effectiveKey) {
       setLeads(leadsCache.data)
+      setTotal(leadsCache.total)
       setLoading(false)
       return
     }
 
     try {
       // Only set loading if we don't have cached data
-      if (!leadsCache || force || leadsCache.type !== type) {
+      if (!leadsCache || force || leadsCache.key !== effectiveKey) {
         setLoading(true)
       }
       setError(null)
-      const data = await leadsApi.getAll(type)
-      setLeads(data)
-      // Update cache
-      leadsCache = { data, timestamp: now, type }
+      if (effectiveParams?.page || effectiveParams?.limit || effectiveParams?.status || effectiveParams?.search) {
+        const response = await leadsApi.getPage(effectiveParams)
+        setLeads(response.items)
+        setTotal(response.total)
+        leadsCache = { data: response.items, total: response.total, timestamp: now, key: effectiveKey }
+      } else {
+        const data = await leadsApi.getAll(type)
+        setLeads(data)
+        setTotal(data.length)
+        leadsCache = { data, total: data.length, timestamp: now, key: effectiveKey }
+      }
     } catch (err) {
       const apiError = err as ApiError
       let errorMessage = apiError.message as string || "Failed to load leads"
@@ -61,14 +79,14 @@ export function useLeads() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [params])
 
   useEffect(() => {
     const now = Date.now()
-    if (!leadsCache || (now - leadsCache.timestamp) >= CACHE_DURATION) {
+    if (!leadsCache || (now - leadsCache.timestamp) >= CACHE_DURATION || leadsCache.key !== cacheKey) {
       loadLeads()
     }
-  }, [loadLeads])
+  }, [cacheKey, loadLeads])
 
   const createLead = useCallback(async (lead: CreateLeadDto) => {
     try {
@@ -144,6 +162,7 @@ export function useLeads() {
 
   return {
     leads,
+    total,
     loading,
     error,
     loadLeads,

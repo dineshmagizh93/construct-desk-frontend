@@ -20,6 +20,8 @@ interface VendorFormProps {
 }
 
 export function VendorForm({ vendor, onSubmit, onCancel }: VendorFormProps) {
+  const VENDOR_NAME_MAX = 100
+  const NOTES_MAX = 250
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   const {
@@ -61,6 +63,20 @@ export function VendorForm({ vendor, onSubmit, onCancel }: VendorFormProps) {
   const selectedType = watch("type")
   const selectedStatus = watch("status")
   const selectedCountry = watch("country")
+  const vendorName = watch("name") || ""
+  const notes = watch("notes") || ""
+
+  React.useEffect(() => {
+    if (vendorName.length > VENDOR_NAME_MAX) {
+      setValue("name", vendorName.slice(0, VENDOR_NAME_MAX), { shouldValidate: true })
+    }
+  }, [vendorName, setValue])
+
+  React.useEffect(() => {
+    if (notes.length > NOTES_MAX) {
+      setValue("notes", notes.slice(0, NOTES_MAX), { shouldValidate: true })
+    }
+  }, [notes, setValue])
 
   const onFormSubmit = async (data: VendorFormSchema) => {
     try {
@@ -76,10 +92,15 @@ export function VendorForm({ vendor, onSubmit, onCancel }: VendorFormProps) {
   return (
     <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="name">
-          Vendor Name <span className="text-destructive">*</span>
-        </Label>
-        <Input id="name" {...register("name")} placeholder="Enter vendor name" required />
+        <div className="flex items-center justify-between gap-2">
+          <Label htmlFor="name">
+            Vendor Name <span className="text-destructive">*</span>
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            {VENDOR_NAME_MAX - vendorName.length} characters left
+          </p>
+        </div>
+        <Input id="name" {...register("name")} placeholder="Enter vendor name" required maxLength={100} />
         {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
       </div>
 
@@ -127,7 +148,7 @@ export function VendorForm({ vendor, onSubmit, onCancel }: VendorFormProps) {
           <Label htmlFor="phone">
             Phone <span className="text-destructive">*</span>
           </Label>
-          <Input id="phone" {...register("phone")} placeholder="Enter phone number" required />
+          <Input id="phone" {...register("phone")} placeholder="Enter phone number" required maxLength={20} />
           {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
         </div>
 
@@ -138,6 +159,7 @@ export function VendorForm({ vendor, onSubmit, onCancel }: VendorFormProps) {
             type="email"
             {...register("email")}
             placeholder="Enter email address (optional)"
+            maxLength={100}
           />
           {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
         </div>
@@ -145,14 +167,14 @@ export function VendorForm({ vendor, onSubmit, onCancel }: VendorFormProps) {
 
       <div className="space-y-2">
         <Label htmlFor="address">Street Address</Label>
-        <Input id="address" {...register("address")} placeholder="Enter street address (optional)" />
+        <Input id="address" {...register("address")} placeholder="Enter street address (optional)" maxLength={150} />
         {errors.address && <p className="text-sm text-destructive">{errors.address.message}</p>}
       </div>
 
       <div className="grid grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label htmlFor="city">City</Label>
-          <Input id="city" {...register("city")} placeholder="City (optional)" />
+          <Input id="city" {...register("city")} placeholder="City (optional)" maxLength={60} />
           {errors.city && <p className="text-sm text-destructive">{errors.city.message}</p>}
         </div>
 
@@ -192,8 +214,13 @@ export function VendorForm({ vendor, onSubmit, onCancel }: VendorFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notes">Notes</Label>
-        <Textarea id="notes" {...register("notes")} placeholder="Enter any additional notes" rows={4} />
+        <div className="flex items-center justify-between gap-2">
+          <Label htmlFor="notes">Notes</Label>
+          <p className="text-xs text-muted-foreground">
+            {NOTES_MAX - notes.length} characters left
+          </p>
+        </div>
+        <Textarea id="notes" {...register("notes")} placeholder="Enter any additional notes" rows={4} maxLength={250} />
         {errors.notes && <p className="text-sm text-destructive">{errors.notes.message}</p>}
       </div>
 

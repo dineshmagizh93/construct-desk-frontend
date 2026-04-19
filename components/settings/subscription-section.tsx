@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { subscriptionApi } from "@/lib/api/subscription"
 import toast from "react-hot-toast"
+import { formatDateDMY } from "@/lib/utils/date"
 
 export function SubscriptionSection() {
   const router = useRouter()
@@ -131,11 +132,11 @@ export function SubscriptionSection() {
           </div>
           <div>
             <div className="text-sm text-muted-foreground">Subscribed on</div>
-            <div className="mt-1 text-sm">{details?.startDate ? new Date(details.startDate).toLocaleDateString() : "—"}</div>
+            <div className="mt-1 text-sm">{details?.startDate ? formatDateDMY(details.startDate) : "—"}</div>
           </div>
           <div>
             <div className="text-sm text-muted-foreground">{details?.autoRenew ? "Next renewal on" : "Ends on"}</div>
-            <div className="mt-1 text-sm">{details?.endDate ? new Date(details.endDate).toLocaleDateString() : "—"}</div>
+            <div className="mt-1 text-sm">{details?.endDate ? formatDateDMY(details.endDate) : "—"}</div>
           </div>
           <div>
             <div className="text-sm text-muted-foreground">Auto‑renew</div>

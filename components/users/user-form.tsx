@@ -66,7 +66,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
           <Label htmlFor="firstName">
             First Name <span className="text-destructive">*</span>
           </Label>
-          <Input id="firstName" {...register("firstName")} placeholder="Enter first name" />
+          <Input id="firstName" {...register("firstName")} placeholder="Enter first name" maxLength={50} />
           {errors.firstName && <p className="text-sm text-destructive">{errors.firstName.message}</p>}
         </div>
 
@@ -74,7 +74,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
           <Label htmlFor="lastName">
             Last Name <span className="text-destructive">*</span>
           </Label>
-          <Input id="lastName" {...register("lastName")} placeholder="Enter last name" />
+          <Input id="lastName" {...register("lastName")} placeholder="Enter last name" maxLength={50} />
           {errors.lastName && <p className="text-sm text-destructive">{errors.lastName.message}</p>}
         </div>
       </div>
@@ -83,7 +83,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
         <Label htmlFor="email">
           Email <span className="text-destructive">*</span>
         </Label>
-        <Input id="email" type="email" {...register("email")} placeholder="Enter email address" required />
+        <Input id="email" type="email" {...register("email")} placeholder="Enter email address" required maxLength={100} />
         {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
         {!user && (
           <p className="text-xs text-muted-foreground">
@@ -110,7 +110,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
 
       <div className="space-y-2">
         <Label htmlFor="phone">Phone</Label>
-        <Input id="phone" {...register("phone")} placeholder="Enter phone number (optional)" />
+        <Input id="phone" {...register("phone")} placeholder="Enter phone number (optional)" maxLength={20} />
         {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
       </div>
 

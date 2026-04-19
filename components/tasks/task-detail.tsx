@@ -16,6 +16,7 @@ import { Calendar, User, MessageSquare, Clock, Edit, Trash2, Send, X } from "luc
 import { format } from "date-fns"
 import { TaskForm } from "./task-form"
 import { TaskFormSchema } from "@/lib/validations/task"
+import { formatDateDMY, formatDateTimeDMY } from "@/lib/utils/date"
 
 interface TaskDetailProps {
   taskId: string
@@ -147,7 +148,7 @@ export function TaskDetail({ taskId, open, onOpenChange, onUpdate }: TaskDetailP
   if (loading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[calc(100vw-1.5rem)] max-w-4xl max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-center p-8">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -168,169 +169,198 @@ export function TaskDetail({ taskId, open, onOpenChange, onUpdate }: TaskDetailP
   return (
     <>
       <Dialog open={open && !editMode} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <DialogTitle className="text-lg mb-2">{task.title}</DialogTitle>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge className={getStatusColor(task.status)}>{task.status}</Badge>
-                  <Badge className={getPriorityColor(task.priority)}>{task.priority}</Badge>
-                  {isOverdue && (
-                    <Badge variant="destructive">Overdue</Badge>
-                  )}
+        <DialogContent
+          showCloseButton={false}
+          className="w-[calc(100vw-1rem)] sm:w-[calc(100vw-2rem)] sm:max-w-[calc(100vw-2rem)] md:max-w-6xl lg:max-w-7xl h-[90vh] max-h-none overflow-hidden overflow-y-hidden p-0"
+        >
+          <div className="flex h-full flex-col">
+            <DialogHeader className="border-b bg-background px-5 py-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0 flex-1">
+                  <DialogTitle className="text-xl pr-6 sm:pr-0 break-words">{task.title}</DialogTitle>
+                  <div className="mt-2 flex items-center gap-2 flex-wrap">
+                    <Badge className={getStatusColor(task.status)}>{task.status}</Badge>
+                    <Badge className={getPriorityColor(task.priority)}>{task.priority}</Badge>
+                    {isOverdue && <Badge variant="destructive">Overdue</Badge>}
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:justify-end">
+                  <Button variant="outline" size="sm" onClick={() => setEditMode(true)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={handleDelete}>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="rounded-full"
+                    onClick={() => onOpenChange(false)}
+                    aria-label="Close"
+                    title="Close"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => setEditMode(true)}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
-                <Button variant="destructive" size="sm" onClick={handleDelete}>
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-              </div>
-            </div>
-          </DialogHeader>
+            </DialogHeader>
 
-          <div className="space-y-6">
-            {/* Details */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Project</label>
-                <p className="mt-1">{task.project?.name || "No project"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Assigned To</label>
-                <div className="mt-1 flex items-center gap-2">
-                  {task.assignee ? (
-                    <>
-                      <Avatar className="h-6 w-6">
-                        <AvatarFallback className="text-xs">
-                          {getInitials(task.assignee)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span>{task.assignee.firstName} {task.assignee.lastName}</span>
-                    </>
-                  ) : (
-                    <span className="text-muted-foreground">Unassigned</span>
-                  )}
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Due Date</label>
-                <p className={`mt-1 flex items-center gap-1 ${isOverdue ? "text-destructive" : ""}`}>
-                  <Calendar className="h-4 w-4" />
-                  {task.dueDate ? format(new Date(task.dueDate), "MMM d, yyyy") : "No due date"}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Estimated Hours</label>
-                <p className="mt-1 flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  {task.estimatedHours || "Not estimated"}
-                </p>
-              </div>
-            </div>
-
-            {/* Description */}
-            {task.description && (
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Description</label>
-                <p className="mt-1 whitespace-pre-wrap">{task.description}</p>
-              </div>
-            )}
-
-            {/* Labels */}
-            {task.labels && (
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Labels</label>
-                <div className="mt-1 flex flex-wrap gap-2">
-                  {task.labels.split(",").map((label, idx) => (
-                    <Badge key={idx} variant="outline">
-                      {label.trim()}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Comments */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <MessageSquare className="h-5 w-5" />
-                <h3 className="font-semibold">Comments ({task.comments.length})</h3>
-              </div>
-
-              <div className="space-y-4 mb-4">
-                {task.comments.map((comment) => (
-                  <div key={comment.id} className="flex gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="text-xs">
-                        {getInitials(comment.user)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-sm">
-                          {comment.user.firstName} {comment.user.lastName}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {format(new Date(comment.createdAt), "MMM d, yyyy 'at' h:mm a")}
-                        </span>
+            <div className="grid flex-1 min-h-0 gap-5 overflow-hidden px-5 py-4 md:grid-cols-[minmax(0,1fr)_440px]">
+            {/* Left: Task info */}
+            <div className="min-h-0 overflow-y-auto pr-1">
+              <div className="space-y-4">
+                <div className="rounded-2xl border bg-white/70 p-4">
+                  <h3 className="text-sm font-semibold text-slate-900">Details</h3>
+                  <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Project</label>
+                      <p className="mt-1 text-sm break-words">{task.project?.name || "No project"}</p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Assigned To</label>
+                      <div className="mt-1 flex items-center gap-2">
+                        {task.assignee ? (
+                          <>
+                            <Avatar className="h-6 w-6">
+                              <AvatarFallback className="text-xs">
+                                {getInitials(task.assignee)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="min-w-0 truncate text-sm">{task.assignee.firstName} {task.assignee.lastName}</span>
+                          </>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">Unassigned</span>
+                        )}
                       </div>
-                      <p className="text-sm whitespace-pre-wrap">{comment.content}</p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Due Date</label>
+                      <p className={`mt-1 flex items-center gap-1 text-sm ${isOverdue ? "text-destructive" : ""}`}>
+                        <Calendar className="h-4 w-4" />
+                        {task.dueDate ? formatDateDMY(task.dueDate) : "No due date"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Estimated Hours</label>
+                      <p className="mt-1 flex items-center gap-1 text-sm">
+                        <Clock className="h-4 w-4" />
+                        {task.estimatedHours || "Not estimated"}
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
 
-              <div className="flex gap-2">
-                <Textarea
-                  placeholder="Add a comment..."
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  rows={3}
-                  className="flex-1"
-                />
-                <Button
-                  onClick={handleAddComment}
-                  disabled={!commentText.trim() || submittingComment}
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
+                {task.description && (
+                  <div className="rounded-2xl border bg-white/70 p-4">
+                    <h3 className="text-sm font-semibold text-slate-900">Description</h3>
+                    <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700">{task.description}</p>
+                  </div>
+                )}
+
+                {task.labels && (
+                  <div className="rounded-2xl border bg-white/70 p-4">
+                    <h3 className="text-sm font-semibold text-slate-900">Labels</h3>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {task.labels.split(",").map((label, idx) => (
+                        <Badge key={idx} variant="outline">
+                          {label.trim()}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Activity Timeline */}
-            {task.activities.length > 0 && (
-              <div>
-                <h3 className="font-semibold mb-4">Activity</h3>
-                <div className="space-y-3">
-                  {task.activities.map((activity) => (
-                    <div key={activity.id} className="flex gap-3 text-sm">
-                      <Avatar className="h-6 w-6">
-                        <AvatarFallback className="text-xs">
-                          {getInitials(activity.user)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p>
-                          <span className="font-medium">
-                            {activity.user.firstName} {activity.user.lastName}
-                          </span>{" "}
-                          {activity.action} {activity.details && `- ${activity.details}`}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(activity.createdAt), "MMM d, yyyy 'at' h:mm a")}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+            {/* Right: Collaboration */}
+            <div className="min-h-0 overflow-y-auto pl-0 pr-1 md:border-l md:pl-5">
+              <div className="space-y-4">
+                <div className="rounded-2xl border bg-white/70 p-4">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5" />
+                    <h3 className="text-sm font-semibold text-slate-900">Comments ({task.comments.length})</h3>
+                  </div>
+
+                  <div className="mt-3 space-y-4">
+                    {task.comments.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No comments yet.</p>
+                    ) : (
+                      task.comments.map((comment) => (
+                        <div key={comment.id} className="flex gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback className="text-xs">
+                              {getInitials(comment.user)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-sm">
+                                {comment.user.firstName} {comment.user.lastName}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {formatDateTimeDMY(comment.createdAt)}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-sm whitespace-pre-wrap text-slate-700">{comment.content}</p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="mt-4 flex gap-2">
+                    <Textarea
+                      placeholder="Add a comment..."
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      rows={3}
+                      className="min-h-[92px] flex-1 resize-none"
+                      maxLength={250}
+                    />
+                    <Button
+                      onClick={handleAddComment}
+                      disabled={!commentText.trim() || submittingComment}
+                      className="h-[92px] w-[52px] self-stretch px-0"
+                      title="Send"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
+
+                {task.activities.length > 0 && (
+                  <div className="rounded-2xl border bg-white/70 p-4">
+                    <h3 className="text-sm font-semibold text-slate-900">Activity</h3>
+                    <div className="mt-3 space-y-3">
+                      {task.activities.map((activity) => (
+                        <div key={activity.id} className="flex gap-3 text-sm">
+                          <Avatar className="h-7 w-7">
+                            <AvatarFallback className="text-xs">
+                              {getInitials(activity.user)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <p className="text-sm text-slate-700">
+                              <span className="font-medium text-slate-900">
+                                {activity.user.firstName} {activity.user.lastName}
+                              </span>{" "}
+                              {activity.action} {activity.details && `- ${activity.details}`}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatDateTimeDMY(activity.createdAt)}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

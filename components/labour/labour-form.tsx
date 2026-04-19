@@ -161,7 +161,7 @@ export function LabourForm({ labour, projectId, onSubmit, onCancel }: LabourForm
 
       <div className="space-y-2">
         <Label htmlFor="notes">Notes</Label>
-        <Textarea id="notes" {...register("notes")} placeholder="Enter any additional notes" rows={3} />
+        <Textarea id="notes" {...register("notes")} placeholder="Enter any additional notes" rows={3} maxLength={250} />
         {errors.notes && <p className="text-sm text-destructive">{errors.notes.message}</p>}
       </div>
 

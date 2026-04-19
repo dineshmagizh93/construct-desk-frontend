@@ -2,48 +2,65 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { Project } from "@/types/project"
-import { projectsApi, CreateProjectDto, UpdateProjectDto } from "@/lib/api/projects"
+import { projectsApi, CreateProjectDto, UpdateProjectDto, ProjectListParams } from "@/lib/api/projects"
 import { ApiError } from "@/lib/api/client"
 
 // Simple cache to prevent unnecessary refetches
-let projectsCache: { data: Project[]; timestamp: number } | null = null
+let projectsCache: { data: Project[]; total: number; timestamp: number; key: string } | null = null
 const CACHE_DURATION = 120000 // 2 minutes
 
-export function useProjects() {
+export function useProjects(params?: ProjectListParams) {
+  const cacheKey = JSON.stringify(params ?? {})
   // Initialize with cache if available to prevent loading state
   const [projects, setProjects] = useState<Project[]>(() => {
     const now = Date.now()
-    if (projectsCache && (now - projectsCache.timestamp) < CACHE_DURATION) {
+    if (projectsCache && (now - projectsCache.timestamp) < CACHE_DURATION && projectsCache.key === cacheKey) {
       return projectsCache.data
     }
     return []
   })
+  const [total, setTotal] = useState(() => {
+    const now = Date.now()
+    if (projectsCache && (now - projectsCache.timestamp) < CACHE_DURATION && projectsCache.key === cacheKey) {
+      return projectsCache.total
+    }
+    return 0
+  })
   const [loading, setLoading] = useState(() => {
     // Only show loading if no cache available
     const now = Date.now()
-    return !(projectsCache && (now - projectsCache.timestamp) < CACHE_DURATION)
+    return !(projectsCache && (now - projectsCache.timestamp) < CACHE_DURATION && projectsCache.key === cacheKey)
   })
   const [error, setError] = useState<string | null>(null)
 
   const loadProjects = useCallback(async (force = false) => {
     // Use cache if available and not stale
     const now = Date.now()
-    if (!force && projectsCache && (now - projectsCache.timestamp) < CACHE_DURATION) {
+    if (!force && projectsCache && (now - projectsCache.timestamp) < CACHE_DURATION && projectsCache.key === cacheKey) {
       setProjects(projectsCache.data)
+      setTotal(projectsCache.total)
       setLoading(false)
       return
     }
 
     try {
       // Only set loading if we don't have cached data
-      if (!projectsCache || force) {
+      if (!projectsCache || force || projectsCache.key !== cacheKey) {
         setLoading(true)
       }
       setError(null)
-      const data = await projectsApi.getAll()
-      setProjects(data)
+      if (params?.page || params?.limit || params?.search || params?.status) {
+        const response = await projectsApi.getPage(params)
+        setProjects(response.items)
+        setTotal(response.total)
+        projectsCache = { data: response.items, total: response.total, timestamp: now, key: cacheKey }
+      } else {
+        const data = await projectsApi.getAll()
+        setProjects(data)
+        setTotal(data.length)
+        projectsCache = { data, total: data.length, timestamp: now, key: cacheKey }
+      }
       // Update cache
-      projectsCache = { data, timestamp: now }
     } catch (err) {
       const apiError = err as ApiError
       let errorMessage = apiError.message as string || "Failed to load projects"
@@ -62,14 +79,14 @@ export function useProjects() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [cacheKey, params])
 
   useEffect(() => {
     const now = Date.now()
-    if (!projectsCache || (now - projectsCache.timestamp) >= CACHE_DURATION) {
+    if (!projectsCache || (now - projectsCache.timestamp) >= CACHE_DURATION || projectsCache.key !== cacheKey) {
       loadProjects()
     }
-  }, [loadProjects])
+  }, [cacheKey, loadProjects])
 
   const createProject = useCallback(async (project: CreateProjectDto) => {
     try {
@@ -142,6 +159,7 @@ export function useProjects() {
 
   return {
     projects,
+    total,
     loading,
     error,
     loadProjects,

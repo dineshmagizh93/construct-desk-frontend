@@ -2,48 +2,66 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { Expense } from "@/types/expense"
-import { expensesApi, CreateExpenseDto, UpdateExpenseDto } from "@/lib/api/expenses"
+import { expensesApi, CreateExpenseDto, UpdateExpenseDto, ExpenseListParams } from "@/lib/api/expenses"
 import { ApiError } from "@/lib/api/client"
 
 // Simple cache to prevent unnecessary refetches
-let expensesCache: { data: Expense[]; timestamp: number; projectId?: string } | null = null
+let expensesCache: { data: Expense[]; total: number; timestamp: number; key: string } | null = null
 const CACHE_DURATION = 120000 // 2 minutes
 
-export function useExpenses() {
+export function useExpenses(params?: ExpenseListParams) {
+  const cacheKey = JSON.stringify(params ?? {})
   // Initialize with cache if available to prevent loading state
   const [expenses, setExpenses] = useState<Expense[]>(() => {
     const now = Date.now()
-    if (expensesCache && (now - expensesCache.timestamp) < CACHE_DURATION) {
+    if (expensesCache && (now - expensesCache.timestamp) < CACHE_DURATION && expensesCache.key === cacheKey) {
       return expensesCache.data
     }
     return []
   })
+  const [total, setTotal] = useState(() => {
+    const now = Date.now()
+    if (expensesCache && (now - expensesCache.timestamp) < CACHE_DURATION && expensesCache.key === cacheKey) {
+      return expensesCache.total
+    }
+    return 0
+  })
   const [loading, setLoading] = useState(() => {
     // Only show loading if no cache available
     const now = Date.now()
-    return !(expensesCache && (now - expensesCache.timestamp) < CACHE_DURATION)
+    return !(expensesCache && (now - expensesCache.timestamp) < CACHE_DURATION && expensesCache.key === cacheKey)
   })
   const [error, setError] = useState<string | null>(null)
 
   const loadExpenses = useCallback(async (projectId?: string, force = false) => {
+    const effectiveParams = projectId ? { ...params, projectId } : params
+    const effectiveKey = JSON.stringify(effectiveParams ?? {})
     // Use cache if available and not stale
     const now = Date.now()
-    if (!force && expensesCache && (now - expensesCache.timestamp) < CACHE_DURATION && expensesCache.projectId === projectId) {
+    if (!force && expensesCache && (now - expensesCache.timestamp) < CACHE_DURATION && expensesCache.key === effectiveKey) {
       setExpenses(expensesCache.data)
+      setTotal(expensesCache.total)
       setLoading(false)
       return
     }
 
     try {
       // Only set loading if we don't have cached data
-      if (!expensesCache || force || expensesCache.projectId !== projectId) {
+      if (!expensesCache || force || expensesCache.key !== effectiveKey) {
         setLoading(true)
       }
       setError(null)
-      const data = await expensesApi.getAll(projectId)
-      setExpenses(data)
-      // Update cache
-      expensesCache = { data, timestamp: now, projectId }
+      if (effectiveParams?.page || effectiveParams?.limit || effectiveParams?.category || effectiveParams?.search || effectiveParams?.startDate || effectiveParams?.endDate) {
+        const response = await expensesApi.getPage(effectiveParams)
+        setExpenses(response.items)
+        setTotal(response.total)
+        expensesCache = { data: response.items, total: response.total, timestamp: now, key: effectiveKey }
+      } else {
+        const data = await expensesApi.getAll(projectId)
+        setExpenses(data)
+        setTotal(data.length)
+        expensesCache = { data, total: data.length, timestamp: now, key: effectiveKey }
+      }
     } catch (err) {
       const apiError = err as ApiError
       let errorMessage = apiError.message as string || "Failed to load expenses"
@@ -61,14 +79,14 @@ export function useExpenses() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [params])
 
   useEffect(() => {
     const now = Date.now()
-    if (!expensesCache || (now - expensesCache.timestamp) >= CACHE_DURATION) {
+    if (!expensesCache || (now - expensesCache.timestamp) >= CACHE_DURATION || expensesCache.key !== cacheKey) {
       loadExpenses()
     }
-  }, [loadExpenses])
+  }, [cacheKey, loadExpenses])
 
   const loadExpensesByProject = useCallback(async (projectId: string) => {
     try {
@@ -161,6 +179,7 @@ export function useExpenses() {
 
   return {
     expenses,
+    total,
     loading,
     error,
     loadExpenses,

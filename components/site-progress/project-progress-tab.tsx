@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input"
 import { parseCsv, normalizeHeaderKey, normalizeDateToYmd } from "@/lib/utils/csv"
 import toast from "react-hot-toast"
 import { CreateSiteProgressDto } from "@/lib/api/site-progress"
+import { formatDateDMY } from "@/lib/utils/date"
 
 interface ProjectProgressTabProps {
   projectId: string
@@ -112,12 +113,7 @@ export function ProjectProgressTab({ projectId }: ProjectProgressTabProps) {
                   <div className="flex items-center gap-2">
                     <Calendar className="h-5 w-5 text-muted-foreground" />
                     <CardTitle className="text-base">
-                      {new Date(item.date).toLocaleDateString("en-US", {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
+                      {formatDateDMY(item.date)}
                     </CardTitle>
                   </div>
                 </div>

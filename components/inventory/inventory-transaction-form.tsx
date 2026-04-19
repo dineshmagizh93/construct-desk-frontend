@@ -171,6 +171,7 @@ export function InventoryTransactionForm({ itemId, projectId, onSubmit, onCancel
           id="reference"
           {...register("reference")}
           placeholder="PO Number, Invoice, etc."
+          maxLength={100}
         />
       </div>
 
@@ -181,6 +182,7 @@ export function InventoryTransactionForm({ itemId, projectId, onSubmit, onCancel
           {...register("notes")}
           placeholder="Additional notes"
           rows={3}
+          maxLength={250}
         />
       </div>
 

@@ -183,7 +183,10 @@ export class ApiClient {
         url += (url.includes('?') ? '&' : '?') + queryString;
       }
     }
-    return this.request<T>(url, { method: 'GET' });
+    return this.request<T>(url, {
+      method: 'GET',
+      cache: 'no-store',
+    });
   }
 
   async post<T>(endpoint: string, data?: any): Promise<T> {

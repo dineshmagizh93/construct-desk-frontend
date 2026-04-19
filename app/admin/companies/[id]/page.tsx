@@ -28,6 +28,7 @@ import {
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { format } from "date-fns"
+import { formatDateDMY, formatDateTimeDMY } from "@/lib/utils/date"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function CompanyDetailsPage() {
@@ -326,7 +327,7 @@ export default function CompanyDetailsPage() {
                     <Clock className="h-4 w-4 text-muted-foreground" />
                     <span>
                       {company.createdAt
-                        ? format(new Date(company.createdAt), "MMM dd, yyyy 'at' hh:mm a")
+                        ? formatDateTimeDMY(company.createdAt)
                         : "N/A"}
                     </span>
                   </div>
@@ -339,7 +340,7 @@ export default function CompanyDetailsPage() {
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span>
                       {company.createdAt
-                        ? format(new Date(company.createdAt), "MMM dd, yyyy 'at' hh:mm a")
+                        ? formatDateTimeDMY(company.createdAt)
                         : "N/A"}
                     </span>
                   </div>
@@ -548,7 +549,7 @@ export default function CompanyDetailsPage() {
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {user.createdAt
-                          ? format(new Date(user.createdAt), "MMM dd, yyyy")
+                          ? formatDateDMY(user.createdAt)
                           : "N/A"}
                       </div>
                     </div>
@@ -589,7 +590,7 @@ export default function CompanyDetailsPage() {
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {project.createdAt
-                          ? format(new Date(project.createdAt), "MMM dd, yyyy")
+                          ? formatDateDMY(project.createdAt)
                           : "N/A"}
                       </div>
                     </div>

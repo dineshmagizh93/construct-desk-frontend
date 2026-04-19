@@ -26,6 +26,7 @@ import { downloadSiteProgressBulkTemplate, parseBulkSiteProgressFromCsv } from "
 import { useProjects } from "@/lib/hooks/use-projects"
 import { projectsApi } from "@/lib/api/projects"
 import { SiteProgressFormSchema } from "@/lib/validations/site-progress"
+import { formatDateDMY } from "@/lib/utils/date"
 
 interface SiteProgressListProps {
   projectId?: string
@@ -240,7 +241,7 @@ export function SiteProgressList({ projectId }: SiteProgressListProps) {
                         {item.projectName}
                       </span>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">{new Date(item.date).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}</TableCell>
+                    <TableCell className="whitespace-nowrap">{formatDateDMY(item.date)}</TableCell>
                     <TableCell className="align-top">
                       <p
                         className="text-xs text-muted-foreground whitespace-normal break-words max-w-3xl"
@@ -305,7 +306,7 @@ export function SiteProgressList({ projectId }: SiteProgressListProps) {
             <h2 className="text-lg font-semibold">Delete Site Progress</h2>
             <p className="text-sm text-muted-foreground">
               Are you sure you want to delete this site progress entry from{" "}
-              {new Date(progressToDelete?.date || "").toLocaleDateString()}? This action cannot be
+              {formatDateDMY(progressToDelete?.date || "")}? This action cannot be
               undone.
             </p>
             <div className="flex justify-end gap-2">

@@ -82,6 +82,8 @@ export function SiteProgressForm({
   })
 
   const selectedProjectId = watch("projectId")
+  const notesValue = watch("notes") || ""
+  const NOTES_MAX = 150
 
   React.useEffect(() => {
     setValue("photos", photoUrls)
@@ -182,12 +184,18 @@ export function SiteProgressForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notes">Notes</Label>
+        <div className="flex items-center justify-between gap-3">
+          <Label htmlFor="notes">Notes</Label>
+          <span className="text-xs text-muted-foreground">
+            {Math.min(notesValue.length, NOTES_MAX)}/{NOTES_MAX}
+          </span>
+        </div>
         <Textarea
           id="notes"
           {...register("notes")}
           placeholder="Enter progress notes"
           rows={4}
+          maxLength={NOTES_MAX}
         />
         {errors.notes && <p className="text-sm text-destructive">{errors.notes.message}</p>}
       </div>

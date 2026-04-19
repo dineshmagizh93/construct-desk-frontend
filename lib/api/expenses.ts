@@ -1,5 +1,6 @@
 import { apiClient } from './client';
 import { Expense, ExpenseCategory } from '@/types/expense';
+import { PaginatedResponse, PaginationParams } from './pagination';
 
 export interface CreateExpenseDto {
   projectId: string;
@@ -21,6 +22,26 @@ export interface UpdateExpenseDto {
   attachment?: string;
 }
 
+export interface ExpenseListParams extends PaginationParams {
+  projectId?: string;
+  category?: ExpenseCategory;
+  search?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+const normalizeExpenseList = (data: any): any[] => {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (data && Array.isArray(data.items)) {
+    return data.items;
+  }
+
+  return [];
+};
+
 // Transform backend response to frontend Expense type
 const transformExpense = (data: any): Expense => {
   return {
@@ -39,10 +60,29 @@ const transformExpense = (data: any): Expense => {
 };
 
 export const expensesApi = {
+  async getPage(params: ExpenseListParams = {}): Promise<PaginatedResponse<Expense>> {
+    const searchParams = new URLSearchParams();
+    if (params.projectId) searchParams.set('projectId', params.projectId);
+    if (params.category) searchParams.set('category', params.category);
+    if (params.search) searchParams.set('search', params.search);
+    if (params.startDate) searchParams.set('startDate', params.startDate);
+    if (params.endDate) searchParams.set('endDate', params.endDate);
+    if (params.page) searchParams.set('page', String(params.page));
+    if (params.limit) searchParams.set('limit', String(params.limit));
+
+    const query = searchParams.toString();
+    const data = await apiClient.get<PaginatedResponse<any>>(`/expenses${query ? `?${query}` : ''}`);
+
+    return {
+      ...data,
+      items: data.items.map(transformExpense),
+    };
+  },
+
   async getAll(projectId?: string): Promise<Expense[]> {
     const endpoint = projectId ? `/expenses?projectId=${projectId}` : '/expenses';
-    const data = await apiClient.get<any[]>(endpoint);
-    return data.map(transformExpense);
+    const data = await apiClient.get<any>(endpoint);
+    return normalizeExpenseList(data).map(transformExpense);
   },
 
   async bulkCreate(expenses: any[]): Promise<{ requested: number; created: number; skipped: number }> {

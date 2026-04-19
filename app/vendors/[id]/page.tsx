@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useVendors } from "@/lib/hooks/use-vendors"
 import { useProjects } from "@/lib/hooks/use-projects"
 import Link from "next/link"
+import { formatDateDMY } from "@/lib/utils/date"
 
 export default function VendorDetailsPage() {
   const params = useParams()
@@ -89,7 +90,7 @@ export default function VendorDetailsPage() {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4 pt-3 sm:pt-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.push("/vendors")}>
@@ -181,13 +182,13 @@ export default function VendorDetailsPage() {
             <div>
               <p className="text-sm font-medium mb-1">Created</p>
               <p className="text-sm text-muted-foreground">
-                {new Date(vendor.createdAt).toLocaleDateString()}
+                {formatDateDMY(vendor.createdAt)}
               </p>
             </div>
             <div>
               <p className="text-sm font-medium mb-1">Last Updated</p>
               <p className="text-sm text-muted-foreground">
-                {new Date(vendor.updatedAt).toLocaleDateString()}
+                {formatDateDMY(vendor.updatedAt)}
               </p>
             </div>
           </CardContent>

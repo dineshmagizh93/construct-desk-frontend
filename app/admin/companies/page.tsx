@@ -26,6 +26,7 @@ import {
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { format } from "date-fns"
+import { formatDateDMY, formatDateTimeDMY } from "@/lib/utils/date"
 import {
   Table,
   TableBody,
@@ -427,12 +428,12 @@ export default function AdminCompaniesPage() {
                             </TableCell>
                             <TableCell className="text-[11px] px-2 whitespace-nowrap">
                               {company.createdAt
-                                ? format(new Date(company.createdAt), "MMM dd, yyyy")
+                                ? formatDateDMY(company.createdAt)
                                 : "N/A"}
                             </TableCell>
                             <TableCell className="text-[11px] px-2 whitespace-nowrap">
                               {company.createdAt
-                                ? format(new Date(company.createdAt), "MMM dd, yyyy")
+                                ? formatDateDMY(company.createdAt)
                                 : "N/A"}
                             </TableCell>
                             <TableCell className="px-2">
@@ -442,12 +443,12 @@ export default function AdminCompaniesPage() {
                             </TableCell>
                             <TableCell className="text-[11px] px-2 whitespace-nowrap">
                               {company.subscriptionStartDate
-                                ? format(new Date(company.subscriptionStartDate), "dd MMM yyyy, hh:mm a")
+                                ? formatDateTimeDMY(company.subscriptionStartDate)
                                 : "N/A"}
                             </TableCell>
                             <TableCell className="text-[11px] px-2 whitespace-nowrap">
                               {company.subscriptionEndDate
-                                ? format(new Date(company.subscriptionEndDate), "dd MMM yyyy, hh:mm a")
+                                ? formatDateTimeDMY(company.subscriptionEndDate)
                                 : "N/A"}
                             </TableCell>
                             <TableCell className="px-2">

@@ -26,6 +26,7 @@ import { Pagination } from "@/components/ui/pagination"
 import { InventoryTransactionForm } from "./inventory-transaction-form"
 import { BulkUploadModal } from "@/components/shared/bulk-upload-modal"
 import { INVENTORY_TRANSACTION_BULK_HEADERS, generateInventoryTransactionCsvTemplate, parseBulkInventoryTransactionsFromCsv } from "./inventory-bulk-utils"
+import { formatDateDMY } from "@/lib/utils/date"
 
 interface InventoryTransactionListProps {
   projectId?: string
@@ -268,7 +269,7 @@ export function InventoryTransactionList({ projectId, itemId, onCreateTransactio
                     </TableCell>
                   )}
                   <TableCell className="min-w-[120px]">
-                    {new Date(transaction.transactionDate).toLocaleDateString()}
+                    {formatDateDMY(transaction.transactionDate)}
                   </TableCell>
                   <TableCell className="min-w-[150px]">
                     {transaction.reference || "-"}

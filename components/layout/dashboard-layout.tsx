@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { useSuperAdmin } from "@/lib/hooks/use-super-admin"
 import { getAuthToken } from "@/lib/config"
+import { formatDateDMY } from "@/lib/utils/date"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -132,7 +133,7 @@ export const DashboardLayout = React.memo(function DashboardLayout({ children }:
             {isTrial && !isTrialExpired && trialEndDate && (
               <div className="mb-4 rounded-2xl border border-amber-200/80 bg-[linear-gradient(90deg,rgba(255,251,235,0.98),rgba(255,247,214,0.95))] px-4 py-3 text-sm text-amber-900 shadow-[0_12px_30px_rgba(180,83,9,0.08)]">
                 Your 3-day free trial is active. {trialDaysLeft} day{trialDaysLeft === 1 ? '' : 's'} left
-                (ends on {trialEndDate.toLocaleDateString()}).
+                (ends on {formatDateDMY(trialEndDate)}).
               </div>
             )}
             {shouldLockout ? <TrialExpiredLockout /> : children}

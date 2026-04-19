@@ -34,7 +34,7 @@ export const labourFormSchema = z.object({
     }),
   ]),
   date: z.string().min(1, "Date is required"),
-  notes: z.string().optional(),
+  notes: z.string().max(250, "Notes must be 250 characters or less").optional(),
 })
 
 export type LabourFormSchema = z.infer<typeof labourFormSchema>

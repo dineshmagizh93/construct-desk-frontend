@@ -27,9 +27,11 @@ import { ExpenseForm } from "./expense-form"
 import { BulkUploadModal } from "@/components/shared/bulk-upload-modal"
 import { downloadExpenseBulkTemplate, parseBulkExpensesFromCsv } from "./expense-bulk-utils"
 import { useExpenses } from "@/lib/hooks/use-expenses"
+import { ExpenseListParams } from "@/lib/api/expenses"
 import { useProjects } from "@/lib/hooks/use-projects"
 import { projectsApi } from "@/lib/api/projects"
 import { ExpenseFormSchema } from "@/lib/validations/expense"
+import { formatDateDMY } from "@/lib/utils/date"
 
 interface ExpenseListProps {
   projectId?: string
@@ -37,53 +39,31 @@ interface ExpenseListProps {
 }
 
 export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
-  const { expenses, loading, deleteExpense, loadExpenses, bulkCreateExpenses } = useExpenses()
+  const [currentPage, setCurrentPage] = React.useState(1)
+  const [itemsPerPage, setItemsPerPage] = React.useState(10)
   const { projects } = useProjects()
   const [searchQuery, setSearchQuery] = React.useState("")
   const [projectFilter, setProjectFilter] = React.useState<string>("all")
   const [categoryFilter, setCategoryFilter] = React.useState<ExpenseCategory | "all">("all")
   const [startDate, setStartDate] = React.useState("")
   const [endDate, setEndDate] = React.useState("")
-  const [currentPage, setCurrentPage] = React.useState(1)
-  const [itemsPerPage, setItemsPerPage] = React.useState(10)
+  const listParams = React.useMemo<ExpenseListParams>(() => ({
+    page: currentPage,
+    limit: itemsPerPage,
+    projectId: projectId || (projectFilter !== "all" ? projectFilter : undefined),
+    category: categoryFilter === "all" ? undefined : categoryFilter,
+    search: searchQuery || undefined,
+    startDate: startDate || undefined,
+    endDate: endDate || undefined,
+  }), [categoryFilter, currentPage, endDate, itemsPerPage, projectFilter, projectId, searchQuery, startDate])
+  const { expenses, total, loading, deleteExpense, loadExpenses, bulkCreateExpenses } = useExpenses(listParams)
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [expenseToDelete, setExpenseToDelete] = React.useState<Expense | null>(null)
   const [openDropdownId, setOpenDropdownId] = React.useState<string | null>(null)
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
   const [bulkUploadOpen, setBulkUploadOpen] = React.useState(false)
 
-  // Filter expenses
-  const filteredExpenses = React.useMemo(() => {
-    return expenses.filter((expense) => {
-      // Project filter
-      const matchesProject = projectId
-        ? expense.projectId === projectId
-        : projectFilter === "all" || expense.projectId === projectFilter
-
-      // Search filter
-      const matchesSearch =
-        expense.paidTo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        expense.notes?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        false
-
-      // Category filter
-      const matchesCategory = categoryFilter === "all" || expense.category === categoryFilter
-
-      // Date range filter
-      const expenseDate = new Date(expense.date)
-      const matchesStartDate = !startDate || expenseDate >= new Date(startDate)
-      const matchesEndDate = !endDate || expenseDate <= new Date(endDate)
-
-      return matchesProject && matchesSearch && matchesCategory && matchesStartDate && matchesEndDate
-    })
-  }, [expenses, projectId, projectFilter, searchQuery, categoryFilter, startDate, endDate])
-
-  // Pagination
-  const totalPages = Math.max(1, Math.ceil(filteredExpenses.length / itemsPerPage))
-  const paginatedExpenses = filteredExpenses.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  )
+  const totalPages = Math.max(1, Math.ceil(total / itemsPerPage))
 
   // Reset to page 1 when filters change
   React.useEffect(() => {
@@ -119,7 +99,7 @@ export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
       setDeleteDialogOpen(false)
       setExpenseToDelete(null)
       // Recalculate total pages after deletion
-      const newTotalPages = Math.max(1, Math.ceil((filteredExpenses.length - 1) / itemsPerPage))
+      const newTotalPages = Math.max(1, Math.ceil(Math.max(total - 1, 0) / itemsPerPage))
       if (currentPage > newTotalPages && newTotalPages > 0) {
         setCurrentPage(newTotalPages)
       }
@@ -267,14 +247,14 @@ export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredExpenses.length === 0 ? (
+                {expenses.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     No expenses found
                   </TableCell>
                 </TableRow>
               ) : (
-                paginatedExpenses.map((expense) => (
+                  expenses.map((expense) => (
                   <TableRow key={expense.id}>
                     <TableCell className="font-medium w-[22%]">
                       <span
@@ -290,7 +270,7 @@ export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
                       </Badge>
                     </TableCell>
                     <TableCell className="font-medium whitespace-nowrap w-[15%]">{formatCurrency(expense.amount)}</TableCell>
-                    <TableCell className="whitespace-nowrap w-[15%]">{new Date(expense.date).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}</TableCell>
+                    <TableCell className="whitespace-nowrap w-[15%]">{formatDateDMY(expense.date)}</TableCell>
                     <TableCell className="w-[27%]">
                       <span className="truncate block" title={expense.paidTo || "-"}>
                         {expense.paidTo || "-"}
@@ -313,13 +293,13 @@ export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
         </div>
 
         {/* Summary */}
-        {filteredExpenses.length > 0 && (
+        {expenses.length > 0 && (
           <div className="flex justify-end gap-4 text-[13px] px-4 py-2.5 border-t border-border/40 bg-muted/30 flex-shrink-0">
             <div>
               <span className="text-muted-foreground">Total Expenses: </span>
               <span className="font-semibold">
                 {formatCurrency(
-                  filteredExpenses.reduce((sum, e) => sum + e.amount, 0)
+                  expenses.reduce((sum, e) => sum + e.amount, 0)
                 )}
               </span>
             </div>
@@ -332,7 +312,7 @@ export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
             currentPage={currentPage}
             totalPages={totalPages}
             itemsPerPage={itemsPerPage}
-            totalItems={filteredExpenses.length}
+            totalItems={total}
             onPageChange={setCurrentPage}
             onItemsPerPageChange={setItemsPerPage}
           />

@@ -15,12 +15,12 @@ import { Loader2 } from "lucide-react"
 
 // Profile form schema (password is optional for profile updates)
 const profileFormSchema = z.object({
-  firstName: z.string().min(1, "First name is required").min(2, "First name must be at least 2 characters"),
-  lastName: z.string().min(1, "Last name is required").min(2, "Last name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
+  firstName: z.string().min(1, "First name is required").min(2, "First name must be at least 2 characters").max(50, "First name must be 50 characters or less"),
+  lastName: z.string().min(1, "Last name is required").min(2, "Last name must be at least 2 characters").max(50, "Last name must be 50 characters or less"),
+  email: z.string().email("Invalid email address").max(100, "Email must be 100 characters or less"),
   password: z.string().optional(),
   confirmPassword: z.string().optional(),
-  phone: z.string().optional(),
+  phone: z.string().max(20, "Phone must be 20 characters or less").optional(),
 }).refine((data) => {
   // If password is provided, it must be at least 6 characters
   if (data.password && data.password.length > 0) {
@@ -141,6 +141,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
             id="firstName"
             {...register("firstName")}
             placeholder="John"
+            maxLength={50}
           />
           {errors.firstName && (
             <p className="text-sm text-destructive">{errors.firstName.message}</p>
@@ -154,6 +155,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
             id="lastName"
             {...register("lastName")}
             placeholder="Doe"
+            maxLength={50}
           />
           {errors.lastName && (
             <p className="text-sm text-destructive">{errors.lastName.message}</p>
@@ -169,6 +171,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
           type="email"
           {...register("email")}
           placeholder="john.doe@example.com"
+          maxLength={100}
         />
         {errors.email && (
           <p className="text-sm text-destructive">{errors.email.message}</p>
@@ -183,6 +186,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
           type="tel"
           {...register("phone")}
           placeholder="+1 (555) 123-4567"
+          maxLength={20}
         />
         {errors.phone && (
           <p className="text-sm text-destructive">{errors.phone.message}</p>

@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label"
 import toast from "react-hot-toast"
 import { parseCsv, normalizeDateToYmd, normalizeHeaderKey } from "@/lib/utils/csv"
 import { CreateDocumentDto } from "@/lib/api/documents"
+import { formatDateDMY } from "@/lib/utils/date"
 
 interface ProjectDocumentsTabProps {
   projectId: string
@@ -327,7 +328,7 @@ export function ProjectDocumentsTab({ projectId }: ProjectDocumentsTabProps) {
                             </Link>
                             <p className="text-sm text-muted-foreground">
                               {formatFileSize(doc.fileSize)} •{" "}
-                              {new Date(doc.uploadedAt).toLocaleDateString()}
+                              {formatDateDMY(doc.uploadedAt)}
                             </p>
                           </div>
                         </div>

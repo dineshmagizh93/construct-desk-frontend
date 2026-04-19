@@ -17,6 +17,24 @@ import { ProjectPaymentsTab } from "@/components/payments/project-payments-tab"
 import { ProjectLabourTab } from "@/components/labour/project-labour-tab"
 import { ProjectDocumentsTab } from "@/components/documents/project-documents-tab"
 import { ProjectInventoryTab } from "@/components/inventory/project-inventory-tab"
+import { getProjectDateHistory, ProjectDateHistoryEntry } from "@/lib/utils/project-date-history"
+import { formatDateDMY, formatDateTimeDMY } from "@/lib/utils/date"
+
+const formatProjectDate = (dateValue?: string) => {
+  if (!dateValue) return "N/A"
+
+  const dateOnly = dateValue.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (dateOnly) {
+    const year = Number(dateOnly[1])
+    const month = Number(dateOnly[2]) - 1
+    const day = Number(dateOnly[3])
+    return formatDateDMY(new Date(year, month, day)) || "N/A"
+  }
+
+  const parsed = new Date(dateValue)
+  if (Number.isNaN(parsed.getTime())) return "N/A"
+  return formatDateDMY(parsed) || "N/A"
+}
 
 export default function ProjectDetailsPage() {
   const params = useParams()
@@ -24,6 +42,7 @@ export default function ProjectDetailsPage() {
   const [project, setProject] = React.useState<Project | null>(null)
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
+  const [dateHistory, setDateHistory] = React.useState<ProjectDateHistoryEntry[]>([])
 
   React.useEffect(() => {
     const loadProject = async () => {
@@ -43,6 +62,15 @@ export default function ProjectDetailsPage() {
     }
     loadProject()
   }, [params.id])
+
+  React.useEffect(() => {
+    if (!project?.id) {
+      setDateHistory([])
+      return
+    }
+
+    setDateHistory(getProjectDateHistory(project.id))
+  }, [project?.id, project?.updatedAt])
 
   if (loading) {
     return (
@@ -88,15 +116,15 @@ export default function ProjectDetailsPage() {
   }
 
   return (
-    <div className="space-y-3 pt-4 sm:pt-6">
+    <div className="space-y-4 pt-3 sm:pt-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.push("/projects")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
-            <p className="text-muted-foreground text-xs mt-0">{project.clientName}</p>
+            <h1 className="text-2xl font-bold tracking-tight break-words">{project.name}</h1>
+            <p className="text-muted-foreground text-xs mt-0 break-words">{project.clientName}</p>
           </div>
         </div>
         <Badge variant={getStatusBadgeVariant(project.status)} className="text-sm px-3 py-1">
@@ -143,7 +171,7 @@ export default function ProjectDetailsPage() {
                   <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="text-sm font-medium">Location</p>
-                    <p className="text-sm text-muted-foreground">{project.location}</p>
+                    <p className="text-sm text-muted-foreground break-words">{project.location}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -151,8 +179,7 @@ export default function ProjectDetailsPage() {
                   <div>
                     <p className="text-sm font-medium">Timeline</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(project.startDate).toLocaleDateString()} -{" "}
-                      {new Date(project.endDate).toLocaleDateString()}
+                      {formatProjectDate(project.startDate)} - {formatProjectDate(project.endDate)}
                     </p>
                   </div>
                 </div>
@@ -175,7 +202,9 @@ export default function ProjectDetailsPage() {
               </CardHeader>
               <CardContent>
                 {project.description ? (
-                  <p className="text-sm text-muted-foreground">{project.description}</p>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap [overflow-wrap:anywhere]">
+                    {project.description}
+                  </p>
                 ) : (
                   <p className="text-sm text-muted-foreground italic">No description provided</p>
                 )}
@@ -198,7 +227,7 @@ export default function ProjectDetailsPage() {
                   <div className="flex-1 pb-3">
                     <p className="text-sm font-medium">Project Started</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(project.startDate).toLocaleDateString()}
+                      {formatProjectDate(project.startDate)}
                     </p>
                   </div>
                 </div>
@@ -210,7 +239,7 @@ export default function ProjectDetailsPage() {
                   <div className="flex-1 pb-3">
                     <p className="text-sm font-medium">Expected Completion</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(project.endDate).toLocaleDateString()}
+                      {formatProjectDate(project.endDate)}
                     </p>
                   </div>
                 </div>
@@ -222,11 +251,30 @@ export default function ProjectDetailsPage() {
                     <div className="flex-1">
                       <p className="text-sm font-medium">Project Completed</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(project.updatedAt).toLocaleDateString()}
+                        {formatDateDMY(project.updatedAt)}
                       </p>
                     </div>
                   </div>
                 )}
+
+                {dateHistory.map((change) => (
+                  <div className="flex gap-4" key={change.id}>
+                    <div className="flex flex-col items-center">
+                      <div className="w-2 h-2 rounded-full bg-orange-500" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">
+                        {change.field === "startDate" ? "Start date changed" : "End date changed"}
+                      </p>
+                      <p className="text-sm text-muted-foreground break-words">
+                        {change.from} to {change.to}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDateTimeDMY(change.changedAt)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>

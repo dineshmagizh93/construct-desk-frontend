@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProjectForm } from "@/components/projects/project-form"
 import { useProjects } from "@/lib/hooks/use-projects"
+import { recordProjectDateHistory } from "@/lib/utils/project-date-history"
 
 export default function EditProjectPage() {
   const params = useParams()
@@ -50,7 +51,19 @@ export default function EditProjectPage() {
       progress,
     })
 
-    router.push(`/projects/${project.id}`)
+    recordProjectDateHistory(
+      project.id,
+      {
+        startDate: project.startDate,
+        endDate: project.endDate,
+      },
+      {
+        startDate: data.startDate,
+        endDate: data.endDate,
+      }
+    )
+
+    router.push("/projects")
   }
 
   if (loading) {

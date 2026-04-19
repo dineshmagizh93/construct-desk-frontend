@@ -23,11 +23,12 @@ import { cn } from "@/lib/utils"
 import { Plus, Search, Calendar, User, Clock, Edit, Trash2, MoreVertical, Eye, LayoutGrid, List, Upload } from "lucide-react"
 import { useProjects } from "@/lib/hooks/use-projects"
 import { useUsers } from "@/lib/hooks/use-users"
-import { TaskFilters } from "@/lib/api/tasks"
+import { TaskListParams } from "@/lib/api/tasks"
 import { format } from "date-fns"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { BulkUploadModal } from "@/components/shared/bulk-upload-modal"
+import { formatDateDMY } from "@/lib/utils/date"
 import { downloadTaskBulkTemplate, parseBulkTasksFromCsv } from "./task-bulk-utils"
 
 interface TaskListProps {
@@ -38,8 +39,6 @@ interface TaskListProps {
 export function TaskList({ viewMode, setViewMode }: TaskListProps = {}) {
   const { projects } = useProjects()
   const { users } = useUsers()
-  const [filters, setFilters] = React.useState<TaskFilters>({})
-  const { tasks, loading, error, createTask, updateTask, deleteTask, loadTasks, bulkCreateTasks } = useTasks(filters)
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
   const [bulkUploadOpen, setBulkUploadOpen] = React.useState(false)
   const [selectedTask, setSelectedTask] = React.useState<Task | null>(null)
@@ -59,28 +58,21 @@ export function TaskList({ viewMode, setViewMode }: TaskListProps = {}) {
   const [assignedFilter, setAssignedFilter] = React.useState<string>("all")
   const [projectFilter, setProjectFilter] = React.useState<string>("all")
   const [searchQuery, setSearchQuery] = React.useState("")
+  const filters = React.useMemo<TaskListParams>(() => {
+    const nextFilters: TaskListParams = {
+      page: currentPage,
+      limit: itemsPerPage,
+    }
+    if (statusFilter !== "all") nextFilters.status = statusFilter
+    if (priorityFilter !== "all") nextFilters.priority = priorityFilter
+    if (assignedFilter !== "all") nextFilters.assignedTo = assignedFilter
+    if (projectFilter !== "all") nextFilters.projectId = projectFilter
+    if (searchQuery) nextFilters.search = searchQuery
+    return nextFilters
+  }, [assignedFilter, currentPage, itemsPerPage, priorityFilter, projectFilter, searchQuery, statusFilter])
+  const { tasks, total, loading, error, createTask, updateTask, deleteTask, loadTasks, bulkCreateTasks } = useTasks(filters)
 
-  React.useEffect(() => {
-    const newFilters: TaskFilters = {}
-    if (statusFilter !== "all") newFilters.status = statusFilter
-    if (priorityFilter !== "all") newFilters.priority = priorityFilter
-    if (assignedFilter !== "all") newFilters.assignedTo = assignedFilter
-    if (projectFilter !== "all") newFilters.projectId = projectFilter
-    if (searchQuery) newFilters.search = searchQuery
-    setFilters(newFilters)
-    setCurrentPage(1)
-  }, [statusFilter, priorityFilter, assignedFilter, projectFilter, searchQuery])
-
-  // Filter and paginate tasks
-  const filteredTasks = React.useMemo(() => {
-    return tasks
-  }, [tasks])
-
-  const totalPages = Math.max(1, Math.ceil(filteredTasks.length / itemsPerPage))
-  const paginatedTasks = filteredTasks.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  )
+  const totalPages = Math.max(1, Math.ceil(total / itemsPerPage))
 
   // Reset to page 1 when filters change
   React.useEffect(() => {
@@ -349,14 +341,14 @@ export function TaskList({ viewMode, setViewMode }: TaskListProps = {}) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedTasks.length === 0 ? (
+                {tasks.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     No tasks found
                   </TableCell>
                 </TableRow>
               ) : (
-                paginatedTasks.map((task) => (
+                tasks.map((task) => (
                   <TableRow key={task.id} className="hover:bg-muted/50">
                     <TableCell>
                       <div className="space-y-1">
@@ -426,7 +418,7 @@ export function TaskList({ viewMode, setViewMode }: TaskListProps = {}) {
                       {task.dueDate ? (
                         <div className={`flex items-center gap-1 ${isOverdue(task) ? "text-destructive" : ""}`}>
                           <Calendar className="h-3 w-3 flex-shrink-0" />
-                          <span className="truncate">{format(new Date(task.dueDate), "MMM d, yyyy")}</span>
+                          <span className="truncate">{formatDateDMY(task.dueDate)}</span>
                           {isOverdue(task) && (
                             <span className="text-[10px] text-destructive ml-1 flex-shrink-0">(Overdue)</span>
                           )}
@@ -495,7 +487,7 @@ export function TaskList({ viewMode, setViewMode }: TaskListProps = {}) {
             currentPage={currentPage}
             totalPages={totalPages}
             itemsPerPage={itemsPerPage}
-            totalItems={filteredTasks.length}
+            totalItems={total}
             onPageChange={setCurrentPage}
             onItemsPerPageChange={setItemsPerPage}
           />

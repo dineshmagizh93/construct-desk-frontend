@@ -35,30 +35,8 @@ const DropdownMenu = ({
     }
 
     if (open) {
-      // Prevent scroll on table scroll containers - only vertical scroll, allow overflow for dropdown
-      const scrollContainers = document.querySelectorAll('[data-table-scroll-container]')
-      const originalOverflows: Array<{ element: HTMLElement; overflowY: string }> = []
-      
-      scrollContainers.forEach((container) => {
-        const htmlElement = container as HTMLElement
-        if (htmlElement) {
-          const computedStyle = getComputedStyle(htmlElement)
-          originalOverflows.push({ 
-            element: htmlElement, 
-            overflowY: htmlElement.style.overflowY || computedStyle.overflowY
-          })
-          // Only prevent vertical scroll, allow horizontal overflow for dropdown positioning
-          htmlElement.style.overflowY = 'hidden'
-        }
-      })
-      
       document.addEventListener('click', handleClickOutside, true)
       return () => {
-        originalOverflows.forEach(({ element, overflowY }) => {
-          if (element && element.style) {
-            element.style.overflowY = overflowY
-          }
-        })
         document.removeEventListener('click', handleClickOutside, true)
       }
     }

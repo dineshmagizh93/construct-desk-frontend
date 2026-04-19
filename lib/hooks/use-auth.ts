@@ -11,6 +11,7 @@ let authCache: {
   isAuthenticated: boolean
   timestamp: number
 } | null = null
+let authRequestInFlight: Promise<{ user: any; company: any }> | null = null
 
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
@@ -65,7 +66,11 @@ export function useAuth() {
     }
 
     try {
-      const response = await apiClient.get<{ user: any; company: any }>("/auth/me")
+      if (!authRequestInFlight) {
+        authRequestInFlight = apiClient.get<{ user: any; company: any }>("/auth/me")
+      }
+
+      const response = await authRequestInFlight
       // Backend returns { user: {...}, company: {...} }
       const userData = {
         ...response.user,
@@ -81,9 +86,9 @@ export function useAuth() {
         timestamp: now,
       }
       
-      // Store currency in localStorage for quick access
-      if (response.company?.currency && typeof window !== "undefined") {
-        localStorage.setItem("company_currency", response.company.currency)
+      // Application supports INR only.
+      if (typeof window !== "undefined") {
+        localStorage.setItem("company_currency", "INR")
       }
     } catch (error) {
       // Token invalid or expired
@@ -92,6 +97,7 @@ export function useAuth() {
       setUser(null)
       authCache = null
     } finally {
+      authRequestInFlight = null
       setLoading(false)
     }
   }
@@ -113,4 +119,3 @@ export function useAuth() {
     logout,
   }
 }
-
