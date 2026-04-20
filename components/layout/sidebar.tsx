@@ -282,13 +282,8 @@ export const Sidebar = React.memo(function Sidebar({ isCollapsed, onToggle }: Si
             )}
             
             {menuItems.filter((item) => {
-            // Always show dashboard, users, and settings
-            if (item.module === "dashboard" || item.module === "users" || item.module === "settings") {
-              return true
-            }
-            // For other modules, check canAccess permission
             if (permissionsLoading) {
-              return true // Show all while loading
+              return false
             }
             return canAccess(item.module)
           }).map((item, index) => {

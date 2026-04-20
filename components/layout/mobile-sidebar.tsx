@@ -23,6 +23,7 @@ import {
 import { cn } from "@/lib/utils"
 import { Sheet, SheetContent, SheetTrigger, useSheet } from "@/components/ui/sheet"
 import { useSuperAdmin } from "@/lib/hooks/use-super-admin"
+import { usePermissions } from "@/lib/hooks/use-permissions"
 import { Shield, Building2 } from "lucide-react"
 
 interface MobileSidebarProps {
@@ -30,21 +31,21 @@ interface MobileSidebarProps {
 }
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: FolderKanban, label: "Projects", href: "/projects" },
-  { icon: KanbanSquare, label: "Tasks", href: "/tasks" },
-  { icon: Users, label: "Leads & Clients", href: "/leads" },
-  { icon: TrendingUp, label: "Site Progress", href: "/site-progress" },
-  { icon: CreditCard, label: "Payments", href: "/payments" },
-  { icon: Receipt, label: "Expenses", href: "/expenses" },
-  { icon: Package, label: "Inventory", href: "/inventory" },
-  { icon: Truck, label: "Vendors", href: "/vendors" },
-  { icon: HardHat, label: "Labour", href: "/labour" },
-  { icon: FileText, label: "Documents", href: "/documents" },
-  { icon: BarChart3, label: "Reports", href: "/reports" },
-  { icon: UserPlus, label: "Users", href: "/users" },
-  { icon: Gauge, label: "Usage Tracker", href: "/usage" },
-  { icon: Settings, label: "Settings", href: "/settings" },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", module: "dashboard" },
+  { icon: FolderKanban, label: "Projects", href: "/projects", module: "projects" },
+  { icon: KanbanSquare, label: "Tasks", href: "/tasks", module: "tasks" },
+  { icon: Users, label: "Leads & Clients", href: "/leads", module: "leads" },
+  { icon: TrendingUp, label: "Site Progress", href: "/site-progress", module: "site-progress" },
+  { icon: CreditCard, label: "Payments", href: "/payments", module: "payments" },
+  { icon: Receipt, label: "Expenses", href: "/expenses", module: "expenses" },
+  { icon: Package, label: "Inventory", href: "/inventory", module: "inventory" },
+  { icon: Truck, label: "Vendors", href: "/vendors", module: "vendors" },
+  { icon: HardHat, label: "Labour", href: "/labour", module: "labour" },
+  { icon: FileText, label: "Documents", href: "/documents", module: "documents" },
+  { icon: BarChart3, label: "Reports", href: "/reports", module: "reports" },
+  { icon: UserPlus, label: "Users", href: "/users", module: "users" },
+  { icon: Gauge, label: "Usage Tracker", href: "/usage", module: "dashboard" },
+  { icon: Settings, label: "Settings", href: "/settings", module: "settings" },
 ]
 
 function MobileSidebarContent() {
@@ -52,6 +53,7 @@ function MobileSidebarContent() {
   const { setOpen } = useSheet()
   const router = useRouter()
   const { isSuperAdmin } = useSuperAdmin()
+  const { canAccess, loading: permissionsLoading } = usePermissions()
 
   const handleLinkClick = React.useCallback((href: string) => {
     // Use startTransition for instant navigation feel
@@ -125,7 +127,12 @@ function MobileSidebarContent() {
 
       {/* Navigation Menu */}
       <nav className="flex-1 space-y-1 overflow-y-auto p-4">
-        {menuItems.map((item) => {
+        {menuItems.filter((item) => {
+          if (permissionsLoading) {
+            return false
+          }
+          return canAccess(item.module)
+        }).map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href || pathname?.startsWith(item.href + "/")
 
@@ -164,4 +171,3 @@ export function MobileSidebar({ children }: MobileSidebarProps) {
     </Sheet>
   )
 }
-

@@ -7,7 +7,16 @@ import { ApiError } from "@/lib/api/client"
 
 // Simple cache to prevent unnecessary refetches
 let usersCache: { data: User[]; timestamp: number } | null = null
+const usersSubscribers = new Set<(data: User[]) => void>()
 const CACHE_DURATION = 120000 // 2 minutes
+
+function syncUsersCache(data: User[]) {
+  usersCache = { data, timestamp: Date.now() }
+}
+
+function notifyUsersSubscribers(data: User[]) {
+  usersSubscribers.forEach((listener) => listener(data))
+}
 
 export function useUsers() {
   // Initialize with cache if available to prevent loading state
@@ -24,6 +33,17 @@ export function useUsers() {
     return !(usersCache && (now - usersCache.timestamp) < CACHE_DURATION)
   })
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const listener = (data: User[]) => {
+      setUsers(data)
+    }
+
+    usersSubscribers.add(listener)
+    return () => {
+      usersSubscribers.delete(listener)
+    }
+  }, [])
 
   const loadUsers = useCallback(async (includeInactive: boolean = false, force = false) => {
     // Use cache if available and not stale
@@ -42,8 +62,8 @@ export function useUsers() {
       setError(null)
       const data = await usersApi.getAll(includeInactive)
       setUsers(data)
-      // Update cache
-      usersCache = { data, timestamp: now }
+      syncUsersCache(data)
+      notifyUsersSubscribers(data)
     } catch (err) {
       const apiError = err as ApiError
       let errorMessage = apiError.message as string || "Failed to load users"
@@ -77,12 +97,11 @@ export function useUsers() {
     try {
       setError(null)
       const newUser = await usersApi.create(user)
-      setUsers((prev) => [...prev, newUser])
-      // Update cache
-      if (usersCache) {
-        usersCache.data = [...usersCache.data, newUser]
-        usersCache.timestamp = Date.now()
-      }
+      const currentUsers = usersCache?.data || users
+      const updatedUsers = [...currentUsers, newUser]
+      setUsers(updatedUsers)
+      syncUsersCache(updatedUsers)
+      notifyUsersSubscribers(updatedUsers)
       return newUser
     } catch (err) {
       const apiError = err as ApiError
@@ -90,13 +109,17 @@ export function useUsers() {
       setError(errorMessage)
       throw new Error(errorMessage)
     }
-  }, [])
+  }, [users])
 
   const updateUser = useCallback(async (id: string, updates: UpdateUserDto) => {
     try {
       setError(null)
       const updated = await usersApi.update(id, updates)
-      setUsers((prev) => prev.map((u) => (u.id === id ? updated : u)))
+      const currentUsers = usersCache?.data || users
+      const updatedUsers = currentUsers.map((u) => (u.id === id ? updated : u))
+      setUsers(updatedUsers)
+      syncUsersCache(updatedUsers)
+      notifyUsersSubscribers(updatedUsers)
       return updated
     } catch (err) {
       const apiError = err as ApiError
@@ -104,20 +127,24 @@ export function useUsers() {
       setError(errorMessage)
       throw new Error(errorMessage)
     }
-  }, [])
+  }, [users])
 
   const deleteUser = useCallback(async (id: string) => {
     try {
       setError(null)
       await usersApi.delete(id)
-      setUsers((prev) => prev.filter((u) => u.id !== id))
+      const currentUsers = usersCache?.data || users
+      const updatedUsers = currentUsers.filter((u) => u.id !== id)
+      setUsers(updatedUsers)
+      syncUsersCache(updatedUsers)
+      notifyUsersSubscribers(updatedUsers)
     } catch (err) {
       const apiError = err as ApiError
       const errorMessage = apiError.message as string || "Failed to delete user"
       setError(errorMessage)
       throw new Error(errorMessage)
     }
-  }, [])
+  }, [users])
 
   return {
     users,
@@ -129,5 +156,3 @@ export function useUsers() {
     deleteUser,
   }
 }
-
-
