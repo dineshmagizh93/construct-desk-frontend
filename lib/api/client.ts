@@ -10,7 +10,15 @@ export class ApiClient {
   private baseURL: string;
 
   constructor(baseURL: string = API_BASE_URL) {
-    this.baseURL = baseURL;
+    this.baseURL = this.normalizeBaseUrl(baseURL);
+  }
+
+  /** NestJS uses global prefix /api — ensure every request includes it. */
+  private normalizeBaseUrl(baseURL: string): string {
+    const trimmed = (baseURL || '').trim().replace(/\/+$/, '');
+    if (!trimmed) return API_BASE_URL;
+    if (trimmed.endsWith('/api')) return trimmed;
+    return `${trimmed}/api`;
   }
 
   private async request<T>(
@@ -33,7 +41,7 @@ export class ApiClient {
       throw new Error('API base URL is incorrectly configured. Backend should run on port 3001, not 3000.');
     }
     
-    const url = `${this.baseURL}${normalizedEndpoint}`;
+    const url = `${this.normalizeBaseUrl(this.baseURL)}${normalizedEndpoint}`;
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
