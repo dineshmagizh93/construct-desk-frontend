@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowRight, ChevronDown, LogIn, Menu, X } from "lucide-react"
+import { ArrowRight, LogIn, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export function PublicHeader() {
@@ -40,10 +40,9 @@ export function PublicHeader() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-1 rounded-full px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+                className="rounded-full px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
               >
                 {item.label}
-                <ChevronDown className="h-3 w-3" />
               </Link>
             ))}
           </nav>

@@ -10,6 +10,9 @@ export interface Expense {
   paidTo: string
   notes?: string
   attachment?: string // Mock attachment URL
+  approvalStatus?: "pending" | "approved" | "rejected"
+  approvedBy?: string
+  approvedAt?: string
   createdAt: string
   updatedAt: string
 }

@@ -3,7 +3,7 @@
 import * as React from "react"
 import { formatCurrency } from "@/lib/utils/currency"
 import Link from "next/link"
-import { MoreVertical, Eye, Edit, Trash2, Search, Plus, X, Calendar, Upload } from "lucide-react"
+import { MoreVertical, Eye, Edit, Trash2, Search, Plus, X, Calendar, Upload, Download } from "lucide-react"
 import toast from "react-hot-toast"
 import { Payment, PaymentStatus } from "@/types/payment"
 import { Button } from "@/components/ui/button"
@@ -29,7 +29,8 @@ import { downloadPaymentBulkTemplate, parseBulkPaymentsFromCsv } from "./payment
 import { usePayments } from "@/lib/hooks/use-payments"
 import { useProjects } from "@/lib/hooks/use-projects"
 import { projectsApi } from "@/lib/api/projects"
-import { PaymentListParams } from "@/lib/api/payments"
+import { PaymentListParams, paymentsApi } from "@/lib/api/payments"
+import { downloadCsv } from "@/lib/utils/export-csv"
 import { PaymentFormSchema } from "@/lib/validations/payment"
 import { formatDateDMY } from "@/lib/utils/date"
 
@@ -128,18 +129,34 @@ export function PaymentList({ projectId, onCreatePayment }: PaymentListProps) {
   }
 
 
+  const handleExportCsv = async () => {
+    try {
+      const csv = await paymentsApi.exportCsv(projectId)
+      downloadCsv(typeof csv === "string" ? csv : JSON.stringify(csv), "payments.csv")
+    } catch {
+      toast.error("Export failed")
+    }
+  }
+
   return (
     <div className="flex flex-col h-full min-h-0">
       {/* Header */}
-      <PageHeader
-        title="Payments"
-        subtitle={projectId ? "Project payments" : "Manage all payments"}
-        action={{
-          label: "New Payment",
-          icon: Plus,
-          onClick: () => setCreateDialogOpen(true),
-        }}
-      />
+      <div className="flex items-center justify-between px-6 py-4">
+        <div>
+          <h1 className="text-[18px] font-semibold text-slate-800">Payments</h1>
+          <p className="text-[13px] text-slate-500">{projectId ? "Project payments" : "Manage all payments"}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleExportCsv}>
+            <Download className="mr-1.5 h-3.5 w-3.5" />
+            Export CSV
+          </Button>
+          <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="mr-1.5 h-3.5 w-3.5" />
+            New Payment
+          </Button>
+        </div>
+      </div>
 
       {/* Filters */}
       <FilterBar

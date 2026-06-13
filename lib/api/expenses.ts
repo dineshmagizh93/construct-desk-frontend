@@ -54,6 +54,9 @@ const transformExpense = (data: any): Expense => {
     paidTo: data.paidTo,
     notes: data.notes || undefined,
     attachment: data.attachment || undefined,
+    approvalStatus: data.approvalStatus || 'pending',
+    approvedBy: data.approvedBy || undefined,
+    approvedAt: data.approvedAt || undefined,
     createdAt: data.createdAt,
     updatedAt: data.updatedAt,
   };
@@ -106,6 +109,23 @@ export const expensesApi = {
 
   async delete(id: string): Promise<void> {
     await apiClient.delete(`/expenses/${id}`);
+  },
+
+  async approve(id: string): Promise<void> {
+    await apiClient.patch(`/expenses/${id}/approve`, {});
+  },
+
+  async reject(id: string, reason?: string): Promise<void> {
+    await apiClient.patch(`/expenses/${id}/reject`, { reason });
+  },
+
+  async getApprovalSummary(): Promise<{ pending: number; approved: number; rejected: number; totalPending: number }> {
+    return apiClient.get("/expenses/meta/approval-summary");
+  },
+
+  async exportCsv(projectId?: string): Promise<string> {
+    const query = projectId ? `?projectId=${projectId}` : "";
+    return apiClient.get(`/expenses/export/csv${query}`);
   },
 };
 

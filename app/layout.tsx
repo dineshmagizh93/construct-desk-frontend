@@ -10,10 +10,26 @@ import { cn } from "@/lib/utils";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
 export const metadata: Metadata = {
-  title: "ConstructDesk",
-  description: "ConstructDesk Dashboard",
+  title: {
+    default: "ConstructDesk",
+    template: "%s | ConstructDesk",
+  },
+  description: "Construction project management — track projects, tasks, payments, expenses, and site progress in one place.",
+  keywords: ["construction CRM", "project management", "site tracking", "contractor software"],
+  authors: [{ name: "ConstructDesk" }],
+  manifest: "/manifest.json",
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
   icons: {
     icon: "/mylogo.png",
+    apple: "/mylogo.png",
+  },
+  openGraph: {
+    title: "ConstructDesk",
+    description: "Construction project management made simple",
+    type: "website",
+    siteName: "ConstructDesk",
   },
 }
 
@@ -22,6 +38,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
+  themeColor: "#2563eb",
 }
 
 export default function RootLayout({

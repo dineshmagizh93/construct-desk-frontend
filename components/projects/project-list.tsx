@@ -27,6 +27,8 @@ import { cn } from "@/lib/utils"
 import { ProjectForm } from "./project-form"
 import { useProjects } from "@/lib/hooks/use-projects"
 import { ProjectFormSchema } from "@/lib/validations/project"
+import { projectsApi } from "@/lib/api/projects"
+import { downloadCsv } from "@/lib/utils/export-csv"
 import { TableSkeleton } from "@/components/ui/loading-skeleton"
 import { useRole } from "@/lib/hooks/use-role"
 import { Label } from "@/components/ui/label"
@@ -368,21 +370,35 @@ export function ProjectList({ onCreateProject }: ProjectListProps) {
     )
   }
 
+  const handleExportCsv = async () => {
+    try {
+      const csv = await projectsApi.exportCsv()
+      downloadCsv(typeof csv === "string" ? csv : JSON.stringify(csv), "projects.csv")
+    } catch {
+      toast.error("Export failed")
+    }
+  }
+
   return (
     <div className="flex h-full min-h-0 w-full flex-1 flex-col">
-      <PageHeader
-        title="Projects"
-        subtitle="Manage your construction projects"
-        action={
-          isAdmin
-            ? {
-                label: "New Project",
-                icon: Plus,
-                onClick: () => setCreateDialogOpen(true),
-              }
-            : undefined
-        }
-      />
+      <div className="flex items-center justify-between px-6 py-4">
+        <div>
+          <h1 className="text-[18px] font-semibold text-slate-800">Projects</h1>
+          <p className="text-[13px] text-slate-500">Manage your construction projects</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleExportCsv}>
+            <Download className="mr-1.5 h-3.5 w-3.5" />
+            Export CSV
+          </Button>
+          {isAdmin && (
+            <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
+              New Project
+            </Button>
+          )}
+        </div>
+      </div>
 
       <FilterBar
         searchValue={searchQuery}

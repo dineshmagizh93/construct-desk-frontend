@@ -24,7 +24,8 @@ import { BulkUploadModal } from "@/components/shared/bulk-upload-modal"
 import { downloadDocumentBulkTemplate, parseBulkDocumentsFromCsv } from "./document-bulk-utils"
 import { useDocuments } from "@/lib/hooks/use-documents"
 import { useProjects } from "@/lib/hooks/use-projects"
-import { DocumentListParams } from "@/lib/api/documents"
+import { DocumentListParams, documentsApi } from "@/lib/api/documents"
+import { downloadCsv } from "@/lib/utils/export-csv"
 import { DocumentFormSchema } from "@/lib/validations/document"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { projectsApi } from "@/lib/api/projects"
@@ -198,6 +199,15 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
     }
   }
 
+  const handleExportCsv = async () => {
+    try {
+      const csv = await documentsApi.exportCsv(projectId)
+      downloadCsv(typeof csv === "string" ? csv : JSON.stringify(csv), "documents.csv")
+    } catch {
+      toast.error("Export failed")
+    }
+  }
+
   if (loading) {
     return <div className="flex items-center justify-center p-8">Loading...</div>
   }
@@ -211,18 +221,22 @@ export function DocumentList({ projectId, onCreateDocument }: DocumentListProps)
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Documents</h1>
           <p className="text-muted-foreground mt-1 text-sm">Manage project documents and files</p>
         </div>
-        {!projectId && (
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setBulkUploadOpen(true)}>
-              <Upload className="mr-2 h-4 w-4" />
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleExportCsv}>
+            <Download className="mr-1.5 h-3.5 w-3.5" />
+            Export CSV
+          </Button>
+          {!projectId && (
+            <Button variant="outline" size="sm" onClick={() => setBulkUploadOpen(true)}>
+              <Upload className="mr-1.5 h-3.5 w-3.5" />
               Bulk Upload
             </Button>
-            <Button onClick={() => setCreateDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Upload Document
-            </Button>
-          </div>
-        )}
+          )}
+          <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="mr-1.5 h-3.5 w-3.5" />
+            Upload Document
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}

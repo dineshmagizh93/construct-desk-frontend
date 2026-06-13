@@ -143,4 +143,13 @@ export const projectsApi = {
   async getStats(): Promise<ProjectStats> {
     return apiClient.get<ProjectStats>('/projects/stats');
   },
+
+  async exportCsv(): Promise<string> {
+    return apiClient.get('/projects/export/csv')
+  },
+
+  async getGanttData(projectId?: string): Promise<any> {
+    const q = projectId ? `?projectId=${projectId}` : ""
+    return apiClient.get(`/projects/gantt${q}`)
+  },
 };

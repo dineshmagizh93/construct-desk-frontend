@@ -109,6 +109,11 @@ export const documentsApi = {
   async delete(id: string): Promise<void> {
     await apiClient.delete(`/documents/${id}`);
   },
+
+  async exportCsv(projectId?: string): Promise<string> {
+    const query = projectId ? `?projectId=${projectId}` : ""
+    return apiClient.get(`/documents/export/csv${query}`)
+  },
 };
 
 

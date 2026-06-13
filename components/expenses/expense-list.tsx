@@ -3,7 +3,7 @@
 import * as React from "react"
 import { formatCurrency } from "@/lib/utils/currency"
 import Link from "next/link"
-import { MoreVertical, Eye, Edit, Trash2, Search, Plus, X, Calendar, DollarSign, Upload } from "lucide-react"
+import { MoreVertical, Eye, Edit, Trash2, Search, Plus, X, Calendar, DollarSign, Upload, Download, CheckCircle2, XCircle } from "lucide-react"
 import toast from "react-hot-toast"
 import { Expense, ExpenseCategory } from "@/types/expense"
 import { Button } from "@/components/ui/button"
@@ -27,7 +27,8 @@ import { ExpenseForm } from "./expense-form"
 import { BulkUploadModal } from "@/components/shared/bulk-upload-modal"
 import { downloadExpenseBulkTemplate, parseBulkExpensesFromCsv } from "./expense-bulk-utils"
 import { useExpenses } from "@/lib/hooks/use-expenses"
-import { ExpenseListParams } from "@/lib/api/expenses"
+import { ExpenseListParams, expensesApi } from "@/lib/api/expenses"
+import { downloadCsv } from "@/lib/utils/export-csv"
 import { useProjects } from "@/lib/hooks/use-projects"
 import { projectsApi } from "@/lib/api/projects"
 import { ExpenseFormSchema } from "@/lib/validations/expense"
@@ -110,6 +111,35 @@ export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
     }
   }
 
+  const handleApprove = async (expense: Expense) => {
+    try {
+      await expensesApi.approve(expense.id)
+      await loadExpenses(projectId, true)
+      toast.success("Expense approved")
+    } catch {
+      toast.error("Failed to approve expense")
+    }
+  }
+
+  const handleReject = async (expense: Expense) => {
+    try {
+      await expensesApi.reject(expense.id)
+      await loadExpenses(projectId, true)
+      toast.success("Expense rejected")
+    } catch {
+      toast.error("Failed to reject expense")
+    }
+  }
+
+  const handleExportCsv = async () => {
+    try {
+      const csv = await expensesApi.exportCsv(projectId)
+      downloadCsv(typeof csv === "string" ? csv : JSON.stringify(csv), "expenses.csv")
+    } catch {
+      toast.error("Export failed")
+    }
+  }
+
   const getCategoryBadgeVariant = (category: ExpenseCategory) => {
     switch (category) {
       case "Material":
@@ -137,15 +167,22 @@ export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
   return (
     <div className="flex flex-col h-full min-h-0">
       {/* Header */}
-      <PageHeader
-        title="Expenses"
-        subtitle={projectId ? "Project expenses" : "Track and manage project expenses"}
-        action={{
-          label: "New Expense",
-          icon: Plus,
-          onClick: () => setCreateDialogOpen(true),
-        }}
-      />
+      <div className="flex items-center justify-between px-6 py-4">
+        <div>
+          <h1 className="text-[18px] font-semibold text-slate-800">Expenses</h1>
+          <p className="text-[13px] text-slate-500">{projectId ? "Project expenses" : "Track and manage project expenses"}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleExportCsv}>
+            <Download className="mr-1.5 h-3.5 w-3.5" />
+            Export CSV
+          </Button>
+          <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="mr-1.5 h-3.5 w-3.5" />
+            New Expense
+          </Button>
+        </div>
+      </div>
 
       {/* Filters */}
       <FilterBar
@@ -229,57 +266,55 @@ export function ExpenseList({ projectId, onCreateExpense }: ExpenseListProps) {
           >
             <Table className="border-0 rounded-none min-w-[800px]">
             <colgroup>
-              <col style={{ width: '22%' }} />
-              <col style={{ width: '15%' }} />
-              <col style={{ width: '15%' }} />
-              <col style={{ width: '15%' }} />
-              <col style={{ width: '27%' }} />
-              <col style={{ width: '6%' }} />
+              <col style={{ width: '20%' }} />
+              <col style={{ width: '13%' }} />
+              <col style={{ width: '13%' }} />
+              <col style={{ width: '13%' }} />
+              <col style={{ width: '20%' }} />
+              <col style={{ width: '13%' }} />
+              <col style={{ width: '8%' }} />
             </colgroup>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[22%]">Project Name</TableHead>
-                <TableHead className="w-[15%]">Category</TableHead>
-                <TableHead className="w-[15%]">Amount</TableHead>
-                <TableHead className="w-[15%]">Date</TableHead>
-                <TableHead className="w-[27%]">Paid To</TableHead>
-                <TableHead className="w-[6%] text-center">Actions</TableHead>
+                <TableHead>Project Name</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Paid To</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
                 {expenses.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     No expenses found
                   </TableCell>
                 </TableRow>
               ) : (
                   expenses.map((expense) => (
                   <TableRow key={expense.id}>
-                    <TableCell className="font-medium w-[22%]">
-                      <span
-                        className="truncate block"
-                        title={expense.projectName}
-                      >
-                        {expense.projectName}
-                      </span>
+                    <TableCell className="font-medium">
+                      <span className="truncate block" title={expense.projectName}>{expense.projectName}</span>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap w-[15%]">
-                      <Badge variant={getCategoryBadgeVariant(expense.category)}>
-                        {expense.category}
-                      </Badge>
+                    <TableCell className="whitespace-nowrap">
+                      <Badge variant={getCategoryBadgeVariant(expense.category)}>{expense.category}</Badge>
                     </TableCell>
-                    <TableCell className="font-medium whitespace-nowrap w-[15%]">{formatCurrency(expense.amount)}</TableCell>
-                    <TableCell className="whitespace-nowrap w-[15%]">{formatDateDMY(expense.date)}</TableCell>
-                    <TableCell className="w-[27%]">
-                      <span className="truncate block" title={expense.paidTo || "-"}>
-                        {expense.paidTo || "-"}
-                      </span>
+                    <TableCell className="font-medium whitespace-nowrap">{formatCurrency(expense.amount)}</TableCell>
+                    <TableCell className="whitespace-nowrap">{formatDateDMY(expense.date)}</TableCell>
+                    <TableCell>
+                      <span className="truncate block" title={expense.paidTo || "-"}>{expense.paidTo || "-"}</span>
                     </TableCell>
-                    <TableCell className="relative text-center w-[6%]">
+                    <TableCell>
+                      <ApprovalBadge status={(expense as any).approvalStatus} />
+                    </TableCell>
+                    <TableCell className="relative text-center">
                       <ExpenseActionsMenu
                         expense={expense}
                         onDelete={handleDelete}
+                        onApprove={handleApprove}
+                        onReject={handleReject}
                         isOpen={openDropdownId === expense.id}
                         onOpenChange={(open) => setOpenDropdownId(open ? expense.id : null)}
                       />
@@ -467,17 +502,32 @@ function CreateExpenseDialog({
   )
 }
 
+function ApprovalBadge({ status }: { status?: string }) {
+  if (!status || status === "pending") {
+    return <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">Pending</span>
+  }
+  if (status === "approved") {
+    return <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-0.5 text-[11px] font-medium text-green-700">Approved</span>
+  }
+  return <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-600">Rejected</span>
+}
+
 function ExpenseActionsMenu({
   expense,
   onDelete,
+  onApprove,
+  onReject,
   isOpen,
   onOpenChange,
 }: {
   expense: Expense
   onDelete: (expense: Expense) => void
+  onApprove: (expense: Expense) => void
+  onReject: (expense: Expense) => void
   isOpen?: boolean
   onOpenChange?: (open: boolean) => void
 }) {
+  const approvalStatus = (expense as any).approvalStatus
   return (
     <DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
       <DropdownMenuTrigger asChild>
@@ -498,6 +548,18 @@ function ExpenseActionsMenu({
             Edit
           </Link>
         </DropdownMenuItem>
+        {approvalStatus !== "approved" && (
+          <DropdownMenuItem onClick={() => onApprove(expense)} className="text-green-600">
+            <CheckCircle2 className="mr-2 h-4 w-4" />
+            Approve
+          </DropdownMenuItem>
+        )}
+        {approvalStatus !== "rejected" && (
+          <DropdownMenuItem onClick={() => onReject(expense)} className="text-orange-600">
+            <XCircle className="mr-2 h-4 w-4" />
+            Reject
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onClick={() => onDelete(expense)} className="text-destructive">
           <Trash2 className="mr-2 h-4 w-4" />
           Delete

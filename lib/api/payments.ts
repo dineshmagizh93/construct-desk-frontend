@@ -105,6 +105,11 @@ export const paymentsApi = {
   async delete(id: string): Promise<void> {
     await apiClient.delete(`/payments/${id}`);
   },
+
+  async exportCsv(projectId?: string): Promise<string> {
+    const query = projectId ? `?projectId=${projectId}` : ""
+    return apiClient.get(`/payments/export/csv${query}`)
+  },
 };
 
 
