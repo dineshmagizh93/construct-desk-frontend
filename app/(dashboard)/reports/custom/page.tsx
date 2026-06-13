@@ -104,7 +104,7 @@ export default function CustomReportPage() {
     } catch {
       // Fallback: generate mock data to demonstrate the UI
       setResults(generateMockData(config))
-      toast(“Using preview data — connect backend for live results”)
+      toast("Using preview data — connect backend for live results")
     } finally {
       setLoading(false)
     }
@@ -279,7 +279,7 @@ export default function CustomReportPage() {
               {config.chartType === "pie" && (
                 <ResponsiveContainer width="100%" height={300}>
                   <RPieChart>
-                    <Pie data={results} dataKey="value" nameKey="label" cx="50%" cy="50%" outerRadius={110} label={({ label, percent }) => `${label} ${(percent * 100).toFixed(0)}%`}>
+                    <Pie data={results} dataKey="value" nameKey="label" cx="50%" cy="50%" outerRadius={110} label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}>
                       {results.map((_, i) => (
                         <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                       ))}

@@ -2,8 +2,8 @@
 
 import * as React from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { Sidebar } from "./sidebar"
-import { Header } from "./header"
+import { Sidebar } from "./Sidebar"
+import { Header } from "./Header"
 import { TrialExpiredLockout } from "./trial-lockout"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/lib/hooks/use-auth"
