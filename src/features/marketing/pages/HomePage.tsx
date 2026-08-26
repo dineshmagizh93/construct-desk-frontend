@@ -17,6 +17,7 @@ import {
   Settings,
   FileText,
   Hammer,
+  LayoutDashboard,
   type LucideIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -24,13 +25,14 @@ import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/useAuth'
 import { INDUSTRY_CONFIGS } from '@/lib/industry'
 import { cn } from '@/lib/utils'
+import { MODULE_GROUPS, MODULE_KEYS } from '@/lib/modules'
 import { DIFFERENTIATORS, FEATURES, PLANS } from '../content'
 import { GlowOrbs, DOT_GRID, SectionHeading, StatBar, TrustStrip } from '../components/shared'
 import { IsometricSite } from '../components/IsometricSite'
 import { colorTheme } from '../palette'
 
 const HERO_STATS = [
-  { value: '21', label: 'Built-in modules' },
+  { value: String(MODULE_KEYS.length), label: 'Built-in modules' },
   { value: '6', label: 'Role-based teams' },
   { value: '100%', label: 'Cloud-based' },
   { value: '1', label: 'Unified workspace' },
@@ -247,24 +249,32 @@ function FeaturesTeaser() {
   )
 }
 
+// Built directly from the real module catalog (lib/modules.ts) so this teaser can't drift out of
+// sync with what the product actually ships — same pattern used for the pricing comparison table.
+const MODULE_GROUP_ICONS: Record<string, LucideIcon> = {
+  Overview: LayoutDashboard,
+  'CRM & Sales': Target,
+  'Project Delivery': Building2,
+  'Pre-Construction': Hammer,
+  Resources: Users,
+  Finance: Wallet,
+  Operations: Briefcase,
+  System: Settings,
+}
+
 function ModulesTeaser() {
-  const modules: { label: string; count: string; icon: LucideIcon }[] = [
-    { label: 'CRM & Sales', count: '3', icon: Target },
-    { label: 'Project Delivery', count: '5', icon: Building2 },
-    { label: 'Pre-Construction', count: '2', icon: Hammer },
-    { label: 'Resources', count: '4', icon: Users },
-    { label: 'Finance', count: '3', icon: Wallet },
-    { label: 'Operations', count: '2', icon: Briefcase },
-    { label: 'Documents', count: '1', icon: FileText },
-    { label: 'Settings', count: '1', icon: Settings },
-  ]
+  const modules: { label: string; count: string; icon: LucideIcon }[] = MODULE_GROUPS.map((group) => ({
+    label: group.label,
+    count: String(group.modules.length),
+    icon: MODULE_GROUP_ICONS[group.label] ?? FileText,
+  }))
   return (
     <section className="relative border-y border-border/60 bg-gradient-to-b from-primary/[0.04] via-secondary/40 to-secondary/20">
       <div className={cn('pointer-events-none absolute inset-0 opacity-30', DOT_GRID)} />
       <div className="relative mx-auto max-w-5xl px-6 py-16">
         <SectionHeading
           eyebrow="Modules"
-          title="21 modules, already built"
+          title={`${MODULE_KEYS.length} modules, already built`}
           description="Nothing here is a mockup. Every module ships with list views, forms, and role-based access."
           align="center"
         />

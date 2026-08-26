@@ -15,11 +15,12 @@ const GROUP_ACCENTS = [
 ]
 
 export function ModulesPage() {
+  const totalModules = NAV_GROUPS.reduce((sum, group) => sum + group.items.length, 0)
   return (
     <>
       <PageHero
         eyebrow="Modules"
-        title="21 modules, already built"
+        title={`${totalModules} modules, already built`}
         description="Nothing here is a mockup — this is the actual module list running inside the app today."
       />
 
