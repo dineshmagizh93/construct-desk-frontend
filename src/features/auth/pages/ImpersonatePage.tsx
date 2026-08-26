@@ -22,6 +22,7 @@ export function ImpersonatePage() {
     const params = new URLSearchParams(raw)
     const accessToken = params.get('access_token')
     const refreshToken = params.get('refresh_token')
+    const redirect = params.get('redirect') || '/dashboard'
     if (!accessToken || !refreshToken) {
       setError('This impersonation link is invalid.')
       return
@@ -33,8 +34,8 @@ export function ImpersonatePage() {
         const me = await http<{ user: User; company: Company | null }>('/auth/me')
         useAuthStore.getState().setUser(me.user)
         if (me.company) useAuthStore.getState().setCompany(me.company)
-        window.history.replaceState(null, '', '/dashboard')
-        navigate('/dashboard', { replace: true })
+        window.history.replaceState(null, '', redirect)
+        navigate(redirect, { replace: true })
       } catch {
         useAuthStore.getState().logout()
         setError('Could not start the impersonation session — it may have expired. Please try again from the console.')
