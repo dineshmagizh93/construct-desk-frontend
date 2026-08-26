@@ -76,6 +76,27 @@ export function StatBar({ stats }: { stats: { value: string; label: string }[] }
   )
 }
 
+/** Prose wrapper for legal pages (Terms, Privacy, Refund Policy) — consistent heading/spacing rhythm. */
+export function LegalDocument({
+  effectiveDate,
+  intro,
+  children,
+}: {
+  effectiveDate: string
+  intro?: ReactNode
+  children: ReactNode
+}) {
+  return (
+    <section className="mx-auto max-w-3xl px-6 py-14">
+      <p className="mb-8 text-sm text-muted-foreground">Effective date: {effectiveDate}</p>
+      {intro && <div className="mb-8 text-sm leading-relaxed text-muted-foreground">{intro}</div>}
+      <div className="space-y-8 [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-bold [&_h2]:tracking-tight [&_p]:mt-2.5 [&_p]:text-sm [&_p]:leading-relaxed [&_p]:text-muted-foreground [&_ul]:mt-2.5 [&_ul]:list-disc [&_ul]:space-y-1.5 [&_ul]:pl-5 [&_ul]:text-sm [&_ul]:leading-relaxed [&_ul]:text-muted-foreground [&_strong]:font-semibold [&_strong]:text-foreground">
+        {children}
+      </div>
+    </section>
+  )
+}
+
 /** Shared hero banner used at the top of every inner marketing page (Features, Pricing, FAQ, etc). */
 export function PageHero({
   eyebrow,

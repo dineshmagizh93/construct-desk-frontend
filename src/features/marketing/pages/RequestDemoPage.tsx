@@ -100,6 +100,17 @@ export function RequestDemoPage() {
                   <Textarea id="message" placeholder="Team size, current tools, anything that helps us prepare…" {...register('message')} />
                 </div>
                 {error && <p className="text-sm text-destructive">{error}</p>}
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  By submitting, you agree to our{' '}
+                  <a href="/terms-of-service" className="underline underline-offset-2 hover:text-foreground">
+                    Terms of Service
+                  </a>{' '}
+                  and{' '}
+                  <a href="/privacy-policy" className="underline underline-offset-2 hover:text-foreground">
+                    Privacy Policy
+                  </a>
+                  .
+                </p>
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
                   {isSubmitting ? 'Submitting…' : 'Request Demo'}
                 </Button>

@@ -71,8 +71,19 @@ export function MarketingFooter() {
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-border pt-5 text-sm text-muted-foreground sm:flex-row lg:mt-10 lg:pt-6">
+        <div className="mt-8 flex flex-col items-center justify-between gap-3 border-t border-border pt-5 text-sm text-muted-foreground sm:flex-row lg:mt-10 lg:pt-6">
           <p>© {new Date().getFullYear()} ConstructDesk. All rights reserved.</p>
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-xs">
+            <Link to="/terms-of-service" className="transition-colors hover:text-foreground">
+              Terms of Service
+            </Link>
+            <Link to="/privacy-policy" className="transition-colors hover:text-foreground">
+              Privacy Policy
+            </Link>
+            <Link to="/refund-policy" className="transition-colors hover:text-foreground">
+              Refund Policy
+            </Link>
+          </div>
           <div className="flex gap-6">
             <span className="text-xs">22 modules</span>
             <span className="text-xs">Multi-tenant</span>

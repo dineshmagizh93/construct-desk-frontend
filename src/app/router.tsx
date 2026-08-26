@@ -79,6 +79,11 @@ const IndustriesPage = lazy(() => import('@/features/marketing/pages/IndustriesP
 const PricingPage = lazy(() => import('@/features/marketing/pages/PricingPage').then((m) => ({ default: m.PricingPage })))
 const FaqPage = lazy(() => import('@/features/marketing/pages/FaqPage').then((m) => ({ default: m.FaqPage })))
 const RequestDemoPage = lazy(() => import('@/features/marketing/pages/RequestDemoPage').then((m) => ({ default: m.RequestDemoPage })))
+const TermsPage = lazy(() => import('@/features/marketing/pages/TermsPage').then((m) => ({ default: m.TermsPage })))
+const PrivacyPage = lazy(() => import('@/features/marketing/pages/PrivacyPage').then((m) => ({ default: m.PrivacyPage })))
+const RefundPolicyPage = lazy(() =>
+  import('@/features/marketing/pages/RefundPolicyPage').then((m) => ({ default: m.RefundPolicyPage })),
+)
 
 function PageFallback() {
   return (
@@ -106,6 +111,9 @@ const router = createBrowserRouter([
       { path: '/pricing', element: withSuspense(<PricingPage />) },
       { path: '/faq', element: withSuspense(<FaqPage />) },
       { path: '/request-demo', element: withSuspense(<RequestDemoPage />) },
+      { path: '/terms-of-service', element: withSuspense(<TermsPage />) },
+      { path: '/privacy-policy', element: withSuspense(<PrivacyPage />) },
+      { path: '/refund-policy', element: withSuspense(<RefundPolicyPage />) },
     ],
   },
   {
