@@ -1,18 +1,8 @@
 import type { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-
-export const DOT_GRID = 'bg-[radial-gradient(var(--border)_1px,transparent_1px)] [background-size:22px_22px]'
-
-export function GlowOrbs() {
-  return (
-    <>
-      <div className="absolute left-1/2 top-[-10rem] -z-10 h-[28rem] w-[60rem] -translate-x-1/2 rounded-full bg-gradient-to-b from-primary/15 to-transparent blur-3xl" />
-      <div className="absolute -right-24 top-24 -z-10 size-64 rounded-full bg-accent/20 blur-3xl" />
-      <div className="absolute -left-16 top-40 -z-10 size-56 rounded-full bg-violet-400/15 blur-3xl" />
-      <div className="absolute right-1/3 top-4 -z-10 size-40 rounded-full bg-emerald-400/15 blur-3xl" />
-    </>
-  )
-}
 
 export function SectionHeading({
   eyebrow,
@@ -26,16 +16,12 @@ export function SectionHeading({
   align?: 'center' | 'left'
 }) {
   return (
-    <div className={cn('mx-auto mb-10 max-w-2xl', align === 'center' ? 'text-center' : 'mx-0 max-w-xl text-left')}>
-      {eyebrow && (
-        <div className={cn('mb-4 flex items-center gap-3', align === 'center' && 'justify-center')}>
-          <span className="h-px w-8 bg-primary/40" />
-          <p className="text-xs font-bold uppercase tracking-widest text-primary">{eyebrow}</p>
-          <span className="h-px w-8 bg-primary/40" />
-        </div>
-      )}
-      <h2 className="font-display text-3xl font-bold tracking-tight text-balance sm:text-4xl">{title}</h2>
-      {description && <p className="mt-3 text-lg leading-relaxed text-muted-foreground">{description}</p>}
+    <div className={cn('mb-12 max-w-2xl', align === 'center' ? 'mx-auto text-center' : 'mx-0 text-left')}>
+      {eyebrow && <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">{eyebrow}</p>}
+      <h2 className={cn('font-display text-3xl font-semibold tracking-tight text-balance sm:text-4xl', eyebrow && 'mt-3')}>
+        {title}
+      </h2>
+      {description && <p className="mt-3 text-base leading-relaxed text-muted-foreground sm:text-lg">{description}</p>}
     </div>
   )
 }
@@ -43,14 +29,12 @@ export function SectionHeading({
 export function TrustStrip() {
   const labels = ['General Contractors', 'Interior Studios', 'Civil Engineers', 'Project Developers', 'Renovation Firms']
   return (
-    <section className="border-y border-primary/10 bg-gradient-to-r from-primary/[0.06] via-card/80 to-accent/[0.06] backdrop-blur-sm">
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-6 py-8 sm:flex-row sm:justify-between">
-        <p className="shrink-0 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          Trusted by growing teams
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+    <section className="border-b border-border bg-background">
+      <div className="mx-auto flex max-w-6xl flex-col items-center gap-5 px-6 py-8 sm:flex-row sm:justify-between">
+        <p className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Built for</p>
+        <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
           {labels.map((label) => (
-            <span key={label} className="text-sm font-semibold text-foreground/40 transition-colors hover:text-foreground/60">
+            <span key={label} className="font-display text-sm font-semibold tracking-tight text-foreground/40">
               {label}
             </span>
           ))}
@@ -60,23 +44,79 @@ export function TrustStrip() {
   )
 }
 
-export function StatBar({ stats }: { stats: { value: string; label: string }[] }) {
+export function PageHero({
+  eyebrow,
+  title,
+  description,
+  children,
+  align = 'center',
+}: {
+  eyebrow: string
+  title: ReactNode
+  description: string
+  children?: ReactNode
+  align?: 'center' | 'left'
+}) {
   return (
-    <div className="mx-auto grid max-w-4xl grid-cols-2 gap-4 sm:grid-cols-4">
-      {stats.map((stat) => (
-        <div
-          key={stat.label}
-          className="rounded-xl border border-primary/10 bg-card/70 px-4 py-5 text-center shadow-sm backdrop-blur-sm lg:text-left"
+    <section className="relative border-b border-border bg-card">
+      <div className="marketing-hero-grid-light pointer-events-none absolute inset-0" />
+      <div
+        className={cn(
+          'relative mx-auto px-6 py-8 lg:py-10',
+          align === 'center' ? 'max-w-3xl text-center' : 'max-w-6xl text-left',
+        )}
+      >
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">{eyebrow}</p>
+        <h1 className="mt-2.5 font-display text-3xl font-semibold leading-[1.15] tracking-tight text-balance sm:text-4xl">
+          {title}
+        </h1>
+        <p
+          className={cn(
+            'mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground',
+            align === 'center' && 'mx-auto',
+          )}
         >
-          <p className="font-display text-3xl font-bold tracking-tight text-primary sm:text-4xl">{stat.value}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{stat.label}</p>
-        </div>
-      ))}
-    </div>
+          {description}
+        </p>
+        {children}
+      </div>
+    </section>
   )
 }
 
-/** Prose wrapper for legal pages (Terms, Privacy, Refund Policy) — consistent heading/spacing rhythm. */
+export function PageCta({
+  title,
+  description,
+  primary,
+  secondary,
+}: {
+  title: string
+  description: string
+  primary: { label: string; to: string }
+  secondary?: { label: string; to: string }
+}) {
+  return (
+    <section className="border-t border-border bg-card">
+      <div className="mx-auto max-w-3xl px-6 py-16 text-center">
+        <h2 className="font-display text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{title}</h2>
+        <p className="mx-auto mt-3 max-w-lg text-base leading-relaxed text-muted-foreground">{description}</p>
+        <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Button size="lg" variant="accent" className="h-11 px-6" asChild>
+            <Link to={primary.to}>
+              {primary.label} <ArrowRight className="size-4" />
+            </Link>
+          </Button>
+          {secondary && (
+            <Button size="lg" variant="outline" className="h-11 px-6" asChild>
+              <Link to={secondary.to}>{secondary.label}</Link>
+            </Button>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export function LegalDocument({
   effectiveDate,
   intro,
@@ -90,43 +130,7 @@ export function LegalDocument({
     <section className="mx-auto max-w-3xl px-6 py-14">
       <p className="mb-8 text-sm text-muted-foreground">Effective date: {effectiveDate}</p>
       {intro && <div className="mb-8 text-sm leading-relaxed text-muted-foreground">{intro}</div>}
-      <div className="space-y-8 [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-bold [&_h2]:tracking-tight [&_p]:mt-2.5 [&_p]:text-sm [&_p]:leading-relaxed [&_p]:text-muted-foreground [&_ul]:mt-2.5 [&_ul]:list-disc [&_ul]:space-y-1.5 [&_ul]:pl-5 [&_ul]:text-sm [&_ul]:leading-relaxed [&_ul]:text-muted-foreground [&_strong]:font-semibold [&_strong]:text-foreground">
-        {children}
-      </div>
-    </section>
-  )
-}
-
-/** Shared hero banner used at the top of every inner marketing page (Features, Pricing, FAQ, etc). */
-export function PageHero({
-  eyebrow,
-  title,
-  description,
-  children,
-}: {
-  eyebrow: string
-  title: ReactNode
-  description: string
-  children?: ReactNode
-}) {
-  return (
-    <section className="marketing-hero-bg relative overflow-hidden">
-      <div
-        className={cn(
-          'absolute inset-0 -z-20 opacity-50 [mask-image:radial-gradient(ellipse_70%_60%_at_50%_0%,black,transparent)]',
-          DOT_GRID,
-        )}
-      />
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/[0.06] via-transparent to-accent/[0.04]" />
-      <GlowOrbs />
-      <div className="mx-auto max-w-4xl px-6 pb-14 pt-16 text-center lg:pb-16 lg:pt-20">
-        <div className="mb-4 flex items-center justify-center gap-3">
-          <span className="h-px w-8 bg-primary/40" />
-          <p className="text-xs font-bold uppercase tracking-widest text-primary">{eyebrow}</p>
-          <span className="h-px w-8 bg-primary/40" />
-        </div>
-        <h1 className="font-display text-4xl font-bold leading-[1.1] tracking-tight text-balance sm:text-5xl">{title}</h1>
-        <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-muted-foreground">{description}</p>
+      <div className="space-y-8 [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_p]:mt-2.5 [&_p]:text-sm [&_p]:leading-relaxed [&_p]:text-muted-foreground [&_ul]:mt-2.5 [&_ul]:list-disc [&_ul]:space-y-1.5 [&_ul]:pl-5 [&_ul]:text-sm [&_ul]:leading-relaxed [&_ul]:text-muted-foreground [&_strong]:font-semibold [&_strong]:text-foreground">
         {children}
       </div>
     </section>

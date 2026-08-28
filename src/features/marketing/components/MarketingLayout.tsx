@@ -11,7 +11,7 @@ export function MarketingLayout() {
   }, [location.pathname])
 
   return (
-    <div className="marketing-page-bg min-h-screen overflow-x-hidden">
+    <div className="min-h-screen overflow-x-hidden bg-background">
       <MarketingNav />
       <Outlet />
       <MarketingFooter />

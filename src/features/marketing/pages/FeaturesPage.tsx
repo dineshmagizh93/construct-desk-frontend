@@ -1,46 +1,93 @@
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { ArrowRight, CheckCircle2 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { FEATURES } from '../content'
-import { PageHero } from '../components/shared'
-import { colorTheme } from '../palette'
+import { PageCta, PageHero } from '../components/shared'
 
-function FeatureSpotlight({ feature, index }: { feature: (typeof FEATURES)[number]; index: number }) {
-  const reversed = index % 2 === 1
-  const theme = colorTheme(index)
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: reversed ? 40 : -40 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true, amount: 0.3 }}
-      transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className={cn('flex flex-col items-center gap-8 lg:flex-row', reversed && 'lg:flex-row-reverse')}
-    >
-      <div className="flex-1 space-y-4">
-        <div className={cn('flex size-12 items-center justify-center rounded-xl transition-transform duration-300 hover:scale-110 hover:rotate-3', theme.iconBg, theme.icon)}>
-          <feature.icon className="size-6" />
-        </div>
-        <h3 className="text-2xl font-bold tracking-tight">{feature.title}</h3>
-        <p className="text-muted-foreground">{feature.description}</p>
-        <p className="text-sm text-muted-foreground/80">{feature.detail}</p>
-      </div>
-      <div className="flex-1">
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          transition={{ type: 'spring', stiffness: 300 }}
-          className={cn('relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br p-8 shadow-lg', theme.chipBg, 'to-secondary/10')}
-        >
-          <div className={cn('absolute -right-8 -top-8 size-32 rounded-full blur-2xl', theme.iconBg)} />
-          <div className="absolute -bottom-8 -left-8 size-32 rounded-full bg-accent/10 blur-2xl" />
-          <div className="relative flex aspect-[4/3] items-center justify-center rounded-xl border border-border/60 bg-card shadow-sm">
-            <feature.icon className={cn('size-16', theme.icon, 'opacity-30')} strokeWidth={1.2} />
+function FeatureVisual({ index }: { index: number }) {
+  if (index === 0) {
+    const stages = [
+      { label: 'New', n: 8 },
+      { label: 'Quoted', n: 5 },
+      { label: 'Won', n: 4 },
+    ]
+    return (
+      <div className="space-y-3">
+        {stages.map((stage) => (
+          <div key={stage.label} className="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2.5">
+            <span className="text-sm font-medium">{stage.label}</span>
+            <span className="text-sm text-muted-foreground">{stage.n} leads</span>
           </div>
-        </motion.div>
+        ))}
       </div>
-    </motion.div>
+    )
+  }
+  if (index === 1) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between text-sm">
+          <span className="font-medium">Lakeview Towers · Block B</span>
+          <span className="font-semibold">72%</span>
+        </div>
+        <div className="h-2 overflow-hidden rounded-full bg-secondary">
+          <div className="h-full w-[72%] rounded-full bg-accent" />
+        </div>
+        <div className="grid grid-cols-3 gap-2 text-center">
+          {['18 on site', '4 materials', '12 photos'].map((item) => (
+            <div key={item} className="rounded-lg border border-border bg-background px-2 py-2 text-xs text-muted-foreground">
+              {item}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+  if (index === 2) {
+    return (
+      <div className="space-y-3">
+        <p className="font-display text-2xl font-semibold tracking-tight">₹68.5 L</p>
+        <p className="text-sm text-muted-foreground">Outstanding across 7 invoices</p>
+        <div className="space-y-2 border-t border-border pt-3 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Greenfield — RA 04</span>
+            <span className="font-medium">₹18.2 L</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">MetroBuild — Mobilisation</span>
+            <span className="font-medium">₹12.0 L</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+  if (index === 3) {
+    return (
+      <div className="space-y-2">
+        {['Architectural set.pdf', 'Structural drawings.dwg', 'Work order — steel.pdf'].map((file) => (
+          <div key={file} className="rounded-lg border border-border bg-background px-3 py-2.5 text-sm">
+            {file}
+          </div>
+        ))}
+      </div>
+    )
+  }
+  if (index === 4) {
+    return (
+      <div className="flex flex-wrap gap-2">
+        {['Project Manager', 'Site Engineer', 'Accountant', 'Sales'].map((role) => (
+          <span key={role} className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium">
+            {role}
+          </span>
+        ))}
+      </div>
+    )
+  }
+  return (
+    <div className="rounded-lg border border-dashed border-border bg-background px-4 py-6 text-center">
+      <p className="text-sm font-medium">Excel template ready</p>
+      <p className="mt-1 text-xs text-muted-foreground">Download, fill, import — validated per module</p>
+    </div>
   )
 }
 
@@ -48,42 +95,65 @@ export function FeaturesPage() {
   return (
     <>
       <PageHero
+        align="left"
         eyebrow="Features"
-        title="Everything your business needs, in one place"
-        description="No more juggling spreadsheets, WhatsApp groups, and paper site diaries — every workflow, connected."
+        title="The workflows your sites already run — connected"
+        description="Not a generic CRM with construction labels. Each feature below is a live module with lists, forms, and permissions."
       />
 
-      <section className="mx-auto max-w-5xl space-y-14 px-6 pb-16">
-        {FEATURES.map((feature, i) => (
-          <FeatureSpotlight key={feature.title} feature={feature} index={i} />
-        ))}
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <div className="space-y-6">
+          {FEATURES.map((feature, i) => {
+            const reversed = i % 2 === 1
+            return (
+              <article
+                key={feature.title}
+                className={cn(
+                  'grid items-center gap-8 rounded-2xl border border-border bg-card p-6 lg:grid-cols-2 lg:gap-12 lg:p-10',
+                )}
+              >
+                <div className={cn(reversed && 'lg:order-2')}>
+                  <p className="font-display text-xs font-semibold tracking-[0.16em] text-accent">0{i + 1}</p>
+                  <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight">{feature.title}</h2>
+                  <p className="mt-3 leading-relaxed text-muted-foreground">{feature.description}</p>
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{feature.detail}</p>
+                </div>
+                <div className={cn('rounded-xl border border-border bg-background p-5', reversed && 'lg:order-1')}>
+                  <FeatureVisual index={i} />
+                </div>
+              </article>
+            )
+          })}
+        </div>
       </section>
 
-      <section className="border-y border-border bg-secondary/30">
-        <div className="mx-auto max-w-4xl px-6 py-20 text-center">
-          <h2 className="text-2xl font-bold tracking-tight">Every plan includes the essentials</h2>
-        <div className="mx-auto mt-5 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-3">
-            {['Role-based access', 'Excel import', 'Cloud file storage', 'Multi-project tracking', 'Real-time dashboards', 'Mobile-friendly'].map(
+      <section className="border-y border-border bg-background">
+        <div className="mx-auto max-w-6xl px-6 py-16">
+          <h2 className="font-display text-2xl font-semibold tracking-tight">On every plan</h2>
+          <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {['Role-based access', 'Excel import', 'Cloud file storage', 'Multi-project tracking', 'Live dashboards', 'Works on site phones'].map(
               (item) => (
-                <div key={item} className="flex items-center gap-2 rounded-lg border border-border/60 bg-card px-3 py-2.5 text-sm shadow-sm">
-                  <CheckCircle2 className="size-4 shrink-0 text-success" />
-                  <span>{item}</span>
+                <div key={item} className="flex items-center gap-2.5 rounded-xl border border-border bg-card px-4 py-3 text-sm">
+                  <CheckCircle2 className="size-4 shrink-0 text-foreground" />
+                  {item}
                 </div>
               ),
             )}
           </div>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <Badge variant="secondary">See it in your plan</Badge>
-          </div>
-          <div className="mt-5">
-            <Button size="lg" variant="accent" className="shadow-lg shadow-accent/30" asChild>
-              <Link to="/pricing">
-                View pricing <ArrowRight className="size-4" />
-              </Link>
+          <div className="mt-8">
+            <Button variant="outline" asChild>
+              <Link to="/pricing">See what each plan includes</Link>
             </Button>
           </div>
         </div>
       </section>
+
+      <PageCta
+        title="See these modules in a live workspace"
+        description="We’ll walk through the features that match how your projects actually run."
+        primary={{ label: 'Request a demo', to: '/request-demo' }}
+        secondary={{ label: 'Browse modules', to: '/modules' }}
+      />
     </>
   )
 }

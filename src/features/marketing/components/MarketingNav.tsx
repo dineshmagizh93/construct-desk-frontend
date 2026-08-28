@@ -24,7 +24,7 @@ function NavLinkItem({ to, label, onClick }: { to: string; label: string; onClic
           {label}
           <span
             className={cn(
-              'absolute -bottom-1 left-0 h-0.5 rounded-full bg-primary transition-all duration-300',
+              'absolute -bottom-1 left-0 h-px rounded-full bg-foreground transition-all duration-300',
               isActive ? 'w-full opacity-100' : 'w-0 opacity-0',
             )}
           />
@@ -50,8 +50,8 @@ export function MarketingNav() {
       className={cn(
         'sticky top-0 z-40 transition-all duration-300',
         scrolled
-          ? 'border-b border-primary/10 bg-card/85 shadow-sm shadow-primary/5 backdrop-blur-xl'
-          : 'border-b border-transparent bg-card/50 backdrop-blur-lg',
+          ? 'border-b border-border bg-card/90 shadow-sm backdrop-blur-xl'
+          : 'border-b border-border/70 bg-card/80 backdrop-blur-lg',
       )}
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-6">
@@ -67,7 +67,7 @@ export function MarketingNav() {
           <Button variant="ghost" size="sm" className="hidden sm:inline-flex" asChild>
             <Link to="/login">Log in</Link>
           </Button>
-          <Button variant="accent" size="sm" className="hidden shadow-md shadow-accent/25 sm:inline-flex" asChild>
+          <Button variant="accent" size="sm" className="hidden sm:inline-flex" asChild>
             <Link to="/request-demo">
               Request Demo <ArrowRight className="size-4" />
             </Link>
@@ -92,7 +92,7 @@ export function MarketingNav() {
                     className={({ isActive }) =>
                       cn(
                         'rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                        isActive ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-secondary',
+                        isActive ? 'bg-secondary text-foreground' : 'text-foreground hover:bg-secondary',
                       )
                     }
                   >

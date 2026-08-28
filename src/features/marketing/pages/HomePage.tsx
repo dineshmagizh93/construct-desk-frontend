@@ -1,404 +1,592 @@
+import type { ReactNode } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   ArrowRight,
-  CheckCircle2,
-  HardHat,
-  Truck,
   Building2,
+  CheckCircle2,
+  FileText,
+  FolderOpen,
+  Hammer,
   Layers,
   Quote,
-  Star,
-  TrendingUp,
+  ShieldCheck,
   Target,
   Wallet,
-  Users,
-  Briefcase,
-  Settings,
-  FileText,
-  Hammer,
-  LayoutDashboard,
   type LucideIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/useAuth'
 import { INDUSTRY_CONFIGS } from '@/lib/industry'
 import { cn } from '@/lib/utils'
 import { MODULE_GROUPS, MODULE_KEYS } from '@/lib/modules'
-import { DIFFERENTIATORS, FEATURES, PLANS } from '../content'
-import { GlowOrbs, DOT_GRID, SectionHeading, StatBar, TrustStrip } from '../components/shared'
-import { IsometricSite } from '../components/IsometricSite'
-import { colorTheme } from '../palette'
+import { DIFFERENTIATORS, FEATURES, PLANS, STEPS } from '../content'
+import { ProductPreview } from '../components/ProductPreview'
+import { SectionHeading, TrustStrip } from '../components/shared'
 
-const HERO_STATS = [
-  { value: String(MODULE_KEYS.length), label: 'Built-in modules' },
-  { value: '6', label: 'Role-based teams' },
-  { value: '100%', label: 'Cloud-based' },
-  { value: '1', label: 'Unified workspace' },
-]
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  visible: (i = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
+  }),
+}
+
+function HeroSection() {
+  return (
+    <section className="relative overflow-hidden border-b border-border bg-card">
+      <div className="marketing-hero-grid-light pointer-events-none absolute inset-0" />
+      <div className="relative mx-auto max-w-6xl px-6 py-12 lg:py-14">
+        <div className="max-w-2xl">
+          <p className="animate-fade-up text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
+            Construction CRM
+          </p>
+          <h1 className="animate-fade-up-delay-1 mt-4 font-display text-[2.2rem] font-semibold leading-[1.1] tracking-tight text-balance sm:text-5xl lg:text-[3.15rem]">
+            Every site, crew, and rupee — in one workspace.
+          </h1>
+          <p className="animate-fade-up-delay-2 mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+            ConstructDesk replaces spreadsheets and WhatsApp threads with a single system for leads, projects,
+            labour, materials, and finance.
+          </p>
+          <div className="animate-fade-up-delay-3 mt-8 flex flex-col gap-3 sm:flex-row">
+            <Button size="lg" variant="accent" className="h-12 rounded-lg px-7 text-[15px]" asChild>
+              <Link to="/request-demo">
+                Request a demo <ArrowRight className="size-4" />
+              </Link>
+            </Button>
+            <Button size="lg" variant="outline" className="h-12 rounded-lg px-7 text-[15px]" asChild>
+              <Link to="/how-it-works">See how it works</Link>
+            </Button>
+          </div>
+          <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="size-3.5 text-foreground" /> No credit card
+            </span>
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="size-3.5 text-foreground" /> Setup in minutes
+            </span>
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="size-3.5 text-foreground" /> Role-based access
+            </span>
+          </div>
+        </div>
+        <div className="animate-fade-up-delay-3 mt-10">
+          <ProductPreview />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function ProofBar() {
+  const items = [
+    { value: String(MODULE_KEYS.length), label: 'Production modules' },
+    { value: '6', label: 'Built-in roles' },
+    { value: '2', label: 'Industry modes' },
+    { value: 'GST', label: 'India-ready billing' },
+  ]
+  return (
+    <section className="border-b border-border bg-background py-12">
+      <div className="mx-auto max-w-6xl px-6">
+        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-4">
+          {items.map((item) => (
+            <div key={item.label} className="bg-card px-6 py-7 text-center">
+              <p className="font-display text-3xl font-semibold tracking-tight text-foreground">{item.value}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{item.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function WorkflowSection() {
+  const stages = [
+    { n: '01', title: 'Win the work', body: 'Capture leads, follow up, and convert them into signed projects.' },
+    { n: '02', title: 'Price it right', body: 'Build estimates and BOQs, then lock the contract before a brick is laid.' },
+    { n: '03', title: 'Run the site', body: 'Track labour, materials, tasks, and daily progress with photos from the field.' },
+    { n: '04', title: 'Collect & close', body: 'Invoice against progress, watch budget vs spend, and keep documents in one vault.' },
+  ]
+  return (
+    <section className="border-b border-border bg-background">
+      <div className="mx-auto max-w-6xl px-6 py-20">
+        <SectionHeading
+          eyebrow="The operating system"
+          title="From first enquiry to final invoice"
+          description="One record follows the job. Sales, site, and accounts stop working from different versions of the truth."
+          align="left"
+        />
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          {stages.map((stage, i) => (
+            <motion.div
+              key={stage.n}
+              custom={i}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.4 }}
+              variants={fadeUp}
+              className="relative"
+            >
+              <p className="font-display text-sm font-semibold tracking-[0.18em] text-accent">{stage.n}</p>
+              <h3 className="mt-3 font-display text-lg font-semibold tracking-tight">{stage.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{stage.body}</p>
+              {i < stages.length - 1 && (
+                <span className="pointer-events-none absolute right-[-1.1rem] top-8 hidden h-px w-8 bg-border lg:block" />
+              )}
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function PipelineTile() {
+  const stages = [
+    { label: 'New', count: 8, width: '18%' },
+    { label: 'Site visit', count: 6, width: '28%' },
+    { label: 'Quoted', count: 5, width: '46%' },
+    { label: 'Won', count: 4, width: '72%' },
+  ]
+  return (
+    <div className="mt-6 space-y-3">
+      {stages.map((stage) => (
+        <div key={stage.label}>
+          <div className="mb-1 flex justify-between text-[11px]">
+            <span className="font-medium">{stage.label}</span>
+            <span className="text-muted-foreground">{stage.count}</span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
+            <div className="h-full rounded-full bg-primary" style={{ width: stage.width }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function SiteTile() {
+  return (
+    <div className="mt-6 space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-medium">Lakeview Towers · Block B</p>
+        <span className="text-xs font-semibold text-foreground">72%</span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-secondary">
+        <div className="h-full w-[72%] rounded-full bg-accent" />
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        {['Crew on site', 'Materials', 'Photos'].map((label, i) => (
+          <div key={label} className="rounded-lg border border-border bg-background px-2.5 py-2">
+            <p className="font-display text-sm font-semibold">{['18', '4 low', '12'][i]}</p>
+            <p className="text-[10px] text-muted-foreground">{label}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function FinanceTile() {
+  return (
+    <div className="mt-5">
+      <p className="font-display text-2xl font-semibold tracking-tight">₹68.5 L</p>
+      <p className="text-xs text-muted-foreground">Outstanding across 7 invoices</p>
+      <div className="mt-4 space-y-2">
+        {[
+          { name: 'Greenfield — RA 04', amount: '₹18.2 L' },
+          { name: 'MetroBuild — Mobilisation', amount: '₹12.0 L' },
+        ].map((row) => (
+          <div key={row.name} className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">{row.name}</span>
+            <span className="font-medium">{row.amount}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function AccessTile() {
+  const roles = ['Project Manager', 'Site Engineer', 'Accountant', 'Sales']
+  return (
+    <div className="mt-5 flex flex-wrap gap-1.5">
+      {roles.map((role) => (
+        <span key={role} className="rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium">
+          {role}
+        </span>
+      ))}
+      <span className="rounded-full bg-primary px-2.5 py-1 text-[11px] font-medium text-primary-foreground">+2 more</span>
+    </div>
+  )
+}
+
+function ProductBento() {
+  const tiles: {
+    title: string
+    description: string
+    icon: LucideIcon
+    span: string
+    body: ReactNode
+  }[] = [
+    {
+      title: FEATURES[0].title,
+      description: FEATURES[0].description,
+      icon: Target,
+      span: 'lg:col-span-7',
+      body: <PipelineTile />,
+    },
+    {
+      title: FEATURES[1].title,
+      description: FEATURES[1].description,
+      icon: Building2,
+      span: 'lg:col-span-5',
+      body: <SiteTile />,
+    },
+    {
+      title: FEATURES[2].title,
+      description: FEATURES[2].description,
+      icon: Wallet,
+      span: 'lg:col-span-4',
+      body: <FinanceTile />,
+    },
+    {
+      title: FEATURES[4].title,
+      description: FEATURES[4].description,
+      icon: ShieldCheck,
+      span: 'lg:col-span-4',
+      body: <AccessTile />,
+    },
+    {
+      title: FEATURES[3].title,
+      description: FEATURES[3].description,
+      icon: FolderOpen,
+      span: 'lg:col-span-4',
+      body: (
+        <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
+          Drawings, permits, and contracts live on Cloudflare R2 — not in someone&apos;s WhatsApp.
+        </p>
+      ),
+    },
+  ]
+
+  return (
+    <section className="marketing-section-alt border-b border-border">
+      <div className="mx-auto max-w-6xl px-6 py-20">
+        <SectionHeading
+          eyebrow="Product"
+          title="A workspace that looks like the job, not a generic CRM"
+          description="Each surface below is a real module in ConstructDesk — lists, forms, and permissions included."
+          align="left"
+        />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+          {tiles.map((tile, i) => (
+            <motion.div
+              key={tile.title}
+              custom={i}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.25 }}
+              variants={fadeUp}
+              className={cn(
+                'rounded-2xl border border-border bg-card p-6 shadow-[0_1px_0_rgba(15,23,42,0.04)]',
+                tile.span,
+              )}
+            >
+              <div className="flex size-10 items-center justify-center rounded-lg border border-border bg-background">
+                <tile.icon className="size-4 text-foreground" />
+              </div>
+              <h3 className="mt-4 font-display text-lg font-semibold tracking-tight">{tile.title}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{tile.description}</p>
+              {tile.body}
+            </motion.div>
+          ))}
+        </div>
+        <div className="mt-8">
+          <Button variant="outline" size="lg" className="h-11 px-6" asChild>
+            <Link to="/features">
+              Explore all features <ArrowRight className="size-4" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+const MODULE_GROUP_ICONS: Record<string, LucideIcon> = {
+  Overview: Building2,
+  'CRM & Sales': Target,
+  'Project Delivery': Hammer,
+  'Pre-Construction': FileText,
+  Resources: Layers,
+  Finance: Wallet,
+  Operations: FolderOpen,
+  System: ShieldCheck,
+}
+
+function ModulesSection() {
+  const groups = MODULE_GROUPS.filter((g) => g.label !== 'System')
+  return (
+    <section className="border-b border-border bg-background">
+      <div className="mx-auto max-w-6xl px-6 py-20">
+        <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+          <div>
+            <SectionHeading
+              eyebrow="Modules"
+              title={`${MODULE_KEYS.length} modules. Already shipped.`}
+              description="Nothing on this page is a mockup. Every group below is live in the product, with role-based access."
+              align="left"
+            />
+            <Button variant="outline" size="lg" className="h-11 px-6" asChild>
+              <Link to="/modules">
+                See every module <ArrowRight className="size-4" />
+              </Link>
+            </Button>
+          </div>
+          <div className="divide-y divide-border rounded-2xl border border-border bg-card">
+            {groups.map((group) => {
+              const Icon = MODULE_GROUP_ICONS[group.label] ?? FileText
+              return (
+                <div key={group.label} className="flex items-start gap-4 px-5 py-4">
+                  <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-md border border-border bg-background">
+                    <Icon className="size-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <p className="font-display text-sm font-semibold">{group.label}</p>
+                      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                        {group.modules.length} modules
+                      </p>
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {group.modules.map((m) => m.label).join(' · ')}
+                    </p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function StepsSection() {
+  return (
+    <section className="marketing-section-alt border-b border-border">
+      <div className="mx-auto max-w-6xl px-6 py-20">
+        <SectionHeading
+          eyebrow="How it works"
+          title="Live in four steps"
+          description="No lengthy onboarding programme. Create a workspace, invite the team, and start logging work."
+        />
+        <ol className="grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
+          {STEPS.map((step, i) => (
+            <li key={step.title} className="bg-card p-6">
+              <span className="font-display text-xs font-semibold tracking-[0.16em] text-accent">0{i + 1}</span>
+              <h3 className="mt-3 font-display text-base font-semibold tracking-tight">{step.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.description}</p>
+            </li>
+          ))}
+        </ol>
+        <div className="mt-8 text-center">
+          <Button variant="outline" size="lg" className="h-11 px-6" asChild>
+            <Link to="/how-it-works">
+              Walk through the product <ArrowRight className="size-4" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function IndustriesSection() {
+  const construction = INDUSTRY_CONFIGS.construction
+  const interiorDesign = INDUSTRY_CONFIGS.interior_design
+  const cards = [
+    {
+      label: construction.label,
+      tagline: construction.tagline,
+      kicker: 'Primary focus',
+      points: ['Site progress & labour tracking', 'BOQ, estimates & contracts'],
+      featured: true,
+    },
+    {
+      label: interiorDesign.label,
+      tagline: interiorDesign.tagline,
+      kicker: 'Also supported',
+      points: ['Client approvals & revisions', 'Material & vendor management'],
+      featured: false,
+    },
+  ]
+  return (
+    <section className="border-b border-border bg-background">
+      <div className="mx-auto max-w-6xl px-6 py-20">
+        <SectionHeading
+          eyebrow="Industries"
+          title="One platform. Two ways of working."
+          description="Switch terminology between construction and interior design without changing software."
+          align="left"
+        />
+        <div className="grid gap-4 lg:grid-cols-2">
+          {cards.map((card) => (
+            <div
+              key={card.label}
+              className={cn(
+                'rounded-2xl border bg-card p-8',
+                card.featured ? 'border-accent/50 ring-1 ring-accent/20' : 'border-border',
+              )}
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent">{card.kicker}</p>
+              <h3 className="mt-4 font-display text-2xl font-semibold tracking-tight">{card.label}</h3>
+              <p className="mt-2 max-w-md leading-relaxed text-muted-foreground">{card.tagline}</p>
+              <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
+                {card.points.map((point) => (
+                  <li key={point} className="flex items-center gap-2">
+                    <CheckCircle2 className="size-4 shrink-0 text-foreground" />
+                    {point}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8">
+          <Button variant="outline" size="lg" className="h-11 px-6" asChild>
+            <Link to="/industries">
+              Compare industries <ArrowRight className="size-4" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </section>
+  )
+}
 
 const TESTIMONIALS = [
   {
     quote: 'We replaced five spreadsheets and two WhatsApp groups. Every site update now lives in one place.',
     name: 'Rajesh K.',
-    role: 'Project Director, MetroBuild Contractors',
+    role: 'Project Director',
+    company: 'MetroBuild Contractors',
+    initials: 'RK',
   },
   {
     quote: 'From lead to invoice — our sales and accounts teams finally work off the same data.',
     name: 'Priya M.',
-    role: 'Operations Head, Studio Forma Interiors',
+    role: 'Operations Head',
+    company: 'Studio Forma Interiors',
+    initials: 'PM',
   },
 ]
 
-function FloatingStat({
-  className,
-  icon: Icon,
-  tone,
-  label,
-  value,
-  delay,
-}: {
-  className?: string
-  icon: typeof HardHat
-  tone: string
-  label: string
-  value: string
-  delay?: string
-}) {
-  return (
-    <div
-      className={cn(
-        'absolute z-20 flex animate-float items-center gap-2.5 rounded-xl border border-white/60 bg-white/85 px-3.5 py-2.5 shadow-xl shadow-primary/10 backdrop-blur-md',
-        className,
-      )}
-      style={{ animationDelay: delay }}
-    >
-      <div className={cn('flex size-9 shrink-0 items-center justify-center rounded-lg', tone)}>
-        <Icon className="size-4.5" />
-      </div>
-      <div className="text-left leading-tight">
-        <p className="text-[10px] font-medium text-muted-foreground">{label}</p>
-        <p className="text-sm font-bold">{value}</p>
-      </div>
-    </div>
-  )
-}
-
-function HeroScene() {
-  return (
-    <div className="relative w-full max-w-xl animate-fade-up-delay-2">
-      <div className="absolute inset-6 -z-10 rounded-full bg-gradient-to-br from-blue-400/25 via-violet-400/20 to-amber-300/25 blur-3xl" />
-      <IsometricSite className="w-full drop-shadow-2xl" />
-      <FloatingStat
-        className="left-0 top-6 -rotate-2"
-        icon={HardHat}
-        tone="bg-emerald-500/15 text-emerald-600"
-        label="Safety compliance"
-        value="100% · 0 incidents"
-      />
-      <FloatingStat
-        className="right-0 top-1/3 rotate-2"
-        icon={TrendingUp}
-        tone="bg-blue-500/15 text-blue-600"
-        label="This week"
-        value="+18% progress"
-        delay="1.2s"
-      />
-      <FloatingStat
-        className="bottom-10 left-2 rotate-1"
-        icon={Truck}
-        tone="bg-amber-500/15 text-amber-600"
-        label="Live now"
-        value="3 active sites"
-        delay="2.1s"
-      />
-    </div>
-  )
-}
-
-function HeroSection() {
-  return (
-    <section className="marketing-hero-vivid relative overflow-hidden">
-      <div className="blueprint-grid absolute inset-0 -z-20 opacity-60 [mask-image:radial-gradient(ellipse_75%_65%_at_50%_0%,black,transparent)]" />
-      <GlowOrbs />
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-10 px-6 pb-14 pt-14 text-center lg:flex-row lg:gap-8 lg:pb-18 lg:pt-20 lg:text-left">
-        <div className="flex-1 space-y-7">
-          <Badge
-            variant="secondary"
-            className="animate-fade-up gap-1.5 border border-primary/15 bg-white/70 py-1.5 pl-2.5 pr-3 shadow-sm backdrop-blur-sm"
-          >
-            <HardHat className="size-3.5 text-amber-500" /> Built for construction &amp; interior teams
-          </Badge>
-          <h1 className="animate-fade-up-delay-1 font-display text-4xl font-bold leading-[1.08] tracking-tight text-balance sm:text-5xl lg:text-[3.4rem]">
-            Build faster with <span className="marketing-gradient-text-vivid">every site</span> in one command center.
-          </h1>
-          <p className="animate-fade-up-delay-2 mx-auto max-w-lg text-lg leading-relaxed text-muted-foreground lg:mx-0">
-            Leads, projects, labour, materials, and finance — the complete CRM built for construction businesses that
-            need clarity, not chaos.
-          </p>
-          <div className="animate-fade-up-delay-3 flex flex-col items-center gap-3 sm:flex-row lg:items-start">
-            <Button size="lg" variant="accent" className="h-11 px-7 shadow-lg shadow-accent/30" asChild>
-              <Link to="/request-demo">
-                Request Demo <ArrowRight className="size-4" />
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" className="h-11 border-primary/20 bg-white/60 px-7 backdrop-blur-sm" asChild>
-              <Link to="/how-it-works">See how it works</Link>
-            </Button>
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-1 text-sm text-muted-foreground lg:justify-start">
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="size-4 text-success" /> No credit card required
-            </span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="size-4 text-success" /> Setup in minutes
-            </span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="size-4 text-success" /> Multi-tenant ready
-            </span>
-          </div>
-        </div>
-        <div className="flex flex-1 justify-center lg:justify-end">
-          <HeroScene />
-        </div>
-      </div>
-      <div className="mx-auto max-w-6xl px-6 pb-14">
-        <StatBar stats={HERO_STATS} />
-      </div>
-    </section>
-  )
-}
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.15, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as const },
-  }),
-}
-
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.9 },
-  visible: (i: number) => ({
-    opacity: 1,
-    scale: 1,
-    transition: { delay: i * 0.1, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as const },
-  }),
-}
-
-function FeaturesTeaser() {
-  return (
-    <section className="marketing-section-alt border-y border-border/60">
-      <div className="mx-auto max-w-6xl px-6 py-16">
-      <SectionHeading eyebrow="Features" title="Everything your business needs, in one place" description="A taste of what's inside — every module is production-ready, not a placeholder." />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {FEATURES.slice(0, 3).map((feature, i) => {
-          const theme = colorTheme(i)
-          return (
-            <motion.div
-              key={feature.title}
-              custom={i}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.3 }}
-              variants={fadeInUp}
-              className={cn(
-                'group relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5',
-                theme.ring,
-              )}
-            >
-              <div
-                className={cn(
-                  'absolute inset-x-0 top-0 h-1 origin-left scale-x-0 bg-gradient-to-r transition-transform duration-300 group-hover:scale-x-100',
-                  theme.bar,
-                )}
-              />
-              <span className="text-xs font-bold text-muted-foreground/50">0{i + 1}</span>
-              <div className={cn('mt-3 flex size-12 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3', theme.iconBg, theme.icon)}>
-                <feature.icon className="size-5" />
-              </div>
-              <h3 className="mt-4 font-display text-lg font-semibold">{feature.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
-              <Link
-                to="/features"
-                className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary opacity-0 transition-all group-hover:opacity-100 group-hover:translate-x-1"
-              >
-                Learn more <ArrowRight className="size-3.5" />
-              </Link>
-            </motion.div>
-          )
-        })}
-      </div>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ delay: 0.5, duration: 0.4 }}
-        className="mt-8 text-center"
-      >
-        <Button variant="outline" size="lg" asChild>
-          <Link to="/features">
-            Explore all features <ArrowRight className="size-4" />
-          </Link>
-        </Button>
-      </motion.div>
-      </div>
-    </section>
-  )
-}
-
-// Built directly from the real module catalog (lib/modules.ts) so this teaser can't drift out of
-// sync with what the product actually ships — same pattern used for the pricing comparison table.
-const MODULE_GROUP_ICONS: Record<string, LucideIcon> = {
-  Overview: LayoutDashboard,
-  'CRM & Sales': Target,
-  'Project Delivery': Building2,
-  'Pre-Construction': Hammer,
-  Resources: Users,
-  Finance: Wallet,
-  Operations: Briefcase,
-  System: Settings,
-}
-
-function ModulesTeaser() {
-  const modules: { label: string; count: string; icon: LucideIcon }[] = MODULE_GROUPS.map((group) => ({
-    label: group.label,
-    count: String(group.modules.length),
-    icon: MODULE_GROUP_ICONS[group.label] ?? FileText,
-  }))
-  return (
-    <section className="relative border-y border-border/60 bg-gradient-to-b from-primary/[0.04] via-secondary/40 to-secondary/20">
-      <div className={cn('pointer-events-none absolute inset-0 opacity-30', DOT_GRID)} />
-      <div className="relative mx-auto max-w-5xl px-6 py-16">
-        <SectionHeading
-          eyebrow="Modules"
-          title={`${MODULE_KEYS.length} modules, already built`}
-          description="Nothing here is a mockup. Every module ships with list views, forms, and role-based access."
-          align="center"
-        />
-        <div className="mx-auto grid max-w-3xl grid-cols-2 gap-2.5 sm:grid-cols-4">
-          {modules.map((mod, i) => {
-            const theme = colorTheme(i)
-            const Icon = mod.icon
-            return (
-              <motion.div
-                key={mod.label}
-                custom={i}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.2 }}
-                variants={scaleIn}
-                whileHover={{ y: -4, scale: 1.03 }}
-                className={cn(
-                  'group cursor-default rounded-xl border border-border/60 px-4 py-3.5 text-left shadow-sm transition-colors',
-                  theme.chipBg,
-                )}
-              >
-                <div className={cn('mb-2 flex size-9 items-center justify-center rounded-lg', theme.iconBg)}>
-                  <Icon className={cn('size-4', theme.chipText)} />
-                </div>
-                <p className={cn('text-[10px] font-bold uppercase tracking-wider', theme.chipText)}>{mod.count} modules</p>
-                <p className={cn('mt-1 text-sm font-semibold', theme.chipText)}>{mod.label}</p>
-              </motion.div>
-            )
-          })}
-        </div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.6, duration: 0.4 }}
-          className="mt-8 text-center"
-        >
-          <Button variant="outline" size="lg" asChild>
-            <Link to="/modules">
-              See every module <ArrowRight className="size-4" />
-            </Link>
-          </Button>
-        </motion.div>
-      </div>
-    </section>
-  )
-}
-
-function IndustriesTeaser() {
-  const construction = INDUSTRY_CONFIGS.construction
-  const interiorDesign = INDUSTRY_CONFIGS.interior_design
-  return (
-    <section className="marketing-section-tint">
-      <div className="mx-auto max-w-6xl px-6 py-16">
-      <SectionHeading eyebrow="Industries" title="One platform, tailored to your industry" />
-      <div className="mx-auto grid max-w-3xl grid-cols-1 gap-5 sm:grid-cols-[1.3fr_1fr]">
-        <div className="relative overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary to-primary/85 p-7 text-primary-foreground shadow-xl shadow-primary/20">
-          <div className="absolute -right-10 -top-10 size-40 rounded-full bg-white/10 blur-2xl" />
-          <Badge variant="accent" className="w-fit">
-            Primary focus
-          </Badge>
-          <div className="mt-4 flex size-12 items-center justify-center rounded-xl bg-white/15">
-            <Building2 className="size-6" />
-          </div>
-          <h3 className="mt-4 font-display text-xl font-bold">{construction.label}</h3>
-          <p className="mt-2 leading-relaxed text-primary-foreground/85">{construction.tagline}</p>
-          <ul className="mt-4 space-y-2 text-sm text-primary-foreground/80">
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="size-4 shrink-0" /> Site progress &amp; labour tracking
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="size-4 shrink-0" /> BOQ, estimates &amp; contracts
-            </li>
-          </ul>
-        </div>
-        <div className="rounded-2xl border border-border bg-card p-7 shadow-sm transition-shadow hover:shadow-md">
-          <Badge variant="secondary" className="w-fit">
-            Also supported
-          </Badge>
-          <div className="mt-4 flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Layers className="size-6" />
-          </div>
-          <h3 className="mt-4 font-display text-xl font-bold">{interiorDesign.label}</h3>
-          <p className="mt-2 leading-relaxed text-muted-foreground">{interiorDesign.tagline}</p>
-          <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="size-4 shrink-0 text-success" /> Client approvals &amp; revisions
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="size-4 shrink-0 text-success" /> Material &amp; vendor management
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div className="mt-8 text-center">
-        <Button variant="outline" size="lg" asChild>
-          <Link to="/industries">
-            Learn more <ArrowRight className="size-4" />
-          </Link>
-        </Button>
-      </div>
-      </div>
-    </section>
-  )
-}
-
 function TestimonialsSection() {
   return (
-    <section className="border-y border-border/60 bg-gradient-to-b from-card/60 to-primary/[0.03]">
-      <div className="mx-auto max-w-6xl px-6 py-16">
-        <SectionHeading eyebrow="Testimonials" title="Teams that switched to one workspace" />
-        <div className="grid gap-5 sm:grid-cols-2">
+    <section className="marketing-section-alt border-b border-border">
+      <div className="mx-auto max-w-6xl px-6 py-20">
+        <SectionHeading eyebrow="Teams" title="Built for the way Indian sites actually run" />
+        <div className="grid gap-4 lg:grid-cols-2">
           {TESTIMONIALS.map((item) => (
-            <div key={item.name} className="relative rounded-2xl border border-border bg-card p-6 shadow-sm">
-              <Quote className="absolute right-6 top-6 size-8 text-primary/10" />
-              <div className="mb-3 flex gap-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="size-4 fill-accent text-accent" />
-                ))}
+            <figure key={item.name} className="rounded-2xl border border-border bg-card p-8">
+              <Quote className="size-6 text-accent" strokeWidth={1.5} />
+              <blockquote className="mt-4 font-display text-xl font-medium leading-snug tracking-tight text-balance">
+                {item.quote}
+              </blockquote>
+              <figcaption className="mt-6 flex items-center gap-3">
+                <span className="flex size-10 items-center justify-center rounded-full border border-border bg-secondary text-xs font-semibold">
+                  {item.initials}
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold">{item.name}</span>
+                  <span className="block text-sm text-muted-foreground">
+                    {item.role}, {item.company}
+                  </span>
+                </span>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function PricingSection() {
+  return (
+    <section className="border-b border-border bg-background">
+      <div className="mx-auto max-w-6xl px-6 py-20">
+        <SectionHeading
+          eyebrow="Pricing"
+          title="Straightforward plans"
+          description="Start free. Upgrade when the crew grows. Yearly billing includes two months free."
+        />
+        <div className="grid gap-4 lg:grid-cols-3">
+          {PLANS.map((plan) => (
+            <div
+              key={plan.name}
+              className={cn(
+                'flex flex-col rounded-2xl border bg-card p-7',
+                plan.highlighted ? 'border-accent/50 ring-1 ring-accent/25' : 'border-border',
+              )}
+            >
+              <div className="flex items-center justify-between">
+                <p className="font-display text-lg font-semibold">{plan.name}</p>
+                {plan.highlighted && (
+                  <span className="rounded-full bg-accent px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-accent-foreground">
+                    Popular
+                  </span>
+                )}
               </div>
-              <p className="text-base leading-relaxed text-foreground/90">&ldquo;{item.quote}&rdquo;</p>
-              <div className="mt-5 border-t border-border pt-4">
-                <p className="font-semibold">{item.name}</p>
-                <p className="text-sm text-muted-foreground">{item.role}</p>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{plan.description}</p>
+              <p className="mt-5 font-display text-3xl font-semibold tracking-tight">
+                {plan.price.monthly}
+                <span className="text-sm font-normal text-muted-foreground">{plan.period.monthly}</span>
+              </p>
+              <ul className="mt-5 flex-1 space-y-2 text-sm text-muted-foreground">
+                {plan.features.slice(0, 5).map((feature) => (
+                  <li key={feature} className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-foreground" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <Button variant={plan.highlighted ? 'accent' : 'outline'} className="mt-6 w-full" asChild>
+                {plan.cta.to ? <Link to={plan.cta.to}>{plan.cta.label}</Link> : <a href={plan.cta.href}>{plan.cta.label}</a>}
+              </Button>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8 text-center">
+          <Button variant="outline" size="lg" className="h-11 px-6" asChild>
+            <Link to="/pricing">
+              Compare every module <ArrowRight className="size-4" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function WhySection() {
+  return (
+    <section className="border-b border-border bg-background">
+      <div className="mx-auto max-w-6xl px-6 py-20">
+        <SectionHeading eyebrow="Why ConstructDesk" title="Built for this industry, not adapted to it" align="left" />
+        <div className="grid gap-10 sm:grid-cols-2">
+          {DIFFERENTIATORS.map((item) => (
+            <div key={item.title} className="flex gap-4">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card">
+                <item.icon className="size-4" />
+              </div>
+              <div>
+                <h3 className="font-display font-semibold tracking-tight">{item.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
               </div>
             </div>
           ))}
@@ -408,103 +596,24 @@ function TestimonialsSection() {
   )
 }
 
-function PricingTeaser() {
-  const growth = PLANS.find((p) => p.highlighted)!
-  return (
-    <section className="bg-gradient-to-b from-secondary/50 via-primary/[0.03] to-secondary/30">
-      <div className="mx-auto max-w-3xl px-6 py-16 text-center">
-        <SectionHeading
-          eyebrow="Pricing"
-          title="Simple, transparent pricing"
-          description="Start free. Upgrade whenever your team grows."
-        />
-        <div className="relative mx-auto max-w-sm rounded-2xl border border-primary/20 bg-gradient-to-b from-primary to-primary/90 p-7 text-left text-primary-foreground shadow-2xl shadow-primary/25">
-          <Badge variant="accent" className="absolute -top-3 left-1/2 -translate-x-1/2 shadow-md">
-            Most Popular
-          </Badge>
-          <p className="font-display text-lg font-semibold">{growth.name}</p>
-          <p className="mt-1 text-sm text-primary-foreground/80">{growth.description}</p>
-          <p className="mt-4 font-display text-4xl font-bold">
-            {growth.price.monthly}
-            <span className="text-sm font-normal text-primary-foreground/70">{growth.period.monthly}</span>
-          </p>
-          <ul className="mt-5 space-y-2 text-sm text-primary-foreground/85">
-            {growth.features.slice(0, 4).map((f) => (
-              <li key={f} className="flex items-center gap-2">
-                <CheckCircle2 className="size-4 shrink-0 text-accent" />
-                {f}
-              </li>
-            ))}
-          </ul>
-          <Button variant="accent" className="mt-6 w-full shadow-md shadow-black/10" asChild>
-            <Link to="/request-demo">Request Demo</Link>
-          </Button>
-        </div>
-        <div className="mt-8">
-          <Button variant="outline" size="lg" asChild>
-            <Link to="/pricing">
-              See full pricing &amp; plans <ArrowRight className="size-4" />
-            </Link>
-          </Button>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function WhyUsSection() {
-  return (
-    <section className="marketing-section-alt border-t border-border/60">
-      <div className="mx-auto max-w-6xl px-6 py-16">
-      <SectionHeading eyebrow="Why ConstructDesk" title="Built different, on purpose" />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {DIFFERENTIATORS.map((item, i) => {
-          const theme = colorTheme(i + 3)
-          return (
-            <div
-              key={item.title}
-              className="flex gap-4 rounded-2xl border border-border/60 bg-card p-5 shadow-sm transition-all hover:border-primary/20 hover:shadow-md"
-            >
-              <div className={cn('flex size-12 shrink-0 items-center justify-center rounded-xl', theme.iconBg, theme.icon)}>
-                <item.icon className="size-5" />
-              </div>
-              <div>
-                <p className="font-display font-semibold">{item.title}</p>
-                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-      </div>
-    </section>
-  )
-}
-
 function FinalCta() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-[oklch(0.26_0.06_255)]">
-      <div className="absolute left-1/4 top-0 size-72 rounded-full bg-white/10 blur-3xl" />
-      <div className="absolute bottom-0 right-1/4 size-72 rounded-full bg-accent/20 blur-3xl" />
-      <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-4 px-6 py-16 text-center text-primary-foreground">
-        <h2 className="font-display text-3xl font-bold tracking-tight text-balance sm:text-4xl">
-          Ready to run your business from one place?
+    <section className="border-t border-border bg-card">
+      <div className="mx-auto max-w-3xl px-6 py-20 text-center">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">Get started</p>
+        <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+          Put every site on the same page.
         </h2>
-        <p className="max-w-md text-base leading-relaxed text-primary-foreground/80">
-          Set up your workspace in minutes — no credit card required to get started.
+        <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-muted-foreground">
+          Request a walkthrough. We&apos;ll map ConstructDesk to how your projects actually run — no credit card required.
         </p>
-        <div className="flex flex-col gap-2.5 sm:flex-row">
-          <Button size="lg" variant="accent" className="h-11 px-7 shadow-lg shadow-black/20" asChild>
+        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Button size="lg" variant="accent" className="h-12 rounded-lg px-7 text-[15px]" asChild>
             <Link to="/request-demo">
-              Request Demo <ArrowRight className="size-4" />
+              Request a demo <ArrowRight className="size-4" />
             </Link>
           </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="h-11 border-primary-foreground/30 bg-transparent px-7 text-primary-foreground hover:bg-white/10 hover:text-primary-foreground"
-            asChild
-          >
+          <Button size="lg" variant="outline" className="h-12 rounded-lg px-7 text-[15px]" asChild>
             <Link to="/pricing">View pricing</Link>
           </Button>
         </div>
@@ -523,13 +632,16 @@ export function HomePage() {
   return (
     <>
       <HeroSection />
+      <ProofBar />
       <TrustStrip />
-      <FeaturesTeaser />
-      <ModulesTeaser />
-      <IndustriesTeaser />
+      <WorkflowSection />
+      <ProductBento />
+      <ModulesSection />
+      <StepsSection />
+      <IndustriesSection />
       <TestimonialsSection />
-      <PricingTeaser />
-      <WhyUsSection />
+      <PricingSection />
+      <WhySection />
       <FinalCta />
     </>
   )

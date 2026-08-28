@@ -3,7 +3,7 @@ import { PageHero, LegalDocument } from '../components/shared'
 export function TermsPage() {
   return (
     <>
-      <PageHero eyebrow="Legal" title="Terms of Service" description="The agreement between your business and ConstructDesk." />
+      <PageHero align="left" eyebrow="Legal" title="Terms of Service" description="The agreement between your business and ConstructDesk." />
 
       <LegalDocument
         effectiveDate="26 August 2026"

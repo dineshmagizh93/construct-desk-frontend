@@ -75,10 +75,42 @@ export const FEATURES: Feature[] = [
 ]
 
 export const STEPS = [
-  { title: 'Create your workspace', description: 'Sign up and set up your company profile in minutes.' },
-  { title: 'Invite your team', description: 'Add Project Managers, Site Engineers, Accountants, and Sales staff with role-based access.' },
-  { title: 'Run every project', description: 'Manage leads, estimates, site progress, materials, and contracts end-to-end.' },
-  { title: 'Track it all', description: 'Real-time dashboards keep leadership and field teams on the same page.' },
+  {
+    title: 'Create your workspace',
+    description: 'Sign up and set up your company profile in minutes.',
+    points: [
+      'Pick Construction or Interior Design terminology',
+      'Admin login is issued after your demo',
+      'Trial starts with no credit card',
+    ],
+  },
+  {
+    title: 'Invite your team',
+    description: 'Add Project Managers, Site Engineers, Accountants, and Sales staff with role-based access.',
+    points: [
+      'Six built-in roles, not a generic admin toggle',
+      'Each person only sees the modules they need',
+      'Add or remove access as the crew changes',
+    ],
+  },
+  {
+    title: 'Run every project',
+    description: 'Manage leads, estimates, site progress, materials, and contracts end-to-end.',
+    points: [
+      'Convert a won lead into a live project',
+      'Log labour, materials, tasks, and site photos',
+      'Keep drawings and contracts in the same record',
+    ],
+  },
+  {
+    title: 'Track it all',
+    description: 'Real-time dashboards keep leadership and field teams on the same page.',
+    points: [
+      'Budget vs spend updates as expenses are logged',
+      'Invoice against progress, not a month-end scramble',
+      'One dashboard for owners, PMs, and accounts',
+    ],
+  },
 ]
 
 export type BillingPeriod = 'monthly' | 'yearly'

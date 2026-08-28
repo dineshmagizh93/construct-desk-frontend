@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { FAQS, type Faq } from '../content'
-import { PageHero } from '../components/shared'
+import { PageCta, PageHero } from '../components/shared'
 
 const CATEGORIES: Faq['category'][] = ['General', 'Billing', 'Data & Security']
 
@@ -12,24 +12,21 @@ function FaqGroup({ category }: { category: Faq['category'] }) {
 
   return (
     <div>
-      <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary">{category}</p>
-      <div className="space-y-2">
+      <h2 className="mb-3 font-display text-lg font-semibold tracking-tight">{category}</h2>
+      <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
         {items.map((faq, i) => {
           const open = openIndex === i
           return (
-            <div
-              key={faq.question}
-              className={cn('rounded-xl border transition-colors', open ? 'border-primary/30 bg-primary/5' : 'border-border bg-card')}
-            >
+            <div key={faq.question}>
               <button
                 type="button"
                 onClick={() => setOpenIndex(open ? null : i)}
-                className="flex w-full items-center justify-between gap-4 px-4.5 py-3.5 text-left text-sm font-semibold"
+                className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-semibold"
               >
                 {faq.question}
-                <ChevronDown className={cn('size-4 shrink-0 text-primary transition-transform', open && 'rotate-180')} />
+                <ChevronDown className={cn('size-4 shrink-0 text-muted-foreground transition-transform', open && 'rotate-180')} />
               </button>
-              {open && <p className="px-4.5 pb-3.5 text-sm text-muted-foreground">{faq.answer}</p>}
+              {open && <p className="px-5 pb-4 text-sm leading-relaxed text-muted-foreground">{faq.answer}</p>}
             </div>
           )
         })}
@@ -41,13 +38,25 @@ function FaqGroup({ category }: { category: Faq['category'] }) {
 export function FaqPage() {
   return (
     <>
-      <PageHero eyebrow="FAQ" title="Frequently asked questions" description="Everything you need to know before getting started." />
+      <PageHero
+        align="left"
+        eyebrow="FAQ"
+        title="Questions teams ask before they switch"
+        description="Billing, data isolation, interiors vs construction, and what happens if a subscription lapses."
+      />
 
-      <section className="mx-auto max-w-3xl space-y-8 px-6 pb-16">
+      <section className="mx-auto max-w-3xl space-y-10 px-6 py-16">
         {CATEGORIES.map((category) => (
           <FaqGroup key={category} category={category} />
         ))}
       </section>
+
+      <PageCta
+        title="Didn’t find it?"
+        description="Email sales@constructdesk.in or request a demo and we’ll answer on the call."
+        primary={{ label: 'Request a demo', to: '/request-demo' }}
+        secondary={{ label: 'View pricing', to: '/pricing' }}
+      />
     </>
   )
 }

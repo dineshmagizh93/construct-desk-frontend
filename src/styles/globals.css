@@ -115,38 +115,28 @@
   }
 
   .marketing-page-bg {
-    background-color: oklch(0.97 0.01 255);
-    background-image:
-      radial-gradient(ellipse 90% 60% at 50% -10%, oklch(0.45 0.1 255 / 0.14), transparent 55%),
-      radial-gradient(ellipse 50% 45% at 100% 20%, oklch(0.74 0.15 70 / 0.1), transparent 50%),
-      radial-gradient(ellipse 45% 40% at 0% 80%, oklch(0.55 0.12 255 / 0.08), transparent 50%),
-      radial-gradient(ellipse 60% 50% at 50% 100%, oklch(0.6 0.08 255 / 0.05), transparent 60%);
+    background-color: oklch(0.975 0.008 255);
   }
 
   .marketing-section-alt {
-    background: linear-gradient(
-      180deg,
-      oklch(0.96 0.012 255 / 0.9) 0%,
-      oklch(0.975 0.008 255 / 0.5) 100%
-    );
+    background: oklch(0.97 0.007 255);
   }
 
   .marketing-section-tint {
-    background: linear-gradient(
-      135deg,
-      oklch(0.94 0.02 255 / 0.6) 0%,
-      oklch(0.97 0.01 255 / 0.3) 50%,
-      oklch(0.96 0.015 70 / 0.15) 100%
-    );
+    background: oklch(0.97 0.007 255);
   }
 
   .marketing-hero-bg {
-    background: linear-gradient(
-      180deg,
-      oklch(0.93 0.025 255 / 0.55) 0%,
-      oklch(0.97 0.01 255 / 0.2) 45%,
-      transparent 100%
-    );
+    background: oklch(0.995 0.004 255);
+  }
+
+  .marketing-hero-grid-light {
+    background-image:
+      linear-gradient(oklch(0.32 0.07 255 / 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(0.32 0.07 255 / 0.06) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 85% 75% at 50% 0%, black, transparent);
+    -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 0%, black, transparent);
   }
 
   .animate-fade-up {
@@ -165,37 +155,12 @@
     animation: fade-up 0.6s ease-out 0.3s both;
   }
 
-  /* Vivid, multi-hue hero backdrop for the landing page. */
-  .marketing-hero-vivid {
-    background-color: oklch(0.985 0.006 255);
-    background-image:
-      radial-gradient(ellipse 55% 50% at 12% -5%, oklch(0.6 0.2 265 / 0.22), transparent 60%),
-      radial-gradient(ellipse 50% 45% at 88% 5%, oklch(0.8 0.16 65 / 0.2), transparent 55%),
-      radial-gradient(ellipse 50% 55% at 78% 95%, oklch(0.72 0.17 160 / 0.16), transparent 55%),
-      radial-gradient(ellipse 45% 45% at 25% 100%, oklch(0.62 0.22 330 / 0.13), transparent 55%);
-  }
-
   /* Faint blueprint grid overlay (construction reference). */
   .blueprint-grid {
     background-image:
       linear-gradient(oklch(0.5 0.16 255 / 0.13) 1px, transparent 1px),
       linear-gradient(90deg, oklch(0.5 0.16 255 / 0.13) 1px, transparent 1px);
     background-size: 34px 34px;
-  }
-
-  .marketing-gradient-text-vivid {
-    @apply bg-gradient-to-r from-blue-600 via-violet-600 to-amber-500 bg-clip-text text-transparent;
-  }
-
-  .animate-float {
-    animation: floaty 6s ease-in-out infinite;
-  }
-  .animate-float-slow {
-    animation: floaty 8.5s ease-in-out infinite;
-  }
-  .animate-crane {
-    transform-origin: 50% 20%;
-    animation: crane-swing 7s ease-in-out infinite;
   }
 }
 
@@ -207,25 +172,5 @@
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes floaty {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-12px);
-  }
-}
-
-@keyframes crane-swing {
-  0%,
-  100% {
-    transform: rotate(-1.5deg);
-  }
-  50% {
-    transform: rotate(1.5deg);
   }
 }

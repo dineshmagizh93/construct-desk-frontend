@@ -1,101 +1,89 @@
-import { Link } from 'react-router-dom'
-import { ArrowRight, Building2, Layers } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { INDUSTRY_CONFIGS, type IndustryConfig } from '@/lib/industry'
-import { cn } from '@/lib/utils'
-import { PageHero } from '../components/shared'
-
-function IndustryCard({ config, primary }: { config: IndustryConfig; primary: boolean }) {
-  const moduleEntries = Object.values(config.moduleText)
-  return (
-    <div
-      className={cn(
-        'relative overflow-hidden rounded-2xl border p-6 shadow-lg',
-        primary
-          ? 'border-primary/30 bg-gradient-to-br from-primary to-primary/85 text-primary-foreground shadow-primary/20'
-          : 'border-border bg-card',
-      )}
-    >
-      {primary && <div className="absolute -right-12 -top-12 size-48 rounded-full bg-white/10 blur-3xl" />}
-      <Badge variant={primary ? 'accent' : 'secondary'} className="w-fit">
-        {primary ? 'Primary focus' : 'Also supported'}
-      </Badge>
-      <div
-        className={cn(
-          'mt-4 flex size-12 items-center justify-center rounded-xl',
-          primary ? 'bg-white/15' : 'bg-primary/10 text-primary',
-        )}
-      >
-        {primary ? <Building2 className="size-6" /> : <Layers className="size-6 text-primary" />}
-      </div>
-      <h3 className="mt-4 text-2xl font-bold">{config.label}</h3>
-      <p className={cn('mt-2', primary ? 'text-primary-foreground/85' : 'text-muted-foreground')}>{config.tagline}</p>
-
-      <div className="mt-5 space-y-2.5">
-        <p className={cn('text-xs font-bold uppercase tracking-widest', primary ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
-          Project types
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {config.projectTypeOptions.map((opt) => (
-            <span
-              key={opt.value}
-              className={cn(
-                'rounded-full px-3 py-1 text-xs font-medium',
-                primary ? 'bg-white/15' : 'bg-secondary text-secondary-foreground',
-              )}
-            >
-              {opt.label}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-5 space-y-2">
-        <p className={cn('text-xs font-bold uppercase tracking-widest', primary ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
-          What it's called in your workspace
-        </p>
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          {moduleEntries.map((entry) => (
-            <div
-              key={entry.title}
-              className={cn('rounded-lg px-3 py-2', primary ? 'bg-white/10' : 'bg-secondary/60')}
-            >
-              {entry.title}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
+import { Building2, Layers } from 'lucide-react'
+import { INDUSTRY_CONFIGS } from '@/lib/industry'
+import { PageCta, PageHero } from '../components/shared'
 
 export function IndustriesPage() {
+  const construction = INDUSTRY_CONFIGS.construction
+  const interiors = INDUSTRY_CONFIGS.interior_design
+  const pairs = [
+    { key: 'projects', left: construction.moduleText.projects.title, right: interiors.moduleText.projects.title },
+    { key: 'estimates', left: construction.moduleText.estimates.title, right: interiors.moduleText.estimates.title },
+    { key: 'site', left: construction.moduleText.siteProgress.title, right: interiors.moduleText.siteProgress.title },
+    { key: 'labour', left: construction.moduleText.labour.title, right: interiors.moduleText.labour.title },
+    { key: 'equipment', left: construction.moduleText.equipment.title, right: interiors.moduleText.equipment.title },
+    { key: 'inventory', left: construction.moduleText.inventory.title, right: interiors.moduleText.inventory.title },
+  ]
+
   return (
     <>
       <PageHero
+        align="left"
         eyebrow="Industries"
-        title="One platform, tailored to your industry"
-        description="Switch your workspace's terminology, project types, and module labels to match how your business actually talks — without switching software."
+        title="One product. Two industry vocabularies."
+        description="Switch workspace terminology between construction and interior design without changing software — or running two tools."
       />
 
-      <section className="mx-auto max-w-5xl px-6 pb-16">
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          <IndustryCard config={INDUSTRY_CONFIGS.construction} primary />
-          <IndustryCard config={INDUSTRY_CONFIGS.interior_design} primary={false} />
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <div className="grid gap-4 lg:grid-cols-2">
+          {[
+            { config: construction, icon: Building2, kicker: 'Primary focus' },
+            { config: interiors, icon: Layers, kicker: 'Also supported' },
+          ].map(({ config, icon: Icon, kicker }) => (
+            <article key={config.key} className="rounded-2xl border border-border bg-card p-7">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent">{kicker}</p>
+              <div className="mt-4 flex size-10 items-center justify-center rounded-lg border border-border bg-background">
+                <Icon className="size-5" />
+              </div>
+              <h2 className="mt-4 font-display text-2xl font-semibold tracking-tight">{config.label}</h2>
+              <p className="mt-2 leading-relaxed text-muted-foreground">{config.tagline}</p>
+              <p className="mt-6 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Project types
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {config.projectTypeOptions.map((opt) => (
+                  <span key={opt.value} className="rounded-full border border-border bg-background px-3 py-1 text-xs font-medium">
+                    {opt.label}
+                  </span>
+                ))}
+              </div>
+            </article>
+          ))}
         </div>
+      </section>
 
-        <div className="mt-10 text-center">
-          <p className="text-muted-foreground">Not sure which fits? Every plan supports both — switch anytime.</p>
-          <div className="mt-4">
-            <Button size="lg" variant="accent" className="shadow-lg shadow-accent/30" asChild>
-              <Link to="/request-demo">
-                Request Demo <ArrowRight className="size-4" />
-              </Link>
-            </Button>
+      <section className="border-y border-border bg-background">
+        <div className="mx-auto max-w-6xl px-6 py-16">
+          <h2 className="font-display text-2xl font-semibold tracking-tight">What it is called in each workspace</h2>
+          <p className="mt-2 max-w-2xl text-muted-foreground">
+            Same modules underneath. The labels your team sees match how they already talk.
+          </p>
+          <div className="mt-8 overflow-x-auto rounded-2xl border border-border bg-card">
+            <table className="w-full min-w-[520px] text-sm">
+              <thead>
+                <tr className="border-b border-border text-left">
+                  <th className="px-5 py-3.5 font-semibold">Construction</th>
+                  <th className="px-5 py-3.5 font-semibold">Interior design</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pairs.map((row) => (
+                  <tr key={row.key} className="border-b border-border last:border-0">
+                    <td className="px-5 py-3.5 text-muted-foreground">{row.left}</td>
+                    <td className="px-5 py-3.5 text-muted-foreground">{row.right}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
+
+      <PageCta
+        title="Not sure which mode to start in?"
+        description="Every plan supports both. You can switch terminology later without migrating data."
+        primary={{ label: 'Request a demo', to: '/request-demo' }}
+        secondary={{ label: 'View pricing', to: '/pricing' }}
+      />
     </>
   )
 }

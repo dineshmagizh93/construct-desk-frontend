@@ -3,7 +3,7 @@ import { PageHero, LegalDocument } from '../components/shared'
 export function RefundPolicyPage() {
   return (
     <>
-      <PageHero eyebrow="Legal" title="Refund & Cancellation Policy" description="How trials, cancellations, and refunds work." />
+      <PageHero align="left" eyebrow="Legal" title="Refund & Cancellation Policy" description="How trials, cancellations, and refunds work." />
 
       <LegalDocument effectiveDate="26 August 2026">
         <div>

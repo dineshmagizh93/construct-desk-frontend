@@ -3,12 +3,11 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { ArrowRight, Lock, Mail } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { DEMO_ACCOUNTS } from '../data.mock'
-import { ROLE_LABELS } from '@/lib/constants'
 
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -26,7 +25,6 @@ export function LoginPage() {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { email: '', password: '' } })
 
@@ -41,53 +39,54 @@ export function LoginPage() {
     }
   }
 
-  const fillDemo = (email: string) => {
-    setValue('email', email)
-    setValue('password', 'password123')
-  }
-
   return (
     <div>
-      <h1 className="text-2xl font-semibold">Welcome back</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Sign in to your ConstructDesk workspace</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">Sign in</p>
+      <h1 className="mt-2 font-display text-[1.75rem] font-semibold tracking-tight">Welcome back</h1>
+      <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+        Enter your work email to open your workspace.
+      </p>
 
-      <form className="mt-8 space-y-4" onSubmit={handleSubmit(onSubmit)}>
-        <div className="space-y-1.5">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" placeholder="you@company.com" {...register('email')} />
+      <form className="mt-8 space-y-5" onSubmit={handleSubmit(onSubmit)}>
+        <div className="space-y-2">
+          <Label htmlFor="email">Work email</Label>
+          <div className="relative">
+            <Mail className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@company.com"
+              className="h-12 rounded-lg pl-10"
+              {...register('email')}
+            />
+          </div>
           {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">Password</Label>
-            <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+            <Link to="/forgot-password" className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
               Forgot password?
             </Link>
           </div>
-          <Input id="password" type="password" placeholder="••••••••" {...register('password')} />
+          <div className="relative">
+            <Lock className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              className="h-12 rounded-lg pl-10"
+              {...register('password')}
+            />
+          </div>
           {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
         </div>
         {error && <p className="text-sm text-destructive">{error}</p>}
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
+        <Button type="submit" variant="accent" className="h-12 w-full rounded-lg text-[15px] shadow-md shadow-accent/20" disabled={isSubmitting}>
           {isSubmitting ? 'Signing in…' : 'Sign in'}
+          {!isSubmitting && <ArrowRight className="size-4" />}
         </Button>
       </form>
-
-      <div className="mt-6 rounded-md border border-dashed border-border p-3">
-        <p className="mb-2 text-xs font-medium text-muted-foreground">Quick demo login</p>
-        <div className="flex flex-wrap gap-1.5">
-          {DEMO_ACCOUNTS.map((account) => (
-            <button
-              key={account.email}
-              type="button"
-              onClick={() => fillDemo(account.email)}
-              className="rounded-full border border-border px-2.5 py-1 text-xs hover:bg-secondary"
-            >
-              {ROLE_LABELS[account.role]}
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   )
 }

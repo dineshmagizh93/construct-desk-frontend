@@ -3,7 +3,7 @@ import { PageHero, LegalDocument } from '../components/shared'
 export function PrivacyPage() {
   return (
     <>
-      <PageHero eyebrow="Legal" title="Privacy Policy" description="What we collect, why, and how it's protected." />
+      <PageHero align="left" eyebrow="Legal" title="Privacy Policy" description="What we collect, why, and how it's protected." />
 
       <LegalDocument
         effectiveDate="26 August 2026"
