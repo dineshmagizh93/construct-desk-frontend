@@ -1,32 +1,33 @@
-# React + TypeScript + Vite
+# ConstructDesk — CRM Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Tenant-facing CRM app and marketing site for ConstructDesk, a construction/interior-design business
+management platform. Built with Vite, React, TypeScript, React Router, and TanStack Query, talking to
+the [ConstructDesk backend](https://github.com/dineshmagizh93/construct-desk-backend) API.
 
-Currently, two official plugins are available:
+## Development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Requires `VITE_API_URL` in `.env`, pointing at a running instance of the backend.
+
+## Build
+
+```bash
+npm run build
+```
+
+Outputs a static bundle to `dist/`. Client-side routing needs a host-level rewrite to `index.html`
+for all paths (see `vercel.json`).
+
+## Structure
+
+- `src/features/marketing/` — public marketing site (landing, pricing, features, legal pages)
+- `src/features/*` — one folder per CRM module (leads, clients, projects, tasks, etc.), each with its
+  own `api.ts`, `config.tsx` (table/form field definitions), and `pages/`
+- `src/components/shared/` — the generic list/detail page scaffolding (`EntityListPage`, `DataTable`,
+  `DrawerForm`) that every module page is built from
+- `src/lib/modules.ts` — the canonical module catalog, mirrored on the backend, used for both
+  permission/plan gating and the marketing site's module counts
