@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
-import { INDUSTRY_CONFIGS } from '@/lib/industry'
+import { INDUSTRY_CONFIGS, INTERIOR_DESIGN_ENABLED } from '@/lib/industry'
 import { cn } from '@/lib/utils'
 import { MODULE_GROUPS, MODULE_KEYS } from '@/lib/modules'
 import { DIFFERENTIATORS, FEATURES, PLANS, STEPS } from '../content'
@@ -83,7 +83,7 @@ function ProofBar() {
   const items = [
     { value: String(MODULE_KEYS.length), label: 'Production modules' },
     { value: '5', label: 'Built-in roles' },
-    { value: '2', label: 'Industry modes' },
+    { value: '4', label: 'Permission levels' },
     { value: 'GST', label: 'India-ready billing' },
   ]
   return (
@@ -406,6 +406,11 @@ function StepsSection() {
 }
 
 function IndustriesSection() {
+  // Disabled — Interior Design isn't offered right now, and a "two industries" comparison
+  // doesn't make sense with just one. Not deleted; re-enable alongside INTERIOR_DESIGN_ENABLED
+  // in lib/industry.ts when Interior Design comes back.
+  if (!INTERIOR_DESIGN_ENABLED) return null
+
   const construction = INDUSTRY_CONFIGS.construction
   const interiorDesign = INDUSTRY_CONFIGS.interior_design
   const cards = [

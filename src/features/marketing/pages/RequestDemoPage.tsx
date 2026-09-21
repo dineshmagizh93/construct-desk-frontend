@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { http } from '@/lib/http'
 import { PageHero } from '../components/shared'
 
@@ -30,8 +29,6 @@ export function RequestDemoPage() {
   const {
     register,
     handleSubmit,
-    setValue,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     defaultValues: { name: '', email: '', phone: '', companyName: '', industry: 'construction', message: '' },
@@ -110,18 +107,9 @@ export function RequestDemoPage() {
                   {errors.companyName && <p className="text-xs text-destructive">Company name is required.</p>}
                 </div>
               </div>
-              <div className="space-y-1.5">
-                <Label>Industry</Label>
-                <Select value={watch('industry')} onValueChange={(v) => setValue('industry', v as FormValues['industry'])}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="construction">Construction</SelectItem>
-                    <SelectItem value="interior_design">Interior Design</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Industry picker is disabled — construction-only for now, form still submits
+                  industry: 'construction' via defaultValues below. See lib/industry.ts
+                  INTERIOR_DESIGN_ENABLED to bring Interior Design back. */}
               <div className="space-y-1.5">
                 <Label htmlFor="message">What are you looking for? (optional)</Label>
                 <Textarea

@@ -2,6 +2,12 @@ import type { SelectOption } from '@/components/shared/types'
 
 export type Industry = 'construction' | 'interior_design'
 
+/** Interior Design is disabled for now — construction-only. Flip this back on (and re-enable the
+ * commented options below) once Interior Design is ready to offer again. Nothing was deleted. */
+export const INTERIOR_DESIGN_ENABLED = false
+
+export const ENABLED_INDUSTRIES: Industry[] = INTERIOR_DESIGN_ENABLED ? ['construction', 'interior_design'] : ['construction']
+
 export interface ModuleText {
   title: string
   description: string

@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { cn, formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from '@/hooks/use-toast'
-import { INDUSTRY_CONFIGS, type Industry } from '@/lib/industry'
+import { ENABLED_INDUSTRIES, INDUSTRY_CONFIGS, type Industry } from '@/lib/industry'
 import type { Company } from '@/types'
 import {
   useCompanies,
@@ -42,7 +42,9 @@ function IndustryPicker({ company }: { company: Company }) {
   return (
     <div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {(Object.keys(INDUSTRY_CONFIGS) as Industry[]).map((key) => {
+        {(Object.keys(INDUSTRY_CONFIGS) as Industry[])
+          .filter((key) => ENABLED_INDUSTRIES.includes(key))
+          .map((key) => {
           const config = INDUSTRY_CONFIGS[key]
           const active = company.industry === key
           return (

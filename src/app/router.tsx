@@ -75,7 +75,8 @@ const HomePage = lazy(() => import('@/features/marketing/pages/HomePage').then((
 const FeaturesPage = lazy(() => import('@/features/marketing/pages/FeaturesPage').then((m) => ({ default: m.FeaturesPage })))
 const ModulesPage = lazy(() => import('@/features/marketing/pages/ModulesPage').then((m) => ({ default: m.ModulesPage })))
 const HowItWorksPage = lazy(() => import('@/features/marketing/pages/HowItWorksPage').then((m) => ({ default: m.HowItWorksPage })))
-const IndustriesPage = lazy(() => import('@/features/marketing/pages/IndustriesPage').then((m) => ({ default: m.IndustriesPage })))
+// Industries page is disabled — construction-only for now, see lib/industry.ts INTERIOR_DESIGN_ENABLED.
+// const IndustriesPage = lazy(() => import('@/features/marketing/pages/IndustriesPage').then((m) => ({ default: m.IndustriesPage })))
 const PricingPage = lazy(() => import('@/features/marketing/pages/PricingPage').then((m) => ({ default: m.PricingPage })))
 const FaqPage = lazy(() => import('@/features/marketing/pages/FaqPage').then((m) => ({ default: m.FaqPage })))
 const RequestDemoPage = lazy(() => import('@/features/marketing/pages/RequestDemoPage').then((m) => ({ default: m.RequestDemoPage })))
@@ -107,7 +108,7 @@ const router = createBrowserRouter([
       { path: '/features', element: withSuspense(<FeaturesPage />) },
       { path: '/modules', element: withSuspense(<ModulesPage />) },
       { path: '/how-it-works', element: withSuspense(<HowItWorksPage />) },
-      { path: '/industries', element: withSuspense(<IndustriesPage />) },
+      // { path: '/industries', element: withSuspense(<IndustriesPage />) },
       { path: '/pricing', element: withSuspense(<PricingPage />) },
       { path: '/faq', element: withSuspense(<FaqPage />) },
       { path: '/request-demo', element: withSuspense(<RequestDemoPage />) },

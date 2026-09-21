@@ -21,7 +21,8 @@ export const MARKETING_NAV_LINKS: MarketingNavLink[] = [
   { label: 'Features', to: '/features' },
   { label: 'Modules', to: '/modules' },
   { label: 'How it works', to: '/how-it-works' },
-  { label: 'Industries', to: '/industries' },
+  // Industries is disabled — construction-only for now, see lib/industry.ts INTERIOR_DESIGN_ENABLED.
+  // { label: 'Industries', to: '/industries' },
   { label: 'Pricing', to: '/pricing' },
   { label: 'FAQ', to: '/faq' },
 ]
@@ -171,12 +172,19 @@ export const PLANS: Plan[] = [
   },
   {
     name: 'Enterprise',
-    price: { monthly: 'Custom', yearly: 'Custom' },
-    period: { monthly: '', yearly: '' },
+    price: { monthly: '₹24,999', yearly: '₹2,49,990' },
+    period: { monthly: '/month', yearly: '/year' },
+    yearlyNote: '2 months free',
     maxUsers: 'Unlimited users',
     description: 'For large or multi-branch organizations that need scale and a dedicated relationship.',
-    features: ['Unlimited users', 'Every module included', 'Dedicated onboarding', 'Custom integrations', 'SLA-backed support'],
-    cta: { label: 'Contact Sales', href: 'mailto:sales@constructdesk.in' },
+    features: [
+      'Unlimited users',
+      'Every module included',
+      'Dedicated onboarding',
+      'Priority support with SLA',
+      'Custom integrations on request',
+    ],
+    cta: { label: 'Request Demo', to: '/request-demo' },
     highlighted: false,
   },
 ]
@@ -228,13 +236,13 @@ export const DIFFERENTIATORS = [
   },
   {
     icon: IndianRupee,
-    title: 'Built for Indian businesses',
-    description: 'GST fields, INR currency, and workflows shaped around how Indian construction and design businesses operate.',
+    title: 'Built for Indian construction businesses',
+    description: 'GST fields, INR currency, and workflows shaped around how Indian construction companies actually operate.',
   },
   {
     icon: Layers,
-    title: 'One platform, two industries',
-    description: "Switch your workspace's terminology between Construction and Interior Design without switching software.",
+    title: 'One record follows the job',
+    description: 'Leads, projects, site progress, and finance all link back to a single project ID — nothing lives in a disconnected spreadsheet.',
   },
   {
     icon: UploadCloud,
