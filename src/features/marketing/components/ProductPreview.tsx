@@ -3,11 +3,11 @@ import {
   Building2,
   CheckSquare,
   ClipboardList,
-  HardHat,
   LayoutDashboard,
   Target,
   Wallet,
 } from 'lucide-react'
+import { LogoMark } from '@/components/shared/LogoMark'
 import { cn } from '@/lib/utils'
 
 const NAV = [
@@ -84,7 +84,7 @@ export function ProductPreview({ className }: { className?: string }) {
         <aside className="hidden w-52 shrink-0 flex-col bg-sidebar text-sidebar-foreground md:flex">
           <div className="flex h-14 items-center gap-2.5 border-b border-sidebar-border px-4">
             <div className="flex size-7 items-center justify-center rounded-md bg-accent text-accent-foreground">
-              <HardHat className="size-4" />
+              <LogoMark className="size-4" />
             </div>
             <span className="text-sm font-semibold">ConstructDesk</span>
           </div>

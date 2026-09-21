@@ -9,10 +9,8 @@ export function TermsPage() {
         effectiveDate="26 August 2026"
         intro={
           <p>
-            These Terms of Service ("Terms") govern access to and use of ConstructDesk (the "Service"), operated by{' '}
-            <strong>[Legal Entity Name — e.g. "XYZ Technologies Pvt. Ltd."]</strong>, a company registered in India
-            ("ConstructDesk", "we", "us"). By using the Service, the business you represent ("you", "Customer")
-            agrees to these Terms.
+            These Terms of Service ("Terms") govern access to and use of ConstructDesk (the "Service", "ConstructDesk",
+            "we", "us"). By using the Service, the business you represent ("you", "Customer") agrees to these Terms.
           </p>
         }
       >
@@ -117,8 +115,8 @@ export function TermsPage() {
         <div>
           <h2>10. Governing law</h2>
           <p>
-            These Terms are governed by the laws of India. Disputes are subject to the exclusive jurisdiction of the
-            courts of <strong>[City, State — e.g. "Chennai, Tamil Nadu"]</strong>.
+            These Terms are governed by the laws of India, and disputes are subject to the exclusive jurisdiction of
+            the Indian courts.
           </p>
         </div>
 

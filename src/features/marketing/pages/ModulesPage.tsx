@@ -34,7 +34,7 @@ const GROUP_COPY: Record<string, { intro: string; audience: string }> = {
     audience: 'Every role',
   },
   System: {
-    intro: 'Six roles, not a generic admin toggle. Each person only sees the modules they need.',
+    intro: 'Five roles, not a generic admin toggle. Each person only sees the modules they need.',
     audience: 'Admins',
   },
 }

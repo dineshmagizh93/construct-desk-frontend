@@ -82,7 +82,7 @@ function HeroSection() {
 function ProofBar() {
   const items = [
     { value: String(MODULE_KEYS.length), label: 'Production modules' },
-    { value: '6', label: 'Built-in roles' },
+    { value: '5', label: 'Built-in roles' },
     { value: '2', label: 'Industry modes' },
     { value: 'GST', label: 'India-ready billing' },
   ]
@@ -218,7 +218,7 @@ function AccessTile() {
           {role}
         </span>
       ))}
-      <span className="rounded-full bg-primary px-2.5 py-1 text-[11px] font-medium text-primary-foreground">+2 more</span>
+      <span className="rounded-full bg-primary px-2.5 py-1 text-[11px] font-medium text-primary-foreground">+1 more</span>
     </div>
   )
 }

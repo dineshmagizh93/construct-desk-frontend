@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
-import { HardHat, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { LogoMark } from '@/components/shared/LogoMark'
 import { NAV_GROUPS } from '@/lib/constants'
 import { useAuth } from '@/hooks/useAuth'
 import { canPerform } from '@/lib/permissions'
@@ -23,7 +24,7 @@ export function Sidebar() {
     >
       <div className="flex h-14 items-center gap-2 border-b border-sidebar-border px-4">
         <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-accent text-accent-foreground">
-          <HardHat className="size-4.5" />
+          <LogoMark className="size-4.5" />
         </div>
         {!collapsed && <span className="truncate text-sm font-semibold">ConstructDesk</span>}
       </div>

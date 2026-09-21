@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { HardHat } from 'lucide-react'
+import { LogoMark } from '@/components/shared/LogoMark'
 import { cn } from '@/lib/utils'
 
 export function Logo({ light }: { light?: boolean }) {
@@ -11,7 +11,7 @@ export function Logo({ light }: { light?: boolean }) {
           light ? 'bg-accent text-accent-foreground' : 'bg-primary text-primary-foreground',
         )}
       >
-        <HardHat className="size-5" />
+        <LogoMark className="size-5" />
       </div>
       <div className="flex flex-col leading-none">
         <span className={cn('font-display text-lg font-bold tracking-tight', light && 'text-white')}>

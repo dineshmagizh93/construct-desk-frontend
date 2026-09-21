@@ -64,7 +64,7 @@ export const FEATURES: Feature[] = [
     icon: ShieldCheck,
     title: 'Role-Based Access',
     description: 'Project Managers, Site Engineers, Accountants, and Sales teams each see exactly what they need — nothing more.',
-    detail: 'Six built-in roles control what every teammate can see and do, down to individual modules — no spreadsheet permissions to manage.',
+    detail: 'Five built-in roles control what every teammate can see and do, down to individual modules — no spreadsheet permissions to manage.',
   },
   {
     icon: UploadCloud,
@@ -77,7 +77,7 @@ export const FEATURES: Feature[] = [
 export const STEPS = [
   {
     title: 'Create your workspace',
-    description: 'Sign up and set up your company profile in minutes.',
+    description: 'Book a demo and we set up your company profile and admin login for you.',
     points: [
       'Pick Construction or Interior Design terminology',
       'Admin login is issued after your demo',
@@ -88,7 +88,7 @@ export const STEPS = [
     title: 'Invite your team',
     description: 'Add Project Managers, Site Engineers, Accountants, and Sales staff with role-based access.',
     points: [
-      'Six built-in roles, not a generic admin toggle',
+      'Five built-in roles, not a generic admin toggle',
       'Each person only sees the modules they need',
       'Add or remove access as the crew changes',
     ],

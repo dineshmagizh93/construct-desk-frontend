@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { HardHat } from 'lucide-react'
+import { LogoMark } from '@/components/shared/LogoMark'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { NAV_GROUPS } from '@/lib/constants'
 import { canPerform } from '@/lib/permissions'
@@ -20,7 +20,7 @@ export function MobileNav() {
       <SheetContent side="left" className="w-64 max-w-[80vw] bg-sidebar p-0 text-sidebar-foreground">
         <div className="flex h-14 items-center gap-2 border-b border-sidebar-border px-4">
           <div className="flex size-8 items-center justify-center rounded-md bg-accent text-accent-foreground">
-            <HardHat className="size-4.5" />
+            <LogoMark className="size-4.5" />
           </div>
           <span className="text-sm font-semibold">ConstructDesk</span>
         </div>

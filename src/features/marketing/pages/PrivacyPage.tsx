@@ -9,9 +9,9 @@ export function PrivacyPage() {
         effectiveDate="26 August 2026"
         intro={
           <p>
-            This Privacy Policy explains how <strong>[Legal Entity Name]</strong> ("ConstructDesk", "we", "us")
-            collects, uses, and protects information when you visit our website, request a demo, or use the
-            ConstructDesk application as part of a customer workspace.
+            This Privacy Policy explains how ConstructDesk ("we", "us") collects, uses, and protects information
+            when you visit our website, request a demo, or use the ConstructDesk application as part of a customer
+            workspace.
           </p>
         }
       >
@@ -113,14 +113,13 @@ export function PrivacyPage() {
         <div>
           <h2>10. Grievance Officer &amp; contact</h2>
           <p>
-            In accordance with Indian law, the Grievance Officer for ConstructDesk is:
+            In accordance with Indian law, you can reach ConstructDesk's Grievance Officer, and direct any other
+            privacy questions, at{' '}
+            <a href="mailto:sales@constructdesk.in" className="text-primary underline underline-offset-2">
+              sales@constructdesk.in
+            </a>
+            .
           </p>
-          <ul>
-            <li>Name: <strong>[Grievance Officer Name]</strong></li>
-            <li>Email: <a href="mailto:sales@constructdesk.in" className="text-primary underline underline-offset-2">sales@constructdesk.in</a></li>
-            <li>Address: <strong>[Registered Business Address]</strong></li>
-          </ul>
-          <p>For any other privacy questions, reach us at the same email.</p>
         </div>
       </LegalDocument>
     </>
