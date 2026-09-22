@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/features/auth/store'
 import { http } from '@/lib/http'
-import type { Company, Industry } from '@/types'
+import type { Company } from '@/types'
 
 export interface SubscriptionPlan {
   id: string
@@ -12,43 +12,13 @@ export interface SubscriptionPlan {
   isActive: boolean
 }
 
-// ---- Super Admin: companies ----
-
-export function useCompanies() {
-  return useQuery({ queryKey: ['platform', 'companies'], queryFn: () => http<Company[]>('/companies') })
-}
-
-export function useUpdateCompanyIndustry() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ id, industry }: { id: string; industry: Industry }) =>
-      http<Company>(`/companies/${id}`, { method: 'PATCH', body: JSON.stringify({ industry }) }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['platform', 'companies'] }),
-  })
-}
-
-// ---- Super Admin + company admin: subscription plans ----
+// ---- Subscription plans (tenant-facing: choosing/viewing a plan to subscribe to) ----
+// Managing plans (create/disable) and companies/industry is Super Admin work and lives in the
+// separate admin-console app now, not here — see project_industry_scope memory / the removed
+// "Platform" tab for why.
 
 export function usePlans() {
   return useQuery({ queryKey: ['billing', 'plans'], queryFn: () => http<SubscriptionPlan[]>('/billing/plans') })
-}
-
-export function useCreatePlan() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (values: { name: string; priceInPaise: number; billingInterval: 'monthly' | 'yearly' }) =>
-      http<SubscriptionPlan>('/billing/plans', { method: 'POST', body: JSON.stringify(values) }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['billing', 'plans'] }),
-  })
-}
-
-export function useTogglePlanActive() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
-      http<SubscriptionPlan>(`/billing/plans/${id}`, { method: 'PATCH', body: JSON.stringify({ isActive }) }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['billing', 'plans'] }),
-  })
 }
 
 export function useSubscribe() {
