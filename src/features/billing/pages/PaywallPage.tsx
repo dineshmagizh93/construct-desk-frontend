@@ -14,6 +14,7 @@ import { usePlans, useSubscribe, refreshMyCompany } from '../../settings/platfor
 export function PaywallPage() {
   const { user, company } = useAuth()
   const navigate = useNavigate()
+  const isStillActive = company?.subscriptionStatus === 'trialing' || company?.subscriptionStatus === 'active'
   const { data: plans = [], isLoading } = usePlans()
   const subscribeMutation = useSubscribe()
   const [subscribingPlanId, setSubscribingPlanId] = useState<string | null>(null)
@@ -47,10 +48,16 @@ export function PaywallPage() {
     <div className="mx-auto max-w-2xl py-10">
       <div className="mb-6 text-center">
         <ShieldCheck className="mx-auto mb-3 size-8 text-primary" />
-        <h1 className="text-xl font-semibold">Your subscription has lapsed</h1>
+        <h1 className="text-xl font-semibold">{isStillActive ? 'Choose a plan' : 'Your subscription has lapsed'}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {company?.name ?? 'Your workspace'} needs an active plan to keep using ConstructDesk. Pick a plan below to
-          continue — your data is safe and nothing has been deleted.
+          {isStillActive ? (
+            <>Add a plan for {company?.name ?? 'your workspace'} now so access continues without interruption once your trial ends.</>
+          ) : (
+            <>
+              {company?.name ?? 'Your workspace'} needs an active plan to keep using ConstructDesk. Pick a plan below
+              to continue — your data is safe and nothing has been deleted.
+            </>
+          )}
         </p>
       </div>
 

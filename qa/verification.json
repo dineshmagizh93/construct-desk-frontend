@@ -1,0 +1,49 @@
+{
+  "checkedAt": "2026-09-22T05:23:02.267Z",
+  "checks": [
+    "pricing billing toggle",
+    "all module group tabs",
+    "FAQ expand/collapse",
+    "demo form required validation",
+    "demo success state with intercepted API request",
+    "mobile menu navigation and close",
+    "reduced-motion animation suppression"
+  ],
+  "runtimeErrors": [],
+  "layoutChecks": {
+    "routes": [
+      "/",
+      "/features",
+      "/modules",
+      "/how-it-works",
+      "/pricing",
+      "/faq",
+      "/request-demo",
+      "/terms-of-service",
+      "/privacy-policy",
+      "/refund-policy",
+      "/login",
+      "/forgot-password",
+      "/reset-password"
+    ],
+    "widths": [
+      1440,
+      768,
+      390,
+      320
+    ],
+    "combinationsPassed": 52,
+    "horizontalOverflow": false
+  },
+  "workspaceCheck": {
+    "fixtureOnly": true,
+    "widths": [
+      1440,
+      390
+    ],
+    "horizontalOverflow": false,
+    "runtimeErrors": []
+  },
+  "build": "passed",
+  "lint": "passed with existing only-export-components warnings in button.tsx and badge.tsx"
+}

@@ -1,0 +1,8 @@
+const { chromium }=require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+(async()=>{const b=await chromium.launch({headless:true,channel:'chrome'});const p=await b.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'});const user={id:'preview-user',firstName:'Preview',lastName:'Admin',email:'preview@example.test',role:'admin',permissions:Object.fromEntries(['dashboard','leads','clients','projects','tasks','site-progress','calendar','estimates','contracts','vendors','labour','inventory','equipment','expenses','payments','finance-reports','documents','notifications','reports','settings','users','roles'].map(k=>[k,{view:true,create:true,edit:true,delete:true}]))};const company={id:'preview-company',name:'Preview Construction',industry:'construction',subscriptionStatus:'active'};
+await p.addInitScript(({user,company})=>localStorage.setItem('constructdesk-auth',JSON.stringify({state:{user,company,isAuthenticated:true,accessToken:'local-preview',refreshToken:'local-preview'},version:0})),{user,company});
+await p.route('**/auth/me',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({user,company})}));
+const errors=[];p.on('pageerror',e=>errors.push(e.message));
+await p.goto('http://127.0.0.1:5173/dashboard');await p.getByRole('heading',{name:'Dashboard',exact:true}).waitFor();await p.screenshot({path:'frontend/qa/workspace-desktop.png'});
+await p.setViewportSize({width:390,height:844});await p.screenshot({path:'frontend/qa/workspace-mobile.png'});
+console.log(JSON.stringify({workspaceHeader:await p.locator('.workspace-page-header').count(),overflow:await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),errors}));await b.close()})().catch(e=>{console.error(e);process.exit(1)});

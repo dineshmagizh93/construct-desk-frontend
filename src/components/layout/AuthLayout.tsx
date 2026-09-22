@@ -1,57 +1,11 @@
 import { Outlet, Link } from 'react-router-dom'
 import { Logo } from '@/features/marketing/components/Logo'
-
-function AuthScene() {
-  return (
-    <svg viewBox="0 0 640 360" className="w-full max-w-lg" aria-hidden>
-      <defs>
-        <linearGradient id="auth-sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0" />
-          <stop offset="100%" stopColor="#ffffff" stopOpacity="0.08" />
-        </linearGradient>
-        <linearGradient id="auth-gold" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#fbbf24" />
-          <stop offset="100%" stopColor="#d97706" />
-        </linearGradient>
-      </defs>
-      <rect width="640" height="360" fill="url(#auth-sky)" />
-      <line x1="24" y1="312" x2="616" y2="312" stroke="rgba(255,255,255,0.18)" strokeWidth="1" />
-
-      <g fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.2)" strokeWidth="1">
-        <rect x="56" y="168" width="88" height="144" rx="4" />
-        <rect x="168" y="96" width="72" height="216" rx="4" />
-        <rect x="256" y="140" width="110" height="172" rx="4" />
-        <rect x="384" y="188" width="64" height="124" rx="4" />
-      </g>
-
-      <g fill="#fde68a" opacity="0.55">
-        {[[68, 184], [88, 184], [108, 184], [68, 208], [88, 208], [108, 208], [68, 232], [88, 232]].map(([x, y], i) => (
-          <rect key={`a${i}`} x={x} y={y} width="10" height="12" rx="1" />
-        ))}
-        {[[180, 112], [200, 112], [180, 136], [200, 136], [180, 160], [200, 160], [180, 184], [200, 184]].map(([x, y], i) => (
-          <rect key={`b${i}`} x={x} y={y} width="10" height="12" rx="1" />
-        ))}
-        {[[272, 156], [296, 156], [320, 156], [272, 180], [296, 180], [320, 180], [272, 204], [296, 204]].map(([x, y], i) => (
-          <rect key={`c${i}`} x={x} y={y} width="12" height="14" rx="1" />
-        ))}
-      </g>
-
-      <g stroke="url(#auth-gold)" strokeWidth="5" fill="none" strokeLinecap="round">
-        <line x1="500" y1="312" x2="500" y2="64" />
-        <line x1="500" y1="72" x2="428" y2="72" />
-        <line x1="500" y1="72" x2="560" y2="72" />
-        <line x1="444" y1="72" x2="444" y2="148" />
-      </g>
-      <rect x="430" y="148" width="28" height="18" rx="2" fill="#fbbf24" />
-      <polygon points="500,48 500,64 528,56" fill="#fbbf24" />
-    </svg>
-  )
-}
+import { ConstructionScene } from '@/features/marketing/components/ConstructionScene'
 
 export function AuthLayout() {
   return (
-    <div className="grid min-h-screen grid-cols-1 bg-[#f6f7f9] lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-      <div className="relative hidden overflow-hidden bg-primary lg:flex">
+    <div className="auth-shell grid min-h-screen grid-cols-1 bg-[#f6f7f9] lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+      <div className="auth-brand-panel relative hidden overflow-hidden bg-primary lg:flex">
         <div
           className="pointer-events-none absolute inset-0"
           style={{
@@ -77,8 +31,8 @@ export function AuthLayout() {
             </p>
           </div>
 
-          <div className="-mb-4 -ml-4 w-[min(100%,36rem)]">
-            <AuthScene />
+          <div className="auth-model -mb-4 -ml-4 w-[min(100%,36rem)]">
+            <ConstructionScene compact />
           </div>
         </div>
       </div>

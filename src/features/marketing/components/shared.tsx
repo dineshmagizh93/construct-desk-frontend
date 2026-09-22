@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { ConstructionScene } from './ConstructionScene'
+import { sceneVariant } from '../sceneVariant'
 
 export function SectionHeading({
   eyebrow,
@@ -17,7 +19,7 @@ export function SectionHeading({
 }) {
   return (
     <div className={cn('mb-12 max-w-2xl', align === 'center' ? 'mx-auto text-center' : 'mx-0 text-left')}>
-      {eyebrow && <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">{eyebrow}</p>}
+      {eyebrow && <p className="section-eyebrow text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">{eyebrow}</p>}
       <h2 className={cn('font-display text-3xl font-semibold tracking-tight text-balance sm:text-4xl', eyebrow && 'mt-3')}>
         {title}
       </h2>
@@ -57,28 +59,18 @@ export function PageHero({
   children?: ReactNode
   align?: 'center' | 'left'
 }) {
+  const { pathname } = useLocation()
   return (
-    <section className="relative border-b border-border bg-card">
+    <section className="marketing-page-hero relative border-b border-border bg-card" data-align={align}>
       <div className="marketing-hero-grid-light pointer-events-none absolute inset-0" />
-      <div
-        className={cn(
-          'relative mx-auto px-6 py-8 lg:py-10',
-          align === 'center' ? 'max-w-3xl text-center' : 'max-w-6xl text-left',
-        )}
-      >
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">{eyebrow}</p>
-        <h1 className="mt-2.5 font-display text-3xl font-semibold leading-[1.15] tracking-tight text-balance sm:text-4xl">
-          {title}
-        </h1>
-        <p
-          className={cn(
-            'mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground',
-            align === 'center' && 'mx-auto',
-          )}
-        >
-          {description}
-        </p>
-        {children}
+      <div className="page-hero-inner relative mx-auto max-w-6xl px-6">
+        <div className="page-hero-copy">
+          <p className="hero-eyebrow">{eyebrow}</p>
+          <h1 className="mt-5 font-display font-semibold tracking-tight text-balance">{title}</h1>
+          <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">{description}</p>
+          {children}
+        </div>
+        <ConstructionScene variant={sceneVariant(pathname)} compact />
       </div>
     </section>
   )
@@ -96,7 +88,7 @@ export function PageCta({
   secondary?: { label: string; to: string }
 }) {
   return (
-    <section className="border-t border-border bg-card">
+    <section className="marketing-cta border-t border-border bg-card">
       <div className="mx-auto max-w-3xl px-6 py-16 text-center">
         <h2 className="font-display text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{title}</h2>
         <p className="mx-auto mt-3 max-w-lg text-base leading-relaxed text-muted-foreground">{description}</p>
@@ -127,7 +119,7 @@ export function LegalDocument({
   children: ReactNode
 }) {
   return (
-    <section className="mx-auto max-w-3xl px-6 py-14">
+    <section className="legal-document mx-auto max-w-3xl px-6 py-14">
       <p className="mb-8 text-sm text-muted-foreground">Effective date: {effectiveDate}</p>
       {intro && <div className="mb-8 text-sm leading-relaxed text-muted-foreground">{intro}</div>}
       <div className="space-y-8 [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_p]:mt-2.5 [&_p]:text-sm [&_p]:leading-relaxed [&_p]:text-muted-foreground [&_ul]:mt-2.5 [&_ul]:list-disc [&_ul]:space-y-1.5 [&_ul]:pl-5 [&_ul]:text-sm [&_ul]:leading-relaxed [&_ul]:text-muted-foreground [&_strong]:font-semibold [&_strong]:text-foreground">

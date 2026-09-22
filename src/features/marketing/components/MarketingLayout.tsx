@@ -1,5 +1,7 @@
 import { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
+import { MotionConfig } from 'framer-motion'
+import './marketing.css'
 import { MarketingFooter } from './MarketingFooter'
 import { MarketingNav } from './MarketingNav'
 
@@ -11,10 +13,13 @@ export function MarketingLayout() {
   }, [location.pathname])
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background">
-      <MarketingNav />
-      <Outlet />
-      <MarketingFooter />
-    </div>
+    <MotionConfig reducedMotion="user">
+      <div className="marketing-site min-h-screen overflow-x-clip bg-background">
+        <a href="#main-content" className="marketing-skip-link">Skip to content</a>
+        <MarketingNav />
+        <main id="main-content" tabIndex={-1}><Outlet /></main>
+        <MarketingFooter />
+      </div>
+    </MotionConfig>
   )
 }

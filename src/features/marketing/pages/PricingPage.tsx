@@ -14,6 +14,7 @@ function BillingToggle({ period, onChange }: { period: BillingPeriod; onChange: 
         <button
           key={p}
           type="button"
+          aria-pressed={period === p}
           onClick={() => onChange(p)}
           className={cn(
             'flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
@@ -139,7 +140,7 @@ export function PricingPage() {
     <>
       <PageHero
         eyebrow="Pricing"
-        title="Clear plans. Exact module access."
+        title="The right plan for your next chapter."
         description="Start on a trial. Upgrade when the crew grows. Yearly billing includes two months free."
       >
         <div className="mt-6">
@@ -156,7 +157,7 @@ export function PricingPage() {
           <SectionHeading
             eyebrow="Compare"
             title="Every module, side by side"
-            description="This table matches what the product actually unlocks — the same list used for plan gating."
+            description="Compare the tools and access included in each plan."
             align="left"
           />
           <ComparisonTable />

@@ -48,7 +48,7 @@ export function MarketingNav() {
   return (
     <header
       className={cn(
-        'sticky top-0 z-40 transition-all duration-300',
+        'marketing-nav sticky top-0 z-40 transition-all duration-300',
         scrolled
           ? 'border-b border-border bg-card/90 shadow-sm backdrop-blur-xl'
           : 'border-b border-border/70 bg-card/80 backdrop-blur-lg',
@@ -57,7 +57,7 @@ export function MarketingNav() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-6">
         <Logo />
 
-        <nav className="hidden items-center gap-7 lg:flex">
+        <nav aria-label="Main navigation" className="hidden items-center gap-7 lg:flex">
           {MARKETING_NAV_LINKS.map((link) => (
             <NavLinkItem key={link.to} to={link.to} label={link.label} />
           ))}
@@ -75,7 +75,7 @@ export function MarketingNav() {
 
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon-sm" className="lg:hidden" aria-label="Open menu">
+              <Button variant="outline" size="icon-sm" className="h-10 w-10 lg:hidden" aria-label="Open menu">
                 <Menu className="size-4" />
               </Button>
             </SheetTrigger>

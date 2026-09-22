@@ -252,8 +252,8 @@ export function ModulesPage() {
       <PageHero
         align="left"
         eyebrow="Modules"
-        title="The same tools the site, sales, and accounts already use — in one product."
-        description="Twenty-two modules. List views, forms, Excel import, and role-based access on every one. This is the live catalog, not a brochure."
+        title="Every team. Every stage. One workspace."
+        description="Connect your sales pipeline, project delivery, resources, and finances with twenty-two purpose-built modules."
       />
 
       <section className="border-b border-border bg-background">
@@ -278,7 +278,7 @@ export function ModulesPage() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">The catalog</p>
             <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight">Open a group</h2>
           </div>
-          <p className="text-sm text-muted-foreground">Starter vs Growth is on each module. Same list as plan gating.</p>
+          <p className="text-sm text-muted-foreground">Find the right modules and plan for your team.</p>
         </div>
 
         <div

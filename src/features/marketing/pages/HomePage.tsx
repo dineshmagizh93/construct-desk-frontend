@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils'
 import { MODULE_GROUPS, MODULE_KEYS } from '@/lib/modules'
 import { DIFFERENTIATORS, FEATURES, PLANS, STEPS } from '../content'
 import { ProductPreview } from '../components/ProductPreview'
+import { ConstructionScene } from '../components/ConstructionScene'
 import { SectionHeading, TrustStrip } from '../components/shared'
 
 const fadeUp = {
@@ -35,19 +36,18 @@ const fadeUp = {
 
 function HeroSection() {
   return (
-    <section className="relative overflow-hidden border-b border-border bg-card">
+    <section className="marketing-home-hero relative overflow-hidden border-b border-border bg-card">
       <div className="marketing-hero-grid-light pointer-events-none absolute inset-0" />
-      <div className="relative mx-auto max-w-6xl px-6 py-12 lg:py-14">
-        <div className="max-w-2xl">
-          <p className="animate-fade-up text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
-            Construction CRM
+      <div className="home-hero-inner relative mx-auto max-w-6xl px-6">
+        <div className="home-hero-copy">
+          <p className="hero-eyebrow animate-fade-up">
+            A stronger foundation for your business
           </p>
-          <h1 className="animate-fade-up-delay-1 mt-4 font-display text-[2.2rem] font-semibold leading-[1.1] tracking-tight text-balance sm:text-5xl lg:text-[3.15rem]">
-            Every site, crew, and rupee — in one workspace.
+          <h1 className="animate-fade-up-delay-1 mt-6 font-display font-semibold tracking-tight">
+            Build with vision.<br /><span>Run with clarity.</span>
           </h1>
           <p className="animate-fade-up-delay-2 mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            ConstructDesk replaces spreadsheets and WhatsApp threads with a single system for leads, projects,
-            labour, materials, and finance.
+            Every site, crew, and rupee — in one workspace. Bring your leads, projects, people, and finances together with ConstructDesk.
           </p>
           <div className="animate-fade-up-delay-3 mt-8 flex flex-col gap-3 sm:flex-row">
             <Button size="lg" variant="accent" className="h-12 rounded-lg px-7 text-[15px]" asChild>
@@ -71,10 +71,9 @@ function HeroSection() {
             </span>
           </div>
         </div>
-        <div className="animate-fade-up-delay-3 mt-10">
-          <ProductPreview />
-        </div>
+        <ConstructionScene />
       </div>
+      <div className="hero-bottom-line mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-5"><span>BUILT FOR THE BUSINESS OF BUILDING</span><a href="#workspace-preview">Explore your workspace <ArrowRight className="size-3.5" /></a></div>
     </section>
   )
 }
@@ -266,7 +265,7 @@ function ProductBento() {
       span: 'lg:col-span-4',
       body: (
         <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
-          Drawings, permits, and contracts live on Cloudflare R2 — not in someone&apos;s WhatsApp.
+          Drawings, permits, and contracts stay organised in one secure document library, ready for the people who need them.
         </p>
       ),
     },
@@ -277,8 +276,8 @@ function ProductBento() {
       <div className="mx-auto max-w-6xl px-6 py-20">
         <SectionHeading
           eyebrow="Product"
-          title="A workspace that looks like the job, not a generic CRM"
-          description="Each surface below is a real module in ConstructDesk — lists, forms, and permissions included."
+          title="Purpose-built for every part of the job"
+          description="Give every team the tools they need, connected through one project record."
           align="left"
         />
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
@@ -336,8 +335,8 @@ function ModulesSection() {
           <div>
             <SectionHeading
               eyebrow="Modules"
-              title={`${MODULE_KEYS.length} modules. Already shipped.`}
-              description="Nothing on this page is a mockup. Every group below is live in the product, with role-based access."
+              title={`${MODULE_KEYS.length} modules. One connected workspace.`}
+              description="From sales and planning to site operations and finance, bring your entire workflow together with access tailored to each role."
               align="left"
             />
             <Button variant="outline" size="lg" className="h-11 px-6" asChild>
@@ -603,7 +602,7 @@ function WhySection() {
 
 function FinalCta() {
   return (
-    <section className="border-t border-border bg-card">
+    <section className="marketing-cta border-t border-border bg-card">
       <div className="mx-auto max-w-3xl px-6 py-20 text-center">
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">Get started</p>
         <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
@@ -637,8 +636,15 @@ export function HomePage() {
   return (
     <>
       <HeroSection />
-      <ProofBar />
       <TrustStrip />
+      <section id="workspace-preview" className="workspace-preview-section">
+        <div className="mx-auto max-w-6xl px-6 py-20">
+          <SectionHeading eyebrow="Your command centre" title="The big picture. Every small detail." description="Start the day with a clear view of your projects, your team, and your business." />
+          <div className="workspace-preview-frame"><ProductPreview /></div>
+          <p className="mt-5 text-center text-xs text-muted-foreground">Illustrative workspace with sample project data</p>
+        </div>
+      </section>
+      <ProofBar />
       <WorkflowSection />
       <ProductBento />
       <ModulesSection />

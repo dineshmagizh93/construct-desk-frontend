@@ -4,11 +4,13 @@ import { Topbar } from './Topbar'
 import { MobileNav } from './MobileNav'
 import { RouteAccessGuard } from './RouteAccessGuard'
 import { ImpersonationBanner } from './ImpersonationBanner'
+import { TrialBanner } from './TrialBanner'
 
 export function AppLayout() {
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background">
+    <div className="workspace-shell flex h-screen flex-col overflow-hidden bg-background">
       <ImpersonationBanner />
+      <TrialBanner />
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <Sidebar />
         <MobileNav />

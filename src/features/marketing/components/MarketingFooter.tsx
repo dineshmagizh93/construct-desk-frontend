@@ -6,13 +6,13 @@ import { Logo } from './Logo'
 
 export function MarketingFooter() {
   return (
-    <footer className="border-t border-border bg-card">
+    <footer className="marketing-footer border-t border-border bg-card">
       <div className="mx-auto max-w-6xl px-6 py-12">
         <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:gap-x-8 lg:grid-cols-[1.5fr_1fr_1fr_1fr] lg:gap-12">
           <div className="col-span-2 space-y-4 lg:col-span-1">
             <Logo />
             <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-              The complete CRM for construction and interior design businesses — from first lead to final invoice.
+              A stronger foundation for construction businesses. Every project, person, and payment — in one workspace.
             </p>
             <Button variant="accent" size="sm" asChild>
               <Link to="/request-demo">
