@@ -2,6 +2,12 @@ import { useMemo } from 'react'
 import { Download } from 'lucide-react'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import type { UploadedFile } from '@/components/shared/types'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { useProjectOptions, useProjectNameMap, useProjectCodes } from '@/features/projects/hooks'
 import { http } from '@/lib/http'
@@ -56,15 +62,36 @@ export function DocumentsListPage() {
       searchKeys={['name', 'projectName', 'category']}
       entityLabel="document"
       addButtonLabel="Upload Document"
-      rowActions={(row) =>
-        row.file[0] ? (
-          <Button variant="ghost" size="icon-sm" asChild>
-            <a href={row.file[0].url} download={row.file[0].name} onClick={(e) => e.stopPropagation()}>
-              <Download className="size-3.5" />
-            </a>
-          </Button>
-        ) : null
-      }
+      rowActions={(row) => {
+        if (row.file.length === 0) return null
+        if (row.file.length === 1) {
+          return (
+            <Button variant="ghost" size="icon-sm" asChild>
+              <a href={row.file[0].url} download={row.file[0].name} onClick={(e) => e.stopPropagation()}>
+                <Download className="size-3.5" />
+              </a>
+            </Button>
+          )
+        }
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon-sm" onClick={(e) => e.stopPropagation()}>
+                <Download className="size-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+              {row.file.map((f) => (
+                <DropdownMenuItem key={f.id} asChild>
+                  <a href={f.url} download={f.name}>
+                    {f.name}
+                  </a>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      }}
       onCreate={async (values) => {
         const { file, ...rest } = values as Partial<DocumentItem>
         const created = await createMutation.mutateAsync(rest as Partial<DocumentItem>)

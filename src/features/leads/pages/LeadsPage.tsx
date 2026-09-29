@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Building2, MapPin, Plus, UserRound } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { KanbanBoard } from '@/components/shared/KanbanBoard'
@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
+import { useUserOptions, useUserNameMap } from '@/features/users/hooks'
 import { useCreateLead, useDeleteLead, useLeads, useUpdateLead, toLeadPayload } from '../api'
 import { LEAD_KANBAN_COLUMNS, leadColumns, leadFields, leadImportColumns } from '../config'
 import { LeadDetailDialog } from '../components/LeadDetailDialog'
@@ -32,6 +33,19 @@ export function LeadsPage() {
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const selectedLead = selectedLeadId ? (data.find((lead) => lead.id === selectedLeadId) ?? null) : null
+
+  const userOptions = useUserOptions()
+  const userNameMap = useUserNameMap()
+
+  const fields = useMemo(
+    () => leadFields.map((f) => (f.name === 'assignedTo' ? { ...f, options: userOptions } : f)),
+    [userOptions],
+  )
+
+  const enriched = useMemo(
+    () => data.map((lead) => ({ ...lead, assignedToName: userNameMap[lead.assignedTo] ?? lead.assignedTo })),
+    [data, userNameMap],
+  )
 
   const createLead = (values: Record<string, unknown>) => createMutation.mutateAsync(toLeadPayload(values))
   const updateLead = (id: string, values: Record<string, unknown>) =>
@@ -61,9 +75,9 @@ export function LeadsPage() {
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Loading pipeline…</p>
           ) : (
-            <KanbanBoard<Lead>
+            <KanbanBoard<Lead & { assignedToName: string }>
               columns={LEAD_KANBAN_COLUMNS}
-              items={data}
+              items={enriched}
               statusKey="status"
               keyField="id"
               onStatusChange={(id, status) => updateMutation.mutate({ id, values: { status: status as Lead['status'] } })}
@@ -97,9 +111,9 @@ export function LeadsPage() {
 
                   <div className="mt-2.5 flex items-center gap-2">
                     <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[9px] font-semibold text-primary">
-                      {lead.assignedTo ? getInitials(lead.assignedTo) : <UserRound className="size-3" />}
+                      {lead.assignedToName ? getInitials(lead.assignedToName) : <UserRound className="size-3" />}
                     </span>
-                    <span className="truncate text-xs text-muted-foreground">{lead.assignedTo || 'Unassigned'}</span>
+                    <span className="truncate text-xs text-muted-foreground">{lead.assignedToName || 'Unassigned'}</span>
                   </div>
                 </button>
               )}
@@ -108,16 +122,16 @@ export function LeadsPage() {
         </TabsContent>
 
         <TabsContent value="list" className="mt-0 min-h-0 flex-1 data-[state=active]:flex data-[state=active]:flex-col">
-          <EntityListPage<Lead>
+          <EntityListPage<Lead & { assignedToName: string }>
             hideHeader
             moduleKey="leads"
             toolbarStart={tabsNav}
-            data={data}
+            data={enriched}
             columns={leadColumns}
-            fields={leadFields}
+            fields={fields}
             keyField="id"
             isLoading={isLoading}
-            searchKeys={['name', 'projectType', 'assignedTo']}
+            searchKeys={['name', 'projectType', 'assignedToName']}
             entityLabel="lead"
             getCreateDefaults={() => ({ status: 'new' })}
             onRowClick={(row) => setSelectedLeadId(row.id)}
@@ -125,6 +139,11 @@ export function LeadsPage() {
             onUpdate={updateLead}
             onDelete={(id) => deleteMutation.mutateAsync(id)}
             importConfig={{ columns: leadImportColumns, fileName: 'leads-template.xlsx' }}
+            validateImportRow={(row) => {
+              const assignedTo = String(row.assignedTo ?? '').trim()
+              const known = userOptions.some((o) => o.value === assignedTo || o.label.toLowerCase() === assignedTo.toLowerCase())
+              return assignedTo && !known ? `Unknown assignee: ${assignedTo}` : null
+            }}
           />
         </TabsContent>
       </Tabs>
@@ -135,7 +154,7 @@ export function LeadsPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
         title="Add Lead"
-        fields={leadFields}
+        fields={fields}
         defaultValues={{ status: 'new' }}
         onSubmit={createLead}
         submitLabel="Create"

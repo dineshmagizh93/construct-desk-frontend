@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import { toast } from '@/hooks/use-toast'
 import { useIndustryConfig } from '@/lib/industry-store'
+import { useClientOptions, useClientNameMap } from '@/features/clients/hooks'
 import { useCreateProject, useDeleteProject, useProjects, useUpdateProject } from '../api'
 import { projectColumns, projectFields, projectImportColumns } from '../config'
 import { nextProjectCode } from '../utils'
@@ -15,11 +16,29 @@ export function ProjectsListPage() {
   const updateMutation = useUpdateProject()
   const deleteMutation = useDeleteProject()
   const industryConfig = useIndustryConfig()
+  const clientOptions = useClientOptions()
+  const clientNameMap = useClientNameMap()
 
   const fields = useMemo(
-    () => projectFields.map((f) => (f.name === 'type' ? { ...f, options: industryConfig.projectTypeOptions } : f)),
-    [industryConfig],
+    () =>
+      projectFields.map((f) => {
+        if (f.name === 'type') return { ...f, options: industryConfig.projectTypeOptions }
+        if (f.name === 'clientId') return { ...f, options: clientOptions }
+        return f
+      }),
+    [industryConfig, clientOptions],
   )
+
+  // clientId is the authoritative link when a real Client record was picked; clientName is
+  // denormalized from it, or left as free text for a client not yet in the system (clientId null).
+  function reconcileClient(values: Record<string, unknown>) {
+    const clientId = values.clientId ? String(values.clientId) : ''
+    return {
+      ...values,
+      clientId: clientId || null,
+      clientName: clientId ? (clientNameMap[clientId] ?? String(values.clientName ?? '')) : String(values.clientName ?? ''),
+    }
+  }
 
   const createProject = (values: Record<string, unknown>) => {
     const code = String(values.code ?? '').trim()
@@ -28,7 +47,7 @@ export function ProjectsListPage() {
       return Promise.reject(new Error('Duplicate Project ID'))
     }
     return createMutation.mutateAsync({
-      ...values,
+      ...reconcileClient(values),
       code,
       milestones: [],
       tasks: [],
@@ -57,7 +76,7 @@ export function ProjectsListPage() {
         type: industryConfig.projectTypeOptions[0]?.value,
       })}
       onCreate={createProject}
-      onUpdate={(id, values) => updateMutation.mutateAsync({ id, values: values as Partial<Project> })}
+      onUpdate={(id, values) => updateMutation.mutateAsync({ id, values: reconcileClient(values) as Partial<Project> })}
       onDelete={(id) => deleteMutation.mutateAsync(id)}
       importConfig={{ columns: projectImportColumns, fileName: 'projects-template.xlsx' }}
       validateImportRow={(row) => {

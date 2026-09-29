@@ -10,4 +10,5 @@ export interface Contract {
   amount: number
   status: ContractStatus
   signedDate: string
+  expiryDate?: string
 }

@@ -14,6 +14,7 @@ export const clientColumns: Column<Client>[] = [
   { key: 'contactPerson', header: 'Contact Person' },
   { key: 'phone', header: 'Phone' },
   { key: 'type', header: 'Type', render: (row) => <Badge variant="outline">{row.type}</Badge> },
+  { key: 'gstin', header: 'GSTIN' },
   { key: 'address', header: 'Address' },
 ]
 
@@ -23,6 +24,7 @@ export const clientFields: FieldConfig[] = [
   { name: 'type', label: 'Client Type', type: 'select', options: CLIENT_TYPE_OPTIONS, colSpan: 1 },
   { name: 'phone', label: 'Phone', type: 'text', colSpan: 1 },
   { name: 'email', label: 'Email', type: 'email', colSpan: 1 },
+  { name: 'gstin', label: 'GSTIN', type: 'text', colSpan: 1, placeholder: '29ABCDE1234F1Z5', maxLength: 15 },
   { name: 'address', label: 'Address', type: 'textarea', colSpan: 2 },
 ]
 
@@ -32,5 +34,6 @@ export const clientImportColumns: ImportColumn[] = [
   { key: 'type', header: 'Client Type', example: 'Developer', required: true, hint: 'One of: Individual, Developer, Government, Corporate' },
   { key: 'phone', header: 'Phone', example: '+91 99887 76655' },
   { key: 'email', header: 'Email', example: 'contact@example.com' },
+  { key: 'gstin', header: 'GSTIN', example: '29ABCDE1234F1Z5' },
   { key: 'address', header: 'Address', example: 'MG Road, Bengaluru' },
 ]

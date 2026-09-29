@@ -25,6 +25,7 @@ export const vendorColumns: Column<Vendor>[] = [
     ),
   },
   { key: 'status', header: 'Status', render: (row) => <Badge variant={row.status === 'active' ? 'success' : 'secondary'}>{row.status}</Badge> },
+  { key: 'gstin', header: 'GSTIN' },
 ]
 
 export const vendorFields: FieldConfig[] = [
@@ -34,7 +35,8 @@ export const vendorFields: FieldConfig[] = [
   { name: 'contactPerson', label: 'Contact Person', type: 'text', colSpan: 1 },
   { name: 'phone', label: 'Phone', type: 'text', colSpan: 1 },
   { name: 'email', label: 'Email', type: 'email', colSpan: 1 },
-  { name: 'rating', label: 'Rating (1-5)', type: 'number', colSpan: 1 },
+  { name: 'gstin', label: 'GSTIN', type: 'text', colSpan: 1, placeholder: '29ABCDE1234F1Z5', maxLength: 15 },
+  { name: 'rating', label: 'Rating (1-5)', type: 'number', step: '0.1', colSpan: 1 },
 ]
 
 export const vendorImportColumns: ImportColumn[] = [
@@ -44,5 +46,6 @@ export const vendorImportColumns: ImportColumn[] = [
   { key: 'contactPerson', header: 'Contact Person', example: 'Rajiv Malhotra' },
   { key: 'phone', header: 'Phone', example: '+91 98111 22334' },
   { key: 'email', header: 'Email', example: 'sales@example.com' },
+  { key: 'gstin', header: 'GSTIN', example: '29ABCDE1234F1Z5' },
   { key: 'rating', header: 'Rating (1-5)', example: 4, type: 'number' },
 ]

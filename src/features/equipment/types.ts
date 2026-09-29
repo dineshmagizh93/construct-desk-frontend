@@ -8,4 +8,6 @@ export interface Equipment {
   projectId?: string
   lastServiceDate: string
   nextServiceDate: string
+  ownershipType?: string
+  rentalCost?: number
 }

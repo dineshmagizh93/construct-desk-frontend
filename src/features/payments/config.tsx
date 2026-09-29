@@ -10,6 +10,14 @@ export const PAYMENT_STATUS_OPTIONS = [
   { label: 'Overdue', value: 'overdue' },
 ]
 
+export const PAYMENT_METHOD_OPTIONS = [
+  { label: 'Cash', value: 'Cash' },
+  { label: 'Cheque', value: 'Cheque' },
+  { label: 'Bank Transfer', value: 'Bank Transfer' },
+  { label: 'UPI', value: 'UPI' },
+  { label: 'Other', value: 'Other' },
+]
+
 export const paymentColumns: Column<Payment & { projectName?: string }>[] = [
   { key: 'invoiceNumber', header: 'Invoice #' },
   { key: 'clientName', header: 'Client' },
@@ -17,6 +25,7 @@ export const paymentColumns: Column<Payment & { projectName?: string }>[] = [
   { key: 'amount', header: 'Amount', render: (row) => formatCurrency(row.amount) },
   { key: 'dueDate', header: 'Due Date', render: (row) => formatDate(row.dueDate) },
   { key: 'status', header: 'Status', render: (row) => <Badge variant={STATUS_COLORS[row.status] ?? 'secondary'}>{row.status}</Badge> },
+  { key: 'paymentMethod', header: 'Method', render: (row) => row.paymentMethod ?? '—' },
 ]
 
 export const paymentFields: FieldConfig[] = [
@@ -26,6 +35,7 @@ export const paymentFields: FieldConfig[] = [
   { name: 'amount', label: 'Amount (₹)', type: 'number', colSpan: 1 },
   { name: 'dueDate', label: 'Due Date', type: 'date', colSpan: 1 },
   { name: 'status', label: 'Status', type: 'select', options: PAYMENT_STATUS_OPTIONS, colSpan: 1 },
+  { name: 'paymentMethod', label: 'Payment Method', type: 'select', options: PAYMENT_METHOD_OPTIONS, colSpan: 1 },
 ]
 
 export const paymentImportColumns: ImportColumn[] = [
@@ -35,4 +45,5 @@ export const paymentImportColumns: ImportColumn[] = [
   { key: 'amount', header: 'Amount (INR)', example: 1000000, required: true, type: 'number' },
   { key: 'dueDate', header: 'Due Date', example: '2026-08-01', required: true, type: 'date', hint: 'Format: YYYY-MM-DD' },
   { key: 'status', header: 'Status', example: 'unpaid', required: true, hint: 'One of: paid, unpaid, overdue' },
+  { key: 'paymentMethod', header: 'Payment Method', example: 'Bank Transfer', hint: 'One of: Cash, Cheque, Bank Transfer, UPI, Other' },
 ]

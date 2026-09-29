@@ -1,12 +1,15 @@
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Phone, Mail, MapPin, Building2 } from 'lucide-react'
+import { ArrowLeft, Phone, Mail, MapPin, Building2, Plus } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { STATUS_COLORS } from '@/lib/constants'
-import { useClient } from '../api'
+import { usePermission } from '@/lib/permissions'
+import { useClient, useAddClientContactLog } from '../api'
 import { useProjects } from '@/features/projects/api'
 import { statusLabel } from '@/features/projects/config'
 
@@ -15,6 +18,9 @@ export function ClientDetailPage() {
   const navigate = useNavigate()
   const { data: client, isLoading } = useClient(id)
   const { data: allProjects = [] } = useProjects()
+  const canEditClient = usePermission('clients', 'edit')
+  const [note, setNote] = useState('')
+  const addNoteMutation = useAddClientContactLog()
 
   if (isLoading) {
     return (
@@ -37,6 +43,12 @@ export function ClientDetailPage() {
   }
 
   const linkedProjects = allProjects.filter((p) => p.clientId === client.id)
+
+  const addNote = async () => {
+    if (!note.trim() || addNoteMutation.isPending) return
+    await addNoteMutation.mutateAsync({ clientId: client.id, note: note.trim() })
+    setNote('')
+  }
 
   return (
     <div>
@@ -100,6 +112,7 @@ export function ClientDetailPage() {
             <p className="flex items-start gap-1.5 text-muted-foreground">
               <MapPin className="mt-0.5 size-4 shrink-0" /> {client.address}
             </p>
+            {client.gstin && <p className="text-muted-foreground">GSTIN: <span className="font-medium text-foreground">{client.gstin}</span></p>}
             <p className="text-muted-foreground">Client since {formatDate(client.createdAt)}</p>
           </CardContent>
         </Card>
@@ -118,6 +131,19 @@ export function ClientDetailPage() {
           ))}
           {client.contactHistory.length === 0 && (
             <p className="text-sm text-muted-foreground">No contact history recorded yet.</p>
+          )}
+          {canEditClient && (
+            <div className="flex gap-2 pt-1">
+              <Input
+                placeholder="Add a note…"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && addNote()}
+              />
+              <Button size="icon" onClick={addNote} disabled={addNoteMutation.isPending || !note.trim()}>
+                <Plus className="size-4" />
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>

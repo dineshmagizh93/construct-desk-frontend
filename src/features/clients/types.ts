@@ -12,6 +12,7 @@ export interface Client {
   email: string
   address: string
   type: 'Individual' | 'Developer' | 'Government' | 'Corporate'
+  gstin?: string
   createdAt: string
   contactHistory: ClientContactLog[]
 }

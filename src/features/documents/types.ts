@@ -9,5 +9,6 @@ export interface DocumentItem {
   projectId: string
   uploadedBy: string
   uploadedAt: string
+  expiryDate?: string
   file: UploadedFile[]
 }

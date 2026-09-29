@@ -45,7 +45,7 @@ export const leadColumns: Column<Lead>[] = [
     header: 'Status',
     render: (row) => <Badge variant={STATUS_COLORS[row.status] ?? 'secondary'}>{leadStatusLabel(row.status)}</Badge>,
   },
-  { key: 'assignedTo', header: 'Assigned To' },
+  { key: 'assignedToName', header: 'Assigned To' },
 ]
 
 export const leadFields: FieldConfig[] = [
@@ -56,7 +56,7 @@ export const leadFields: FieldConfig[] = [
   { name: 'estimatedBudget', label: 'Estimated Budget (₹)', type: 'number', colSpan: 1 },
   { name: 'source', label: 'Source', type: 'select', options: LEAD_SOURCE_OPTIONS, colSpan: 1 },
   { name: 'status', label: 'Status', type: 'select', options: LEAD_STATUS_OPTIONS, colSpan: 1 },
-  { name: 'assignedTo', label: 'Assigned To', type: 'text', colSpan: 1 },
+  { name: 'assignedTo', label: 'Assigned To', type: 'select', options: [], colSpan: 1 },
   { name: 'location', label: 'Location', type: 'text', colSpan: 2 },
 ]
 
@@ -68,6 +68,6 @@ export const leadImportColumns: ImportColumn[] = [
   { key: 'estimatedBudget', header: 'Estimated Budget (INR)', example: 5000000, type: 'number' },
   { key: 'source', header: 'Source', example: 'Website', required: true, hint: 'One of: Website, Referral, Walk-in, Social Media, Advertisement' },
   { key: 'status', header: 'Status', example: 'new', required: true, hint: 'One of: new, contacted, site_visit, quoted, won, lost' },
-  { key: 'assignedTo', header: 'Assigned To', example: 'Rohan Shah' },
+  { key: 'assignedTo', header: 'Assigned To', example: 'Rohan Shah', hint: 'Must match an active team member’s full name exactly — see the Users page.' },
   { key: 'location', header: 'Location', example: 'Whitefield, Bengaluru' },
 ]

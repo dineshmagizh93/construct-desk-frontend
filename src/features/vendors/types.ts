@@ -7,4 +7,5 @@ export interface Vendor {
   email: string
   rating: number
   status: 'active' | 'inactive'
+  gstin?: string
 }

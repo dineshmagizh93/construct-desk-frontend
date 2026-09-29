@@ -1,20 +1,44 @@
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, MapPin, User, Calendar, CheckCircle2, Circle, FileText, Wallet } from 'lucide-react'
+import { ArrowLeft, MapPin, User, Calendar, CheckCircle2, Circle, FileText, Wallet, Plus, Pencil, Trash2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CopyableId } from '@/components/shared/CopyableId'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { DrawerForm } from '@/components/shared/DrawerForm'
+import type { FieldConfig } from '@/components/shared/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { STATUS_COLORS } from '@/lib/constants'
+import { usePermission } from '@/lib/permissions'
+import { useUserNameMap } from '@/features/users/hooks'
 import { useProject } from '../api'
 import { statusLabel } from '../config'
+import { useCreateMilestone, useUpdateMilestone, useDeleteMilestone } from '../milestones-api'
+import type { ProjectMilestone } from '../types'
+
+const milestoneFields: FieldConfig[] = [
+  { name: 'label', label: 'Milestone', type: 'text', required: true, colSpan: 2 },
+  { name: 'dueDate', label: 'Due Date', type: 'date', required: true, colSpan: 1 },
+  { name: 'done', label: 'Done', type: 'checkbox', colSpan: 1 },
+]
 
 export function ProjectDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { data: project, isLoading } = useProject(id)
+  const userNameMap = useUserNameMap()
+  const canEditProject = usePermission('projects', 'edit')
+  const canDeleteProject = usePermission('projects', 'delete')
+
+  const createMilestone = useCreateMilestone(id ?? '')
+  const updateMilestone = useUpdateMilestone(id ?? '')
+  const deleteMilestone = useDeleteMilestone(id ?? '')
+  const [milestoneDrawerOpen, setMilestoneDrawerOpen] = useState(false)
+  const [editingMilestone, setEditingMilestone] = useState<ProjectMilestone | null>(null)
+  const [deletingMilestone, setDeletingMilestone] = useState<ProjectMilestone | null>(null)
 
   if (isLoading) {
     return (
@@ -118,19 +142,51 @@ export function ProjectDetailPage() {
             </CardContent>
           </Card>
           <Card>
-            <CardHeader>
+            <CardHeader className="flex-row items-center justify-between gap-3">
               <CardTitle>Milestones</CardTitle>
+              {canEditProject && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setEditingMilestone(null)
+                    setMilestoneDrawerOpen(true)
+                  }}
+                >
+                  <Plus className="size-4" /> Add Milestone
+                </Button>
+              )}
             </CardHeader>
             <CardContent className="space-y-3">
               {project.milestones.map((m) => (
                 <div key={m.id} className="flex items-center gap-3 text-sm">
-                  {m.done ? (
-                    <CheckCircle2 className="size-4 shrink-0 text-success" />
-                  ) : (
-                    <Circle className="size-4 shrink-0 text-muted-foreground" />
-                  )}
+                  <button
+                    type="button"
+                    disabled={!canEditProject}
+                    onClick={() => updateMilestone.mutate({ id: m.id, values: { done: !m.done } })}
+                    className="shrink-0 disabled:cursor-default"
+                  >
+                    {m.done ? <CheckCircle2 className="size-4 text-success" /> : <Circle className="size-4 text-muted-foreground" />}
+                  </button>
                   <span className={m.done ? 'text-muted-foreground line-through' : ''}>{m.label}</span>
                   <span className="ml-auto text-xs text-muted-foreground">{formatDate(m.dueDate)}</span>
+                  {canEditProject && (
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => {
+                        setEditingMilestone(m)
+                        setMilestoneDrawerOpen(true)
+                      }}
+                    >
+                      <Pencil className="size-3.5" />
+                    </Button>
+                  )}
+                  {canDeleteProject && (
+                    <Button variant="ghost" size="icon-sm" onClick={() => setDeletingMilestone(m)}>
+                      <Trash2 className="size-3.5 text-destructive" />
+                    </Button>
+                  )}
                 </div>
               ))}
               {project.milestones.length === 0 && <p className="text-sm text-muted-foreground">No milestones added.</p>}
@@ -145,7 +201,7 @@ export function ProjectDetailPage() {
                 <div key={task.id} className="flex items-center justify-between gap-3 p-4">
                   <div>
                     <p className="text-sm font-medium">{task.title}</p>
-                    <p className="text-xs text-muted-foreground">Assigned to {task.assignee}</p>
+                    <p className="text-xs text-muted-foreground">Assigned to {userNameMap[task.assignee] ?? task.assignee}</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <Badge variant={task.status === 'done' ? 'success' : task.status === 'in_progress' ? 'warning' : 'secondary'}>
@@ -204,6 +260,31 @@ export function ProjectDetailPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <DrawerForm
+        open={milestoneDrawerOpen}
+        onOpenChange={setMilestoneDrawerOpen}
+        title={editingMilestone ? 'Edit Milestone' : 'Add Milestone'}
+        fields={milestoneFields}
+        defaultValues={editingMilestone ? (editingMilestone as unknown as Record<string, unknown>) : {}}
+        submitLabel={editingMilestone ? 'Save changes' : 'Create'}
+        onSubmit={(values) =>
+          editingMilestone
+            ? updateMilestone.mutateAsync({ id: editingMilestone.id, values })
+            : createMilestone.mutateAsync(values as { label: string; dueDate: string; done?: boolean })
+        }
+      />
+
+      <ConfirmDialog
+        open={!!deletingMilestone}
+        onOpenChange={(open) => !open && setDeletingMilestone(null)}
+        title="Delete milestone"
+        description={`This will permanently remove "${deletingMilestone?.label}". This action cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={() => {
+          if (deletingMilestone) deleteMilestone.mutate(deletingMilestone.id)
+        }}
+      />
     </div>
   )
 }

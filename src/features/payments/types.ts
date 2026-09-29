@@ -8,4 +8,5 @@ export interface Payment {
   amount: number
   dueDate: string
   status: PaymentStatus
+  paymentMethod?: string
 }

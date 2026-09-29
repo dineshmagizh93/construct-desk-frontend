@@ -221,7 +221,17 @@ export function EntityListPage<T extends object>({
         onOpenChange={setDrawerOpen}
         title={editing ? `Edit ${entityLabel}` : `Add ${entityLabel}`}
         fields={activeFields}
-        defaultValues={editing ? getFormDefaults?.(editing) ?? (editing as Record<string, unknown>) : (getCreateDefaults?.() ?? {})}
+        defaultValues={
+          editing
+            ? (getFormDefaults?.(editing) ??
+              // Only pass the row's real form fields through — `data` is often enriched with
+              // derived display-only columns (e.g. `projectName`, `assigneeName`) that aren't
+              // real fields on the model. react-hook-form includes every defaultValues key in
+              // the submitted payload regardless of registration, so leaking one of these into
+              // an update silently 400s (the backend rejects the unknown column).
+              Object.fromEntries(activeFields.map((f) => [f.name, (editing as Record<string, unknown>)[f.name]])))
+            : (getCreateDefaults?.() ?? {})
+        }
         onSubmit={handleSubmit}
         submitLabel={editing ? 'Save changes' : 'Create'}
       />
