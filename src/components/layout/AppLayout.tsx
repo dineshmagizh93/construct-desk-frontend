@@ -8,7 +8,7 @@ import { TrialBanner } from './TrialBanner'
 
 export function AppLayout() {
   return (
-    <div className="workspace-shell flex h-screen flex-col overflow-hidden bg-background">
+    <div className="workspace-shell flex h-dvh flex-col overflow-hidden bg-background">
       <ImpersonationBanner />
       <TrialBanner />
       <div className="flex min-h-0 flex-1 overflow-hidden">
@@ -16,7 +16,7 @@ export function AppLayout() {
         <MobileNav />
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar />
-          <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+          <main className="min-h-0 min-w-0 flex-1 overflow-y-auto p-4 lg:px-5">
             <RouteAccessGuard>
               <Outlet />
             </RouteAccessGuard>

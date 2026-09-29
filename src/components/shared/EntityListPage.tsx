@@ -158,13 +158,13 @@ export function EntityListPage<T extends object>({
   ) : null
 
   return (
-    <div className={fillHeight ? 'flex h-full flex-col' : undefined}>
+    <div className={fillHeight ? 'entity-list-page flex min-h-full min-w-0 flex-col' : 'entity-list-page min-w-0'}>
       <div className="shrink-0">
         {hideHeader ? (
           <div className="mb-3 flex flex-wrap items-center gap-2">
             {toolbarStart}
             {searchInput}
-            <div className="ml-auto flex items-center gap-2">{actionButtons}</div>
+            <div className="ml-auto flex flex-wrap items-center gap-2">{actionButtons}</div>
           </div>
         ) : (
           <>
@@ -178,12 +178,12 @@ export function EntityListPage<T extends object>({
                 </>
               }
             />
-            {searchInput && <div className="mb-4">{searchInput}</div>}
+            {searchInput && <div className="mb-3">{searchInput}</div>}
           </>
         )}
       </div>
 
-      <div className={fillHeight ? 'min-h-0 flex-1' : undefined}>
+      <div className={fillHeight ? 'min-w-0 flex-1' : undefined}>
         <DataTable
           data={paginated}
           columns={columns}
@@ -196,12 +196,12 @@ export function EntityListPage<T extends object>({
             <div className="flex justify-end gap-1">
               {rowActions?.(row)}
               {canEdit && (
-                <Button variant="ghost" size="icon-sm" onClick={() => openEdit(row)}>
+                <Button variant="ghost" size="icon-sm" aria-label={`Edit ${entityLabel}`} onClick={() => openEdit(row)}>
                   <Pencil className="size-3.5" />
                 </Button>
               )}
               {canDelete && (
-                <Button variant="ghost" size="icon-sm" onClick={() => setDeleteTarget(row)}>
+                <Button variant="ghost" size="icon-sm" aria-label={`Delete ${entityLabel}`} onClick={() => setDeleteTarget(row)}>
                   <Trash2 className="size-3.5 text-destructive" />
                 </Button>
               )}

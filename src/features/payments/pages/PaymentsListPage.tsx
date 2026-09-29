@@ -1,8 +1,9 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import { useProjectOptions, useProjectNameMap, useProjectCodes } from '@/features/projects/hooks'
 import { usePayments, useCreatePayment, useUpdatePayment, useDeletePayment } from '../api'
 import { paymentColumns, paymentFields, paymentImportColumns } from '../config'
+import { PaymentLineItemsDialog } from '../components/PaymentLineItemsDialog'
 import type { Payment } from '../types'
 
 export function PaymentsListPage() {
@@ -10,6 +11,8 @@ export function PaymentsListPage() {
   const createMutation = useCreatePayment()
   const updateMutation = useUpdatePayment()
   const deleteMutation = useDeletePayment()
+  const [lineItemsPaymentId, setLineItemsPaymentId] = useState<string | null>(null)
+  const lineItemsPayment = lineItemsPaymentId ? (data.find((p) => p.id === lineItemsPaymentId) ?? null) : null
 
   const projectOptions = useProjectOptions()
   const projectNameMap = useProjectNameMap()
@@ -26,25 +29,30 @@ export function PaymentsListPage() {
   )
 
   return (
-    <EntityListPage<Payment & { projectName: string }>
-      title="Payments & Invoices"
-      description="Client invoices and payment status across every project."
-      data={enriched}
-      columns={paymentColumns}
-      fields={fields}
-      keyField="id"
-      moduleKey="payments"
-      isLoading={isLoading}
-      searchKeys={['invoiceNumber', 'clientName', 'projectName']}
-      entityLabel="invoice"
-      onCreate={(values) => createMutation.mutateAsync(values as Partial<Payment>)}
-      onUpdate={(id, values) => updateMutation.mutateAsync({ id, values: values as Partial<Payment> })}
-      onDelete={(id) => deleteMutation.mutateAsync(id)}
-      importConfig={{ columns: paymentImportColumns, fileName: 'payments-template.xlsx' }}
-      validateImportRow={(row) => {
-        const code = String(row.projectId ?? '').trim()
-        return projectCodes.includes(code) ? null : `Unknown Project ID: ${code}`
-      }}
-    />
+    <>
+      <EntityListPage<Payment & { projectName: string }>
+        title="Payments & Invoices"
+        description="Client invoices and payment status across every project."
+        data={enriched}
+        columns={paymentColumns}
+        fields={fields}
+        keyField="id"
+        moduleKey="payments"
+        isLoading={isLoading}
+        searchKeys={['invoiceNumber', 'clientName', 'projectName']}
+        entityLabel="invoice"
+        onRowClick={(row) => setLineItemsPaymentId(row.id)}
+        onCreate={(values) => createMutation.mutateAsync(values as Partial<Payment>)}
+        onUpdate={(id, values) => updateMutation.mutateAsync({ id, values: values as Partial<Payment> })}
+        onDelete={(id) => deleteMutation.mutateAsync(id)}
+        importConfig={{ columns: paymentImportColumns, fileName: 'payments-template.xlsx' }}
+        validateImportRow={(row) => {
+          const code = String(row.projectId ?? '').trim()
+          return projectCodes.includes(code) ? null : `Unknown Project ID: ${code}`
+        }}
+      />
+
+      <PaymentLineItemsDialog payment={lineItemsPayment} onOpenChange={(open) => !open && setLineItemsPaymentId(null)} />
+    </>
   )
 }

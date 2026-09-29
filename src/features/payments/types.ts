@@ -1,5 +1,13 @@
 export type PaymentStatus = 'paid' | 'unpaid' | 'overdue'
 
+export interface PaymentLineItem {
+  id: string
+  description: string
+  quantity: number
+  unitPrice: number
+  taxPercent: number
+}
+
 export interface Payment {
   id: string
   invoiceNumber: string
@@ -9,4 +17,5 @@ export interface Payment {
   dueDate: string
   status: PaymentStatus
   paymentMethod?: string
+  lineItems: PaymentLineItem[]
 }

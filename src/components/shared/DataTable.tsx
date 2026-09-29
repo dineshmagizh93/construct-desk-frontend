@@ -45,8 +45,8 @@ export function DataTable<T extends object>({
   }
 
   return (
-    <div className="h-full overflow-hidden rounded-lg border border-border">
-      <Table>
+    <div className="data-table-panel min-w-0 rounded-lg border border-border bg-card">
+      <Table className="workspace-data-table">
         <TableHeader>
           <TableRow>
             {columns.map((col) => (
@@ -54,7 +54,7 @@ export function DataTable<T extends object>({
                 {col.header}
               </TableHead>
             ))}
-            {actions && <TableHead className="text-right">Actions</TableHead>}
+            {actions && <TableHead className="w-24 text-right">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -68,7 +68,7 @@ export function DataTable<T extends object>({
                 if (col.render) {
                   return (
                     <TableCell key={col.key} className={col.className}>
-                      {col.render(row)}
+                      <div className="table-cell-value">{col.render(row)}</div>
                     </TableCell>
                   )
                 }
@@ -77,7 +77,7 @@ export function DataTable<T extends object>({
                 // entry can't blow out the row height or column width.
                 return (
                   <TableCell key={col.key} className={col.className}>
-                    <span className="block max-w-[32ch] truncate" title={value}>
+                    <span className="block truncate" title={value}>
                       {value}
                     </span>
                   </TableCell>

@@ -26,7 +26,7 @@ export function Topbar() {
   const fullName = user ? `${user.firstName} ${user.lastName}` : ''
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/95 px-4 backdrop-blur">
+    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/95 px-4 backdrop-blur">
       <button
         className="flex size-9 items-center justify-center rounded-md hover:bg-secondary lg:hidden"
         onClick={() => setMobileNavOpen(true)}

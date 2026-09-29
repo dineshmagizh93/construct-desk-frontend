@@ -116,7 +116,7 @@ export function DrawerForm({
             const showCounter = maxLen != null && (field.type === 'text' || field.type === 'email' || field.type === 'textarea')
             const currentLen = showCounter ? String(watch(field.name) ?? '').length : 0
             return (
-              <div key={field.name} className={cn('space-y-1.5', field.colSpan === 1 ? 'sm:col-span-1' : 'sm:col-span-2')}>
+              <div key={field.name} className={cn('min-w-0 space-y-1.5', field.colSpan === 1 ? 'sm:col-span-1' : 'sm:col-span-2')}>
                 <Label htmlFor={field.name}>
                   {field.label}
                   {field.required && <span className="text-destructive"> *</span>}
@@ -145,7 +145,7 @@ export function DrawerForm({
                     rules={{ required: field.required }}
                     render={({ field: ctrlField }) => (
                       <Select value={(ctrlField.value as string) ?? ''} onValueChange={ctrlField.onChange}>
-                        <SelectTrigger>
+                        <SelectTrigger id={field.name} onBlur={ctrlField.onBlur} ref={ctrlField.ref}>
                           <SelectValue placeholder={field.placeholder ?? 'Select…'} />
                         </SelectTrigger>
                         <SelectContent>

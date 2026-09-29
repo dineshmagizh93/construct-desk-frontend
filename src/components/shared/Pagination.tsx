@@ -24,13 +24,13 @@ export function Pagination({
   const end = Math.min(total, page * pageSize)
 
   return (
-    <div className="mt-3 flex flex-col-reverse items-center justify-between gap-3 sm:flex-row">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+    <div role="navigation" aria-label="Table pagination" className="mt-3 flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
         <span>
           Showing {start}-{end} of {total}
         </span>
         <Select value={String(pageSize)} onValueChange={(v) => onPageSizeChange(Number(v))}>
-          <SelectTrigger className="h-7 w-[4.5rem]">
+          <SelectTrigger aria-label="Records per page" className="h-8 w-20">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
