@@ -1,9 +1,10 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import { useProjectOptions, useProjectNameMap, useProjectCodes } from '@/features/projects/hooks'
 import { useIndustryConfig } from '@/lib/industry-store'
 import { useEstimates, useCreateEstimate, useUpdateEstimate, useDeleteEstimate } from '../api'
 import { estimateColumns, estimateFields, estimateImportColumns } from '../config'
+import { EstimateLineItemsDialog } from '../components/EstimateLineItemsDialog'
 import type { Estimate } from '../types'
 
 export function EstimatesListPage() {
@@ -12,6 +13,8 @@ export function EstimatesListPage() {
   const updateMutation = useUpdateEstimate()
   const deleteMutation = useDeleteEstimate()
   const { moduleText } = useIndustryConfig()
+  const [lineItemsEstimateId, setLineItemsEstimateId] = useState<string | null>(null)
+  const lineItemsEstimate = lineItemsEstimateId ? (data.find((e) => e.id === lineItemsEstimateId) ?? null) : null
 
   const projectOptions = useProjectOptions()
   const projectNameMap = useProjectNameMap()
@@ -28,26 +31,31 @@ export function EstimatesListPage() {
   )
 
   return (
-    <EntityListPage<Estimate & { projectName?: string }>
-      title={moduleText.estimates.title}
-      description={moduleText.estimates.description}
-      data={enriched}
-      columns={estimateColumns}
-      fields={fields}
-      keyField="id"
-      moduleKey="estimates"
-      isLoading={isLoading}
-      searchKeys={['title', 'clientName']}
-      entityLabel={moduleText.estimates.entityLabel ?? 'estimate'}
-      onCreate={(values) => createMutation.mutateAsync(values as Partial<Estimate>)}
-      onUpdate={(id, values) => updateMutation.mutateAsync({ id, values: values as Partial<Estimate> })}
-      onDelete={(id) => deleteMutation.mutateAsync(id)}
-      importConfig={{ columns: estimateImportColumns, fileName: 'estimates-template.xlsx' }}
-      validateImportRow={(row) => {
-        const code = String(row.projectId ?? '').trim()
-        if (!code) return null
-        return projectCodes.includes(code) ? null : `Unknown Project ID: ${code}`
-      }}
-    />
+    <>
+      <EntityListPage<Estimate & { projectName?: string }>
+        title={moduleText.estimates.title}
+        description={moduleText.estimates.description}
+        data={enriched}
+        columns={estimateColumns}
+        fields={fields}
+        keyField="id"
+        moduleKey="estimates"
+        isLoading={isLoading}
+        searchKeys={['title', 'clientName']}
+        entityLabel={moduleText.estimates.entityLabel ?? 'estimate'}
+        onRowClick={(row) => setLineItemsEstimateId(row.id)}
+        onCreate={(values) => createMutation.mutateAsync(values as Partial<Estimate>)}
+        onUpdate={(id, values) => updateMutation.mutateAsync({ id, values: values as Partial<Estimate> })}
+        onDelete={(id) => deleteMutation.mutateAsync(id)}
+        importConfig={{ columns: estimateImportColumns, fileName: 'estimates-template.xlsx' }}
+        validateImportRow={(row) => {
+          const code = String(row.projectId ?? '').trim()
+          if (!code) return null
+          return projectCodes.includes(code) ? null : `Unknown Project ID: ${code}`
+        }}
+      />
+
+      <EstimateLineItemsDialog estimate={lineItemsEstimate} onOpenChange={(open) => !open && setLineItemsEstimateId(null)} />
+    </>
   )
 }

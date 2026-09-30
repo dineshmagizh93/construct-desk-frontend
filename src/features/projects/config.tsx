@@ -45,10 +45,10 @@ export const projectColumns: Column<Project>[] = [
     header: 'Progress',
     render: (row) => (
       <div className="flex items-center gap-2">
-        <div className="h-1.5 w-20 overflow-hidden rounded-full bg-secondary">
+        <div className="h-1.5 min-w-0 max-w-20 flex-1 overflow-hidden rounded-full bg-secondary">
           <div className="h-full rounded-full bg-primary" style={{ width: `${row.progress}%` }} />
         </div>
-        <span className="text-xs text-muted-foreground">{row.progress}%</span>
+        <span className="shrink-0 whitespace-nowrap text-xs tabular-nums text-muted-foreground">{row.progress}%</span>
       </div>
     ),
   },

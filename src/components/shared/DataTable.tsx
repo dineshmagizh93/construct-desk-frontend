@@ -66,9 +66,14 @@ export function DataTable<T extends object>({
             >
               {columns.map((col) => {
                 if (col.render) {
+                  const content = col.render(row)
                   return (
                     <TableCell key={col.key} className={col.className}>
-                      <div className="table-cell-value">{col.render(row)}</div>
+                      {typeof content === 'string' || typeof content === 'number' ? (
+                        <span className="block truncate" title={String(content)}>{content}</span>
+                      ) : (
+                        <div className="table-cell-value">{content}</div>
+                      )}
                     </TableCell>
                   )
                 }

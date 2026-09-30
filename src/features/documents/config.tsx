@@ -20,7 +20,8 @@ export const documentColumns: Column<DocumentItem & { projectName?: string }>[] 
     header: 'Document',
     render: (row) => (
       <span className="flex items-center gap-2">
-        <FileText className="size-4 text-muted-foreground" /> {row.name}
+        <FileText className="size-4 shrink-0 text-muted-foreground" />
+        <span className="min-w-0 truncate" title={row.name}>{row.name}</span>
       </span>
     ),
   },

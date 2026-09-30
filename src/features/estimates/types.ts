@@ -1,5 +1,13 @@
 export type EstimateStatus = 'draft' | 'sent' | 'approved' | 'rejected'
 
+export interface EstimateLineItem {
+  id: string
+  description: string
+  quantity: number
+  unitPrice: number
+  taxPercent: number
+}
+
 export interface Estimate {
   id: string
   title: string
@@ -10,4 +18,5 @@ export interface Estimate {
   status: EstimateStatus
   validUntil: string
   createdAt: string
+  lineItems: EstimateLineItem[]
 }

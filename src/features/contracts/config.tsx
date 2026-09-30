@@ -18,7 +18,7 @@ export const CONTRACT_STATUS_OPTIONS = [
 
 export const contractColumns: Column<Contract & { projectName?: string }>[] = [
   { key: 'title', header: 'Title' },
-  { key: 'type', header: 'Type', render: (row) => <Badge variant="outline">{row.type}</Badge> },
+  { key: 'type', header: 'Type', className: 'w-36', render: (row) => <Badge variant="outline">{row.type}</Badge> },
   { key: 'party', header: 'Party' },
   { key: 'projectName', header: 'Project' },
   { key: 'amount', header: 'Amount', render: (row) => formatCurrency(row.amount) },

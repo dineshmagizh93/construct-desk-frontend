@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Shield, Pencil, Plus, Trash2 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { DataTable } from '@/components/shared/DataTable'
+import { Pagination } from '@/components/shared/Pagination'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -22,7 +23,7 @@ const roleColumns: Column<CompanyRole>[] = [
     render: (row) => (
       <div className="flex items-center gap-2">
         <Shield className="size-4 shrink-0 text-primary" />
-        <span className="font-medium">{row.name}</span>
+        <span className="min-w-0 truncate font-medium" title={row.name}>{row.name}</span>
         {row.isSystem && <Badge variant="secondary">System</Badge>}
       </div>
     ),
@@ -30,7 +31,7 @@ const roleColumns: Column<CompanyRole>[] = [
   {
     key: 'description',
     header: 'Description',
-    render: (row) => <span className="text-muted-foreground">{row.description || '—'}</span>,
+    render: (row) => <span className="block truncate text-muted-foreground" title={row.description ?? undefined}>{row.description || '—'}</span>,
   },
   {
     key: 'userCount',
@@ -60,6 +61,10 @@ export function RolesPage() {
   const [editing, setEditing] = useState<CompanyRole | null>(null)
   const [draftPermissions, setDraftPermissions] = useState<PermissionMap>(emptyPermissions())
   const [deleteTarget, setDeleteTarget] = useState<CompanyRole | null>(null)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const currentPage = Math.min(page, Math.max(1, Math.ceil(roles.length / pageSize)))
+  const pageItems = roles.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   const openEdit = (role: CompanyRole) => {
     setCreating(false)
@@ -76,7 +81,7 @@ export function RolesPage() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="flex min-h-full min-w-0 flex-col">
       <div className="shrink-0">
         <PageHeader
           title="Roles & Permissions"
@@ -172,9 +177,9 @@ export function RolesPage() {
         </div>
       )}
 
-      <div className="min-h-0 flex-1">
+      <div className="min-w-0 flex-1">
         <DataTable
-          data={roles}
+          data={pageItems}
           columns={roleColumns}
           keyField="id"
           loading={isLoading}
@@ -196,6 +201,16 @@ export function RolesPage() {
           )}
         />
       </div>
+
+      {!isLoading && roles.length > 0 && (
+        <Pagination
+          page={currentPage}
+          pageSize={pageSize}
+          total={roles.length}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
+        />
+      )}
 
       <ConfirmDialog
         open={!!deleteTarget}
