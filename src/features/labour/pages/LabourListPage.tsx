@@ -1,9 +1,10 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import { useProjectOptions, useProjectNameMap, useProjectCodes } from '@/features/projects/hooks'
 import { useIndustryConfig } from '@/lib/industry-store'
 import { useLabour, useCreateLabour, useUpdateLabour, useDeleteLabour } from '../api'
 import { labourColumns, labourFields, labourImportColumns } from '../config'
+import { AttendanceDialog } from '../components/AttendanceDialog'
 import type { LabourRecord } from '../types'
 
 export function LabourListPage() {
@@ -12,6 +13,8 @@ export function LabourListPage() {
   const updateMutation = useUpdateLabour()
   const deleteMutation = useDeleteLabour()
   const { moduleText } = useIndustryConfig()
+  const [attendanceWorkerId, setAttendanceWorkerId] = useState<string | null>(null)
+  const attendanceWorker = attendanceWorkerId ? (data.find((l) => l.id === attendanceWorkerId) ?? null) : null
 
   const projectOptions = useProjectOptions()
   const projectNameMap = useProjectNameMap()
@@ -28,25 +31,30 @@ export function LabourListPage() {
   )
 
   return (
-    <EntityListPage<LabourRecord & { projectName: string }>
-      title={moduleText.labour.title}
-      description={moduleText.labour.description}
-      data={enriched}
-      columns={labourColumns}
-      fields={fields}
-      keyField="id"
-      moduleKey="labour"
-      isLoading={isLoading}
-      searchKeys={['name', 'role', 'contractor', 'projectName']}
-      entityLabel={moduleText.labour.entityLabel ?? 'worker'}
-      onCreate={(values) => createMutation.mutateAsync(values as Partial<LabourRecord>)}
-      onUpdate={(id, values) => updateMutation.mutateAsync({ id, values: values as Partial<LabourRecord> })}
-      onDelete={(id) => deleteMutation.mutateAsync(id)}
-      importConfig={{ columns: labourImportColumns, fileName: 'labour-template.xlsx' }}
-      validateImportRow={(row) => {
-        const code = String(row.projectId ?? '').trim()
-        return projectCodes.includes(code) ? null : `Unknown Project ID: ${code}`
-      }}
-    />
+    <>
+      <EntityListPage<LabourRecord & { projectName: string }>
+        title={moduleText.labour.title}
+        description={moduleText.labour.description}
+        data={enriched}
+        columns={labourColumns}
+        fields={fields}
+        keyField="id"
+        moduleKey="labour"
+        isLoading={isLoading}
+        searchKeys={['name', 'role', 'contractor', 'projectName']}
+        entityLabel={moduleText.labour.entityLabel ?? 'worker'}
+        onRowClick={(row) => setAttendanceWorkerId(row.id)}
+        onCreate={(values) => createMutation.mutateAsync(values as Partial<LabourRecord>)}
+        onUpdate={(id, values) => updateMutation.mutateAsync({ id, values: values as Partial<LabourRecord> })}
+        onDelete={(id) => deleteMutation.mutateAsync(id)}
+        importConfig={{ columns: labourImportColumns, fileName: 'labour-template.xlsx' }}
+        validateImportRow={(row) => {
+          const code = String(row.projectId ?? '').trim()
+          return projectCodes.includes(code) ? null : `Unknown Project ID: ${code}`
+        }}
+      />
+
+      <AttendanceDialog worker={attendanceWorker} onOpenChange={(open) => !open && setAttendanceWorkerId(null)} />
+    </>
   )
 }

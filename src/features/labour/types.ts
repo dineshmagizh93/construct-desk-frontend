@@ -1,3 +1,11 @@
+export interface LabourAttendanceEntry {
+  id: string
+  date: string
+  present: boolean
+  wageAmount: number
+  notes?: string
+}
+
 export interface LabourRecord {
   id: string
   projectId: string
@@ -8,4 +16,5 @@ export interface LabourRecord {
   phone: string
   status: 'active' | 'inactive'
   joinedDate: string
+  attendance: LabourAttendanceEntry[]
 }
