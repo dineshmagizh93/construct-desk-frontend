@@ -1,5 +1,14 @@
 export type EquipmentStatus = 'available' | 'in_use' | 'maintenance'
 
+export interface EquipmentServiceLog {
+  id: string
+  date: string
+  type: string
+  cost: number
+  performedBy?: string
+  notes?: string
+}
+
 export interface Equipment {
   id: string
   name: string
@@ -10,4 +19,5 @@ export interface Equipment {
   nextServiceDate: string
   ownershipType?: string
   rentalCost?: number
+  serviceLogs: EquipmentServiceLog[]
 }

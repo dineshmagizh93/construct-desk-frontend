@@ -1,3 +1,5 @@
+import type { UploadedFile } from '@/components/shared/types'
+
 export type ExpenseStatus = 'pending' | 'approved' | 'paid'
 
 export interface Expense {
@@ -8,4 +10,5 @@ export interface Expense {
   date: string
   paidTo: string
   status: ExpenseStatus
+  receipts: UploadedFile[]
 }

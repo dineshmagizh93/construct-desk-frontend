@@ -1,9 +1,10 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import { useProjectOptions, useProjectNameMap, useProjectCodes } from '@/features/projects/hooks'
 import { useIndustryConfig } from '@/lib/industry-store'
 import { useInventory, useCreateInventoryItem, useUpdateInventoryItem, useDeleteInventoryItem } from '../api'
 import { inventoryColumns, inventoryFields, inventoryImportColumns } from '../config'
+import { StockLedgerDialog } from '../components/StockLedgerDialog'
 import type { InventoryItem } from '../types'
 
 export function InventoryListPage() {
@@ -12,6 +13,9 @@ export function InventoryListPage() {
   const updateMutation = useUpdateInventoryItem()
   const deleteMutation = useDeleteInventoryItem()
   const { moduleText } = useIndustryConfig()
+
+  const [ledgerItemId, setLedgerItemId] = useState<string | null>(null)
+  const ledgerItem = ledgerItemId ? (data.find((i) => i.id === ledgerItemId) ?? null) : null
 
   const projectOptions = useProjectOptions()
   const projectNameMap = useProjectNameMap()
@@ -28,6 +32,7 @@ export function InventoryListPage() {
   )
 
   return (
+    <>
     <EntityListPage<InventoryItem & { projectName: string }>
       title={moduleText.inventory.title}
       description={moduleText.inventory.description}
@@ -39,6 +44,7 @@ export function InventoryListPage() {
       isLoading={isLoading}
       searchKeys={['name', 'category', 'projectName']}
       entityLabel={moduleText.inventory.entityLabel ?? 'material'}
+      onRowClick={(row) => setLedgerItemId(row.id)}
       onCreate={(values) => createMutation.mutateAsync(values as Partial<InventoryItem>)}
       onUpdate={(id, values) => updateMutation.mutateAsync({ id, values: values as Partial<InventoryItem> })}
       onDelete={(id) => deleteMutation.mutateAsync(id)}
@@ -48,5 +54,8 @@ export function InventoryListPage() {
         return projectCodes.includes(code) ? null : `Unknown Project ID: ${code}`
       }}
     />
+
+    <StockLedgerDialog item={ledgerItem} onOpenChange={(open) => !open && setLedgerItemId(null)} />
+    </>
   )
 }

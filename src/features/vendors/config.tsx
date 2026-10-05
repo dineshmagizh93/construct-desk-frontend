@@ -1,5 +1,6 @@
 import { Star } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { formatCurrency } from '@/lib/utils'
 import type { Column, FieldConfig, ImportColumn } from '@/components/shared/types'
 import type { Vendor } from './types'
 
@@ -8,7 +9,9 @@ export const VENDOR_STATUS_OPTIONS = [
   { label: 'Inactive', value: 'inactive' },
 ]
 
-export const vendorColumns: Column<Vendor>[] = [
+export type VendorRow = Vendor & { contractCount: number; contractValue: number }
+
+export const vendorColumns: Column<VendorRow>[] = [
   { key: 'name', header: 'Vendor' },
   { key: 'category', header: 'Category' },
   { key: 'contactPerson', header: 'Contact Person' },
@@ -26,6 +29,8 @@ export const vendorColumns: Column<Vendor>[] = [
   },
   { key: 'status', header: 'Status', render: (row) => <Badge variant={row.status === 'active' ? 'success' : 'secondary'}>{row.status}</Badge> },
   { key: 'gstin', header: 'GSTIN' },
+  { key: 'contractCount', header: 'Contracts / POs', render: (row) => row.contractCount || '—' },
+  { key: 'contractValue', header: 'Contract Value', render: (row) => (row.contractValue ? formatCurrency(row.contractValue) : '—') },
 ]
 
 export const vendorFields: FieldConfig[] = [

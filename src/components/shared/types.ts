@@ -23,6 +23,8 @@ export interface UploadedFile {
   url: string
 }
 
+export type UploadFolder = 'site-progress' | 'documents' | 'expenses'
+
 export interface FieldConfig {
   name: string
   label: string
@@ -37,7 +39,7 @@ export interface FieldConfig {
   /** Max characters for text/email/textarea fields. Falls back to a per-type default when omitted. */
   maxLength?: number
   /** For type: 'file' — which R2 folder/presign category this field's uploads belong to. */
-  uploadFolder?: 'site-progress' | 'documents'
+  uploadFolder?: UploadFolder
 }
 
 export interface ImportColumn {

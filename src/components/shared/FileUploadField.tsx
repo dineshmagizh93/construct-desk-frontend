@@ -2,14 +2,14 @@ import { useRef, useState } from 'react'
 import { UploadCloud, X, FileText, Image as ImageIcon, Loader2 } from 'lucide-react'
 import { uploadFile, formatFileSize } from '@/lib/file'
 import { cn } from '@/lib/utils'
-import type { UploadedFile } from './types'
+import type { UploadedFile, UploadFolder } from './types'
 
 interface FileUploadFieldProps {
   value?: UploadedFile[]
   onChange: (files: UploadedFile[]) => void
   accept?: string
   multiple?: boolean
-  folder: 'site-progress' | 'documents'
+  folder: UploadFolder
 }
 
 export function FileUploadField({ value = [], onChange, accept, multiple, folder }: FileUploadFieldProps) {

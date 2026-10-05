@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import { useProjectOptions, useProjectNameMap, useProjectCodes } from '@/features/projects/hooks'
+import { useVendorOptions, useVendorNameMap } from '@/features/vendors/hooks'
 import { useContracts, useCreateContract, useUpdateContract, useDeleteContract } from '../api'
 import { contractColumns, contractFields, contractImportColumns } from '../config'
 import type { Contract } from '../types'
@@ -14,6 +15,8 @@ export function ContractsListPage() {
   const projectOptions = useProjectOptions()
   const projectNameMap = useProjectNameMap()
   const projectCodes = useProjectCodes()
+  const vendorOptions = useVendorOptions()
+  const vendorNameMap = useVendorNameMap()
 
   const enriched = useMemo(
     () => data.map((c) => ({ ...c, projectName: projectNameMap[c.projectId] ?? c.projectId })),
@@ -21,9 +24,25 @@ export function ContractsListPage() {
   )
 
   const fields = useMemo(
-    () => contractFields.map((f) => (f.name === 'projectId' ? { ...f, options: projectOptions } : f)),
-    [projectOptions],
+    () =>
+      contractFields.map((f) => {
+        if (f.name === 'projectId') return { ...f, options: projectOptions }
+        if (f.name === 'vendorId') return { ...f, options: vendorOptions }
+        return f
+      }),
+    [projectOptions, vendorOptions],
   )
+
+  // vendorId is the authoritative link when a real Vendor record was picked; party is denormalized
+  // from it, or left as free text for a counterparty not in the vendor list (vendorId null).
+  function reconcileVendor(values: Record<string, unknown>) {
+    const vendorId = values.vendorId ? String(values.vendorId) : ''
+    return {
+      ...values,
+      vendorId: vendorId || null,
+      party: vendorId ? (vendorNameMap[vendorId] ?? String(values.party ?? '')) : String(values.party ?? ''),
+    }
+  }
 
   return (
     <EntityListPage<Contract & { projectName: string }>
@@ -37,8 +56,8 @@ export function ContractsListPage() {
       isLoading={isLoading}
       searchKeys={['title', 'party', 'projectName']}
       entityLabel="contract"
-      onCreate={(values) => createMutation.mutateAsync(values as Partial<Contract>)}
-      onUpdate={(id, values) => updateMutation.mutateAsync({ id, values: values as Partial<Contract> })}
+      onCreate={(values) => createMutation.mutateAsync(reconcileVendor(values) as Partial<Contract>)}
+      onUpdate={(id, values) => updateMutation.mutateAsync({ id, values: reconcileVendor(values) as Partial<Contract> })}
       onDelete={(id) => deleteMutation.mutateAsync(id)}
       importConfig={{ columns: contractImportColumns, fileName: 'contracts-template.xlsx' }}
       validateImportRow={(row) => {

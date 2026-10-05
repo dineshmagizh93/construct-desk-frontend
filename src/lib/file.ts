@@ -1,4 +1,4 @@
-import type { UploadedFile } from '@/components/shared/types'
+import type { UploadedFile, UploadFolder } from '@/components/shared/types'
 import { http } from './http'
 import { nextId } from './utils'
 
@@ -8,7 +8,7 @@ interface PresignResponse {
   publicUrl: string
 }
 
-export async function uploadFile(file: File, folder: 'site-progress' | 'documents'): Promise<UploadedFile> {
+export async function uploadFile(file: File, folder: UploadFolder): Promise<UploadedFile> {
   const presign = await http<PresignResponse>('/uploads/presign', {
     method: 'POST',
     body: JSON.stringify({ fileName: file.name, contentType: file.type || 'application/octet-stream', folder }),

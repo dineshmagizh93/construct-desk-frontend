@@ -6,6 +6,7 @@ export interface Contract {
   title: string
   type: ContractType
   party: string
+  vendorId?: string | null
   projectId: string
   amount: number
   status: ContractStatus

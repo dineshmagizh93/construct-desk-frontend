@@ -3,6 +3,7 @@ import type { Column, FieldConfig, ImportColumn } from '@/components/shared/type
 import type { Expense } from './types'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { STATUS_COLORS } from '@/lib/constants'
+import { FilesCell } from '@/features/documents/components/FilesCell'
 
 export const EXPENSE_STATUS_OPTIONS = [
   { label: 'Pending', value: 'pending' },
@@ -15,8 +16,9 @@ export const expenseColumns: Column<Expense & { projectName?: string }>[] = [
   { key: 'projectName', header: 'Project' },
   { key: 'paidTo', header: 'Paid To' },
   { key: 'amount', header: 'Amount', render: (row) => formatCurrency(row.amount) },
-  { key: 'date', header: 'Date', render: (row) => formatDate(row.date) },
+  { key: 'date', header: 'Date', render: (row) => (row.date ? formatDate(row.date) : '—') },
   { key: 'status', header: 'Status', render: (row) => <Badge variant={STATUS_COLORS[row.status] ?? 'secondary'}>{row.status}</Badge> },
+  { key: 'receipts', header: 'Receipts', render: (row) => <FilesCell files={row.receipts ?? []} title={`${row.category} — receipts`} /> },
 ]
 
 export const expenseFields: FieldConfig[] = [
@@ -26,6 +28,15 @@ export const expenseFields: FieldConfig[] = [
   { name: 'amount', label: 'Amount (₹)', type: 'number', colSpan: 1 },
   { name: 'date', label: 'Date', type: 'date', colSpan: 1 },
   { name: 'status', label: 'Status', type: 'select', options: EXPENSE_STATUS_OPTIONS, colSpan: 1 },
+  {
+    name: 'receipts',
+    label: 'Bills / Receipts',
+    type: 'file',
+    accept: '.pdf,.png,.jpg,.jpeg',
+    multiple: true,
+    colSpan: 2,
+    uploadFolder: 'expenses',
+  },
 ]
 
 export const expenseImportColumns: ImportColumn[] = [
