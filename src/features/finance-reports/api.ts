@@ -8,6 +8,8 @@ export interface FinanceReport {
     netProfit: number
     profitMargin: number
     outstanding: number
+    /** Retention the clients are still withholding on issued bills. */
+    retentionHeld: number
   }
   cashFlow: { month: string; inflow: number; outflow: number }[]
 }

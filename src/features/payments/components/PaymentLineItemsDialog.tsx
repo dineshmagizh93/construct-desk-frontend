@@ -12,8 +12,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { formatCurrency } from '@/lib/utils'
+import { usePermission } from '@/lib/permissions'
+import { formatCurrency, formatDate } from '@/lib/utils'
 import { useCreateLineItem, useDeleteLineItem } from '../line-items-api'
+import { netDue, retentionAmount, useReleaseRetention } from '../retention'
 import type { Payment } from '../types'
 
 interface PaymentLineItemsDialogProps {
@@ -33,6 +35,8 @@ export function PaymentLineItemsDialog({ payment, onOpenChange }: PaymentLineIte
 
   const createMutation = useCreateLineItem(payment?.id ?? '')
   const deleteMutation = useDeleteLineItem(payment?.id ?? '')
+  const releaseMutation = useReleaseRetention(payment?.id ?? '')
+  const canEdit = usePermission('payments', 'edit')
 
   if (!payment) return null
 
@@ -137,6 +141,43 @@ export function PaymentLineItemsDialog({ payment, onOpenChange }: PaymentLineIte
               <span>Total</span>
               <span>{formatCurrency(subtotal + tax)}</span>
             </div>
+          </div>
+        )}
+
+        {payment.retentionPercent > 0 && (
+          <div className="space-y-2 rounded-md border border-border p-3 text-sm">
+            <p className="font-medium">Retention ({payment.retentionPercent}%)</p>
+            <div className="flex justify-between text-muted-foreground">
+              <span>Bill amount (gross)</span>
+              <span>{formatCurrency(payment.amount)}</span>
+            </div>
+            <div className="flex justify-between text-muted-foreground">
+              <span>Less retention held by client</span>
+              <span>− {formatCurrency(retentionAmount(payment))}</span>
+            </div>
+            <div className="flex justify-between border-t border-border pt-1 font-semibold">
+              <span>Net payable now</span>
+              <span>{formatCurrency(netDue(payment))}</span>
+            </div>
+
+            {payment.retentionReleasedAt ? (
+              <p className="text-xs text-muted-foreground">
+                Retention of {formatCurrency(retentionAmount(payment))} was released on {formatDate(payment.retentionReleasedAt)}.
+              </p>
+            ) : payment.status === 'paid' ? (
+              canEdit && (
+                <div className="flex items-center justify-between gap-3 pt-1">
+                  <p className="text-xs text-muted-foreground">
+                    {formatCurrency(retentionAmount(payment))} is still held. Release it once the defects liability period is over and the client has paid it.
+                  </p>
+                  <Button size="sm" onClick={() => releaseMutation.mutate()} disabled={releaseMutation.isPending}>
+                    Release retention
+                  </Button>
+                </div>
+              )
+            ) : (
+              <p className="text-xs text-muted-foreground">Mark the invoice as paid before the retention can be released.</p>
+            )}
           </div>
         )}
       </DialogContent>

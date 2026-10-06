@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { Wallet, TrendingUp, TrendingDown, Percent } from 'lucide-react'
+import { Wallet, TrendingUp, TrendingDown, Percent, Receipt, Lock } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { StatCard } from '@/components/shared/StatCard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -22,7 +22,7 @@ export function FinanceReportsPage() {
   const { data: projects = [] } = useProjects()
   const { data: report } = useFinanceReport()
 
-  const summary = report?.summary ?? { totalRevenue: 0, totalExpenses: 0, netProfit: 0, profitMargin: 0, outstanding: 0 }
+  const summary = report?.summary ?? { totalRevenue: 0, totalExpenses: 0, netProfit: 0, profitMargin: 0, outstanding: 0, retentionHeld: 0 }
   const cashFlow = report?.cashFlow ?? []
 
   const budgetVsActual = projects.map((p) => ({
@@ -35,11 +35,13 @@ export function FinanceReportsPage() {
     <div>
       <PageHeader title="Financial Reports" description="Profit & loss, budget performance, and cash flow across the business." />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard label="Total Revenue" value={formatCurrency(summary.totalRevenue)} icon={Wallet} />
         <StatCard label="Total Expenses" value={formatCurrency(summary.totalExpenses)} icon={TrendingDown} />
         <StatCard label="Net Profit" value={formatCurrency(summary.netProfit)} icon={TrendingUp} />
         <StatCard label="Profit Margin" value={`${summary.profitMargin}%`} icon={Percent} />
+        <StatCard label="Outstanding Receivables" value={formatCurrency(summary.outstanding)} icon={Receipt} />
+        <StatCard label="Retention Held by Clients" value={formatCurrency(summary.retentionHeld)} icon={Lock} />
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2">

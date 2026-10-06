@@ -3,6 +3,7 @@ import type { Column, FieldConfig, ImportColumn } from '@/components/shared/type
 import type { Payment } from './types'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { STATUS_COLORS } from '@/lib/constants'
+import { retentionAmount } from './retention'
 
 export const PAYMENT_STATUS_OPTIONS = [
   { label: 'Paid', value: 'paid' },
@@ -23,6 +24,19 @@ export const paymentColumns: Column<Payment & { projectName?: string }>[] = [
   { key: 'clientName', header: 'Client' },
   { key: 'projectName', header: 'Project' },
   { key: 'amount', header: 'Amount', render: (row) => formatCurrency(row.amount) },
+  {
+    key: 'retentionPercent',
+    header: 'Retention',
+    render: (row) =>
+      row.retentionPercent > 0 ? (
+        <span className="text-xs">
+          {row.retentionPercent}% · {formatCurrency(retentionAmount(row))}{' '}
+          <span className="text-muted-foreground">{row.retentionReleasedAt ? 'released' : 'held'}</span>
+        </span>
+      ) : (
+        '—'
+      ),
+  },
   { key: 'dueDate', header: 'Due Date', render: (row) => formatDate(row.dueDate) },
   { key: 'status', header: 'Status', render: (row) => <Badge variant={STATUS_COLORS[row.status] ?? 'secondary'}>{row.status}</Badge> },
   { key: 'paymentMethod', header: 'Method', render: (row) => row.paymentMethod ?? '—' },
@@ -32,7 +46,8 @@ export const paymentFields: FieldConfig[] = [
   { name: 'invoiceNumber', label: 'Invoice Number', type: 'text', required: true, colSpan: 1 },
   { name: 'clientName', label: 'Client Name', type: 'text', colSpan: 1 },
   { name: 'projectId', label: 'Project', type: 'select', options: [], required: true, colSpan: 1 },
-  { name: 'amount', label: 'Amount (₹)', type: 'number', colSpan: 1 },
+  { name: 'amount', label: 'Bill Amount (₹, gross)', type: 'number', colSpan: 1 },
+  { name: 'retentionPercent', label: 'Retention Held by Client (%)', type: 'number', step: '0.5', placeholder: '0', colSpan: 1 },
   { name: 'dueDate', label: 'Due Date', type: 'date', colSpan: 1 },
   { name: 'status', label: 'Status', type: 'select', options: PAYMENT_STATUS_OPTIONS, colSpan: 1 },
   { name: 'paymentMethod', label: 'Payment Method', type: 'select', options: PAYMENT_METHOD_OPTIONS, colSpan: 1 },
@@ -44,6 +59,7 @@ export const paymentImportColumns: ImportColumn[] = [
   { key: 'projectId', header: 'Project ID', example: 'PRJ-0001', required: true, hint: 'Must match an existing Project ID — see the Projects module.' },
   { key: 'amount', header: 'Amount (INR)', example: 1000000, required: true, type: 'number' },
   { key: 'dueDate', header: 'Due Date', example: '2026-08-01', required: true, type: 'date', hint: 'Format: YYYY-MM-DD' },
+  { key: 'retentionPercent', header: 'Retention (%)', example: 5, type: 'number', hint: 'Optional. Share of the bill the client withholds, 0-50.' },
   { key: 'status', header: 'Status', example: 'unpaid', required: true, hint: 'One of: paid, unpaid, overdue' },
   { key: 'paymentMethod', header: 'Payment Method', example: 'Bank Transfer', hint: 'One of: Cash, Cheque, Bank Transfer, UPI, Other' },
 ]

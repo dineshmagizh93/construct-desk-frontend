@@ -18,4 +18,8 @@ export interface Payment {
   status: PaymentStatus
   paymentMethod?: string
   lineItems: PaymentLineItem[]
+  /** Share of the gross `amount` the client withholds until the defects liability period ends. */
+  retentionPercent: number
+  /** Set by the server once the withheld retention has been released. */
+  retentionReleasedAt?: string | null
 }
