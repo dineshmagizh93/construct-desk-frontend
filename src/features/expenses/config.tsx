@@ -9,6 +9,7 @@ export const EXPENSE_STATUS_OPTIONS = [
   { label: 'Pending', value: 'pending' },
   { label: 'Approved', value: 'approved' },
   { label: 'Paid', value: 'paid' },
+  { label: 'Rejected', value: 'rejected' },
 ]
 
 export const expenseColumns: Column<Expense & { projectName?: string }>[] = [
@@ -27,7 +28,6 @@ export const expenseFields: FieldConfig[] = [
   { name: 'paidTo', label: 'Paid To', type: 'text', colSpan: 1 },
   { name: 'amount', label: 'Amount (₹)', type: 'number', colSpan: 1 },
   { name: 'date', label: 'Date', type: 'date', colSpan: 1 },
-  { name: 'status', label: 'Status', type: 'select', options: EXPENSE_STATUS_OPTIONS, colSpan: 1 },
   {
     name: 'receipts',
     label: 'Bills / Receipts',
@@ -45,5 +45,5 @@ export const expenseImportColumns: ImportColumn[] = [
   { key: 'paidTo', header: 'Paid To', example: 'Shakti Steel Traders', required: true },
   { key: 'amount', header: 'Amount (INR)', example: 250000, required: true, type: 'number' },
   { key: 'date', header: 'Date', example: '2026-07-05', required: true, type: 'date', hint: 'Format: YYYY-MM-DD' },
-  { key: 'status', header: 'Status', example: 'pending', required: true, hint: 'One of: pending, approved, paid' },
+  { key: 'status', header: 'Status', example: 'pending', required: true, hint: 'One of: pending, approved, paid, rejected. Only administrators can import non-pending expenses — for everyone else they arrive as pending for approval.' },
 ]

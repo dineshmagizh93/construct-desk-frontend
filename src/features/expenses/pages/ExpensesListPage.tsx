@@ -1,10 +1,11 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import type { UploadedFile } from '@/components/shared/types'
 import { http } from '@/lib/http'
 import { useProjectOptions, useProjectNameMap, useProjectCodes } from '@/features/projects/hooks'
 import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from '../api'
 import { expenseColumns, expenseFields, expenseImportColumns } from '../config'
+import { ExpenseApprovalDialog } from '../components/ExpenseApprovalDialog'
 import type { Expense } from '../types'
 
 // `receipts` is a relation on the backend (populated via a nested endpoint after upload), not a
@@ -27,6 +28,8 @@ export function ExpensesListPage() {
   const updateMutation = useUpdateExpense()
   const deleteMutation = useDeleteExpense()
 
+  const [reviewId, setReviewId] = useState<string | null>(null)
+
   const projectOptions = useProjectOptions()
   const projectNameMap = useProjectNameMap()
   const projectCodes = useProjectCodes()
@@ -41,7 +44,10 @@ export function ExpensesListPage() {
     [projectOptions],
   )
 
+  const reviewExpense = reviewId ? (enriched.find((e) => e.id === reviewId) ?? null) : null
+
   return (
+    <>
     <EntityListPage<Expense & { projectName: string }>
       title="Expenses"
       description="Every project expense, categorized and tracked through approval."
@@ -53,6 +59,7 @@ export function ExpensesListPage() {
       isLoading={isLoading}
       searchKeys={['category', 'projectName', 'paidTo']}
       entityLabel="expense"
+      onRowClick={(row) => setReviewId(row.id)}
       onCreate={async (values) => {
         const { receipts, ...rest } = values as Partial<Expense>
         const created = await createMutation.mutateAsync(rest)
@@ -73,5 +80,8 @@ export function ExpensesListPage() {
         return projectCodes.includes(code) ? null : `Unknown Project ID: ${code}`
       }}
     />
+
+    <ExpenseApprovalDialog expense={reviewExpense} onOpenChange={(open) => !open && setReviewId(null)} />
+    </>
   )
 }
