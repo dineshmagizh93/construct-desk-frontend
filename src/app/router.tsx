@@ -28,6 +28,7 @@ const ProjectDetailPage = lazy(() =>
   import('@/features/projects/pages/ProjectDetailPage').then((m) => ({ default: m.ProjectDetailPage })),
 )
 const TasksListPage = lazy(() => import('@/features/tasks/pages/TasksListPage').then((m) => ({ default: m.TasksListPage })))
+const SafetyLogPage = lazy(() => import('@/features/safety/pages/SafetyLogPage').then((m) => ({ default: m.SafetyLogPage })))
 const SiteProgressListPage = lazy(() =>
   import('@/features/site-progress/pages/SiteProgressListPage').then((m) => ({ default: m.SiteProgressListPage })),
 )
@@ -140,6 +141,7 @@ const router = createBrowserRouter([
       { path: 'projects/:id', element: withSuspense(<ProjectDetailPage />) },
       { path: 'tasks', element: withSuspense(<TasksListPage />) },
       { path: 'site-progress', element: withSuspense(<SiteProgressListPage />) },
+      { path: 'safety', element: withSuspense(<SafetyLogPage />) },
       { path: 'calendar', element: withSuspense(<CalendarPage />) },
       { path: 'estimates', element: withSuspense(<EstimatesListPage />) },
       { path: 'contracts', element: withSuspense(<ContractsListPage />) },
