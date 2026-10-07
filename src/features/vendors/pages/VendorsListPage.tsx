@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import { useContracts } from '@/features/contracts/api'
 import { useVendors, useCreateVendor, useUpdateVendor, useDeleteVendor } from '../api'
-import { vendorColumns, vendorFields, vendorImportColumns, type VendorRow } from '../config'
+import { VENDOR_STATUS_OPTIONS, vendorColumns, vendorFields, vendorImportColumns, type VendorRow } from '../config'
 import type { Vendor } from '../types'
 
 export function VendorsListPage() {
@@ -28,6 +28,7 @@ export function VendorsListPage() {
       description="The material and service suppliers powering every site."
       moduleKey="vendors"
       historyEntity="Vendor"
+      bulkStatus={{ field: 'status', options: VENDOR_STATUS_OPTIONS }}
       data={enriched}
       columns={vendorColumns}
       fields={vendorFields}

@@ -3,6 +3,7 @@ import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/EmptyState'
 import type { Column } from './types'
+import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 
 interface DataTableProps<T> {
@@ -14,6 +15,8 @@ interface DataTableProps<T> {
   actions?: (row: T) => ReactNode
   emptyTitle?: string
   emptyDescription?: string
+  /** Adds a checkbox column. `selected` holds row ids; the header box ticks every row currently shown. */
+  selection?: { selected: Set<string>; onToggle: (id: string) => void; onToggleAll: (ids: string[], checked: boolean) => void }
 }
 
 function getValue<T>(row: T, key: string) {
@@ -29,6 +32,7 @@ export function DataTable<T extends object>({
   actions,
   emptyTitle = 'No records yet',
   emptyDescription = 'Data you add will show up here.',
+  selection,
 }: DataTableProps<T>) {
   if (loading) {
     return (
@@ -49,6 +53,15 @@ export function DataTable<T extends object>({
       <Table className="workspace-data-table">
         <TableHeader>
           <TableRow>
+            {selection && (
+              <TableHead className="w-10">
+                <Checkbox
+                  aria-label="Select all rows on this page"
+                  checked={data.length > 0 && data.every((row) => selection.selected.has(String(row[keyField])))}
+                  onChange={(e) => selection.onToggleAll(data.map((row) => String(row[keyField])), e.target.checked)}
+                />
+              </TableHead>
+            )}
             {columns.map((col) => (
               <TableHead key={col.key} className={col.className}>
                 {col.header}
@@ -62,8 +75,17 @@ export function DataTable<T extends object>({
             <TableRow
               key={String(row[keyField])}
               onClick={() => onRowClick?.(row)}
-              className={cn(onRowClick && 'cursor-pointer')}
+              className={cn(onRowClick && 'cursor-pointer', selection?.selected.has(String(row[keyField])) && 'bg-secondary/50')}
             >
+              {selection && (
+                <TableCell className="w-10" onClick={(e) => e.stopPropagation()}>
+                  <Checkbox
+                    aria-label="Select row"
+                    checked={selection.selected.has(String(row[keyField]))}
+                    onChange={() => selection.onToggle(String(row[keyField]))}
+                  />
+                </TableCell>
+              )}
               {columns.map((col) => {
                 if (col.render) {
                   const content = col.render(row)

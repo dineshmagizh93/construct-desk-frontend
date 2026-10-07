@@ -5,7 +5,7 @@ import { toast } from '@/hooks/use-toast'
 import { useIndustryConfig } from '@/lib/industry-store'
 import { useClientOptions, useClientNameMap } from '@/features/clients/hooks'
 import { useCreateProject, useDeleteProject, useProjects, useUpdateProject } from '../api'
-import { projectColumns, projectFields, projectImportColumns } from '../config'
+import { PROJECT_STATUS_OPTIONS, projectColumns, projectFields, projectImportColumns } from '../config'
 import { nextProjectCode } from '../utils'
 import type { Project } from '../types'
 
@@ -67,6 +67,7 @@ export function ProjectsListPage() {
       keyField="id"
       moduleKey="projects"
       historyEntity="Project"
+      bulkStatus={{ field: 'status', options: PROJECT_STATUS_OPTIONS }}
       isLoading={isLoading}
       searchKeys={['name', 'clientName', 'location', 'code']}
       entityLabel="project"

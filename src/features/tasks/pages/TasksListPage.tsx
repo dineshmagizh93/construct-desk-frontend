@@ -3,7 +3,7 @@ import { EntityListPage } from '@/components/shared/EntityListPage'
 import { useProjectOptions, useProjectNameMap, useProjectCodes } from '@/features/projects/hooks'
 import { useUserOptions, useUserNameMap } from '@/features/users/hooks'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask } from '../api'
-import { taskColumns, taskFields, taskImportColumns } from '../config'
+import { TASK_STATUS_OPTIONS, taskColumns, taskFields, taskImportColumns } from '../config'
 import type { Task } from '../types'
 
 export function TasksListPage() {
@@ -48,6 +48,7 @@ export function TasksListPage() {
       keyField="id"
       moduleKey="tasks"
       historyEntity="Task"
+      bulkStatus={{ field: 'status', options: TASK_STATUS_OPTIONS }}
       isLoading={isLoading}
       searchKeys={['title', 'projectName', 'assigneeName']}
       entityLabel="task"

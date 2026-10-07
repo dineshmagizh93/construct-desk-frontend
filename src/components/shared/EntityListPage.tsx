@@ -7,11 +7,14 @@ import { ConfirmDialog } from './ConfirmDialog'
 import { Pagination } from './Pagination'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { toast } from '@/hooks/use-toast'
+import { bulkSummary, runBulk } from '@/lib/bulk'
 import { HistoryButton } from '@/features/audit/components/HistoryButton'
 import { downloadCsv } from '@/lib/csv'
 import { rowsForExport } from '@/lib/exportRows'
 import { usePermission } from '@/lib/permissions'
-import type { Column, FieldConfig, ImportConfig } from './types'
+import type { Column, FieldConfig, ImportConfig, SelectOption } from './types'
 
 const ImportDialog = lazy(() => import('./ImportDialog').then((m) => ({ default: m.ImportDialog })))
 
@@ -39,6 +42,8 @@ interface EntityListPageProps<T extends object> {
   headerActions?: ReactNode
   toolbarStart?: ReactNode
   rowActions?: (row: T) => ReactNode
+  /** Lets people tick rows and change this select field on all of them at once (only where a plain status change is safe). */
+  bulkStatus?: { field: string; label?: string; options: SelectOption[] }
   /** Headline figures (e.g. a SummaryStrip) shown between the header and the table. */
   summary?: ReactNode
   /** Audit entity name (e.g. "Expense") — adds a History button to each row for people who can read the Activity Log. */
@@ -77,6 +82,7 @@ export function EntityListPage<T extends object>({
   toolbarStart,
   rowActions,
   summary,
+  bulkStatus,
   historyEntity,
   moduleKey,
   canCreate: canCreateProp,
@@ -101,6 +107,9 @@ export function EntityListPage<T extends object>({
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(initialPageSize)
   const [importOpen, setImportOpen] = useState(false)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
+  const [bulkBusy, setBulkBusy] = useState(false)
 
   const filtered = useMemo(() => {
     if (!search.trim() || !searchKeys?.length) return data
@@ -138,6 +147,55 @@ export function EntityListPage<T extends object>({
     } else {
       await onCreate(values)
     }
+  }
+
+  // ---- bulk actions: tick rows, then change a status or delete them together ----
+  const bulkCanEdit = !!bulkStatus && canEdit
+  const selectable = canDelete || bulkCanEdit
+  const selectedRows = useMemo(() => data.filter((row) => selected.has(String(row[keyField]))), [data, selected, keyField])
+  const toggleOne = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  const toggleMany = (ids: string[], checked: boolean) =>
+    setSelected((prev) => {
+      const next = new Set(prev)
+      for (const id of ids) {
+        if (checked) next.add(id)
+        else next.delete(id)
+      }
+      return next
+    })
+
+  const finishBulk = (result: Awaited<ReturnType<typeof runBulk>>, verb: string) => {
+    const summary = bulkSummary(result, verb, entityLabel)
+    toast({ title: summary.title, description: summary.description, variant: summary.failed ? 'destructive' : 'success' })
+    setSelected(new Set())
+    setBulkBusy(false)
+  }
+
+  const applyBulkStatus = async (value: string) => {
+    if (!bulkStatus || bulkBusy) return
+    setBulkBusy(true)
+    const rows = selectedRows.filter((row) => (row as Record<string, unknown>)[bulkStatus.field] !== value)
+    const byId = new Map(rows.map((row) => [String(row[keyField]), row]))
+    const result = await runBulk([...byId.keys()], (id) => {
+      const row = byId.get(id)!
+      // The same values the Edit form would submit for this row, with just the status changed.
+      const rowFields = getFields ? getFields(row) : fields
+      const base = getFormDefaults?.(row) ?? Object.fromEntries(rowFields.map((f) => [f.name, (row as Record<string, unknown>)[f.name]]))
+      return onUpdate(id, { ...base, [bulkStatus.field]: value })
+    })
+    finishBulk(result, 'updated')
+  }
+
+  const runBulkDelete = async () => {
+    setBulkBusy(true)
+    const result = await runBulk(selectedRows.map((row) => String(row[keyField])), (id) => onDelete(id))
+    finishBulk(result, 'deleted')
   }
 
   // Everything the search currently matches (not just the visible page), with the table's own columns.
@@ -208,8 +266,38 @@ export function EntityListPage<T extends object>({
         )}
       </div>
 
+      {selectable && selectedRows.length > 0 && (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-secondary/40 p-2 text-sm">
+          <span className="px-1 font-medium">{selectedRows.length} selected</span>
+          {bulkCanEdit && bulkStatus && (
+            <Select value="" onValueChange={applyBulkStatus} disabled={bulkBusy}>
+              <SelectTrigger className="h-8 w-44">
+                <SelectValue placeholder={`Set ${bulkStatus.label ?? 'status'}…`} />
+              </SelectTrigger>
+              <SelectContent>
+                {bulkStatus.options.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          {canDelete && (
+            <Button variant="outline" size="sm" className="text-destructive" onClick={() => setBulkDeleteOpen(true)} disabled={bulkBusy}>
+              <Trash2 className="size-3.5" /> Delete
+            </Button>
+          )}
+          <Button variant="ghost" size="sm" onClick={() => setSelected(new Set())} disabled={bulkBusy}>
+            Clear
+          </Button>
+          {bulkBusy && <span className="text-xs text-muted-foreground">Working…</span>}
+        </div>
+      )}
+
       <div className={fillHeight ? 'min-w-0 flex-1' : undefined}>
         <DataTable
+          selection={selectable ? { selected, onToggle: toggleOne, onToggleAll: toggleMany } : undefined}
           data={paginated}
           columns={columns}
           keyField={keyField}
@@ -279,6 +367,15 @@ export function EntityListPage<T extends object>({
           />
         </Suspense>
       )}
+
+      <ConfirmDialog
+        open={bulkDeleteOpen}
+        onOpenChange={setBulkDeleteOpen}
+        title={`Delete ${selectedRows.length} ${entityLabel}${selectedRows.length === 1 ? '' : 's'}`}
+        description={`This will permanently remove the ${selectedRows.length} selected ${entityLabel}${selectedRows.length === 1 ? '' : 's'}. Any that are in use elsewhere will be kept and reported. This cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={runBulkDelete}
+      />
 
       <ConfirmDialog
         open={!!deleteTarget}

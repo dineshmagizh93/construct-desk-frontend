@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import { useUserOptions, useUserNameMap } from '@/features/users/hooks'
 import { useCreateLead, useDeleteLead, useLeads, useUpdateLead, toLeadPayload } from '../api'
-import { LEAD_KANBAN_COLUMNS, leadColumns, leadFields, leadImportColumns } from '../config'
+import { LEAD_KANBAN_COLUMNS, LEAD_STATUS_OPTIONS, leadColumns, leadFields, leadImportColumns } from '../config'
 import { LeadDetailDialog } from '../components/LeadDetailDialog'
 import { useDuplicateGuard } from '@/features/duplicates/useDuplicateGuard'
 import type { Lead } from '../types'
@@ -133,6 +133,7 @@ export function LeadsPage() {
             hideHeader
             moduleKey="leads"
             historyEntity="Lead"
+            bulkStatus={{ field: 'status', options: LEAD_STATUS_OPTIONS }}
             toolbarStart={tabsNav}
             data={enriched}
             columns={leadColumns}
