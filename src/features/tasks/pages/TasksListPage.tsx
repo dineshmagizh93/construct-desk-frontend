@@ -1,9 +1,13 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { KanbanSquare, List } from 'lucide-react'
+import { PageHeader } from '@/components/shared/PageHeader'
+import { Button } from '@/components/ui/button'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import { useProjectOptions, useProjectNameMap, useProjectCodes } from '@/features/projects/hooks'
 import { useUserOptions, useUserNameMap } from '@/features/users/hooks'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask } from '../api'
 import { TASK_STATUS_OPTIONS, taskColumns, taskFields, taskImportColumns } from '../config'
+import { TasksBoard } from '../components/TasksBoard'
 import type { Task } from '../types'
 
 export function TasksListPage() {
@@ -11,6 +15,7 @@ export function TasksListPage() {
   const createMutation = useCreateTask()
   const updateMutation = useUpdateTask()
   const deleteMutation = useDeleteTask()
+  const [view, setView] = useState<'list' | 'board'>('list')
 
   const projectOptions = useProjectOptions()
   const projectNameMap = useProjectNameMap()
@@ -38,6 +43,32 @@ export function TasksListPage() {
     [projectOptions, userOptions],
   )
 
+  const viewToggle = (
+    <div className="inline-flex rounded-md border border-border p-0.5">
+      <Button variant={view === 'list' ? 'secondary' : 'ghost'} size="sm" onClick={() => setView('list')}>
+        <List className="size-4" /> List
+      </Button>
+      <Button variant={view === 'board' ? 'secondary' : 'ghost'} size="sm" onClick={() => setView('board')}>
+        <KanbanSquare className="size-4" /> Board
+      </Button>
+    </div>
+  )
+
+  if (view === 'board') {
+    return (
+      <div className="flex h-full min-h-0 flex-col">
+        <PageHeader title="Tasks" description="Drag a task between columns to change its status. Use the list view to add or edit tasks." actions={viewToggle} />
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Loading tasks…</p>
+        ) : (
+          <div className="min-h-0 flex-1">
+            <TasksBoard tasks={enriched} onStatusChange={(id, status) => updateMutation.mutate({ id, values: { status } })} />
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <EntityListPage<Task & { projectName: string; assigneeName: string }>
       title="Tasks"
@@ -48,6 +79,7 @@ export function TasksListPage() {
       keyField="id"
       moduleKey="tasks"
       historyEntity="Task"
+      headerActions={viewToggle}
       bulkStatus={{ field: 'status', options: TASK_STATUS_OPTIONS }}
       isLoading={isLoading}
       searchKeys={['title', 'projectName', 'assigneeName']}
