@@ -35,6 +35,8 @@ interface EntityListPageProps<T extends object> {
   headerActions?: ReactNode
   toolbarStart?: ReactNode
   rowActions?: (row: T) => ReactNode
+  /** Headline figures (e.g. a SummaryStrip) shown between the header and the table. */
+  summary?: ReactNode
   /** Audit entity name (e.g. "Expense") — adds a History button to each row for people who can read the Activity Log. */
   historyEntity?: string
   moduleKey?: string
@@ -69,6 +71,7 @@ export function EntityListPage<T extends object>({
   headerActions,
   toolbarStart,
   rowActions,
+  summary,
   historyEntity,
   moduleKey,
   canCreate: canCreateProp,
@@ -182,6 +185,7 @@ export function EntityListPage<T extends object>({
                 </>
               }
             />
+            {summary}
             {searchInput && <div className="mb-3">{searchInput}</div>}
           </>
         )}

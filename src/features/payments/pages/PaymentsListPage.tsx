@@ -1,4 +1,7 @@
 import { useMemo, useState } from 'react'
+import { SummaryStrip } from '@/components/shared/SummaryStrip'
+import { formatCurrency } from '@/lib/utils'
+import { summarisePayments } from '../summary'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import { useProjectOptions, useProjectNameMap, useProjectCodes } from '@/features/projects/hooks'
 import { usePayments, useCreatePayment, useUpdatePayment, useDeletePayment } from '../api'
@@ -18,6 +21,7 @@ export function PaymentsListPage() {
   const projectNameMap = useProjectNameMap()
   const projectCodes = useProjectCodes()
 
+  const summary = useMemo(() => summarisePayments(data), [data])
   const enriched = useMemo(
     () => data.map((p) => ({ ...p, projectName: projectNameMap[p.projectId] ?? p.projectId })),
     [data, projectNameMap],
@@ -39,6 +43,18 @@ export function PaymentsListPage() {
         keyField="id"
         moduleKey="payments"
         historyEntity="Payment"
+        summary={
+          data.length > 0 ? (
+            <SummaryStrip
+              items={[
+                { label: 'Outstanding', value: formatCurrency(summary.outstanding), hint: 'Net of retention' },
+                { label: 'Overdue', value: formatCurrency(summary.overdueAmount), hint: `${summary.overdueCount} invoice${summary.overdueCount === 1 ? '' : 's'}`, tone: summary.overdueCount > 0 ? 'destructive' : undefined },
+                { label: 'Collected', value: formatCurrency(summary.collected), tone: 'success' },
+                { label: 'Retention held', value: formatCurrency(summary.retentionHeld), hint: 'Withheld by clients' },
+              ]}
+            />
+          ) : undefined
+        }
         isLoading={isLoading}
         searchKeys={['invoiceNumber', 'clientName', 'projectName']}
         entityLabel="invoice"

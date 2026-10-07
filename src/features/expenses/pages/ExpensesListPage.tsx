@@ -1,4 +1,7 @@
 import { useMemo, useState } from 'react'
+import { SummaryStrip } from '@/components/shared/SummaryStrip'
+import { formatCurrency } from '@/lib/utils'
+import { summariseExpenses } from '../summary'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import type { UploadedFile } from '@/components/shared/types'
 import { http } from '@/lib/http'
@@ -34,6 +37,7 @@ export function ExpensesListPage() {
   const projectNameMap = useProjectNameMap()
   const projectCodes = useProjectCodes()
 
+  const summary = useMemo(() => summariseExpenses(data), [data])
   const enriched = useMemo(
     () => data.map((e) => ({ ...e, projectName: projectNameMap[e.projectId] ?? e.projectId })),
     [data, projectNameMap],
@@ -57,6 +61,18 @@ export function ExpensesListPage() {
       keyField="id"
       moduleKey="expenses"
       historyEntity="Expense"
+        summary={
+          data.length > 0 ? (
+            <SummaryStrip
+              items={[
+                { label: 'Awaiting approval', value: formatCurrency(summary.pendingAmount), hint: `${summary.pendingCount} expense${summary.pendingCount === 1 ? '' : 's'}`, tone: summary.pendingCount > 0 ? 'warning' : undefined },
+                { label: 'Approved, unpaid', value: formatCurrency(summary.approvedAmount) },
+                { label: 'Paid', value: formatCurrency(summary.paidAmount) },
+                { label: 'Total spend', value: formatCurrency(summary.totalSpend), hint: 'Excludes rejected' },
+              ]}
+            />
+          ) : undefined
+        }
       isLoading={isLoading}
       searchKeys={['category', 'projectName', 'paidTo']}
       entityLabel="expense"

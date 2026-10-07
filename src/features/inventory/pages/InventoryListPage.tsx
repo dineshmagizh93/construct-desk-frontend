@@ -1,4 +1,7 @@
 import { useMemo, useState } from 'react'
+import { SummaryStrip } from '@/components/shared/SummaryStrip'
+import { formatCurrency } from '@/lib/utils'
+import { summariseInventory } from '../summary'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import { useProjectOptions, useProjectNameMap, useProjectCodes } from '@/features/projects/hooks'
 import { useIndustryConfig } from '@/lib/industry-store'
@@ -21,6 +24,7 @@ export function InventoryListPage() {
   const projectNameMap = useProjectNameMap()
   const projectCodes = useProjectCodes()
 
+  const summary = useMemo(() => summariseInventory(data), [data])
   const enriched = useMemo(
     () => data.map((i) => ({ ...i, projectName: projectNameMap[i.projectId] ?? i.projectId })),
     [data, projectNameMap],
@@ -42,6 +46,17 @@ export function InventoryListPage() {
       keyField="id"
       moduleKey="inventory"
       historyEntity="InventoryItem"
+      summary={
+        data.length > 0 ? (
+          <SummaryStrip
+            items={[
+              { label: 'Items', value: String(summary.items) },
+              { label: 'Stock value', value: formatCurrency(summary.stockValue), hint: 'Quantity × unit cost' },
+              { label: 'Low stock', value: String(summary.lowStock), hint: 'At or below reorder level', tone: summary.lowStock > 0 ? 'warning' : undefined },
+            ]}
+          />
+        ) : undefined
+      }
       isLoading={isLoading}
       searchKeys={['name', 'category', 'projectName']}
       entityLabel={moduleText.inventory.entityLabel ?? 'material'}

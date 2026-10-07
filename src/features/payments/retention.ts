@@ -12,6 +12,17 @@ export function netDue(p: Pick<Payment, 'amount' | 'retentionPercent'>): number 
   return p.amount - retentionAmount(p)
 }
 
+/** Money still to come in on one invoice, net of retention (0 once paid). Mirrors backend paymentMath.outstanding. */
+export function outstandingAmount(p: Pick<Payment, 'amount' | 'retentionPercent' | 'status'>): number {
+  return p.status === 'paid' ? 0 : netDue(p)
+}
+
+/** Cash received on one invoice: net once paid, plus retention once released. Mirrors backend paymentMath.collected. */
+export function collectedAmount(p: Pick<Payment, 'amount' | 'retentionPercent' | 'status' | 'retentionReleasedAt'>): number {
+  if (p.status !== 'paid') return 0
+  return netDue(p) + (p.retentionReleasedAt ? retentionAmount(p) : 0)
+}
+
 export function useReleaseRetention(paymentId: string) {
   const queryClient = useQueryClient()
   return useMutation({
