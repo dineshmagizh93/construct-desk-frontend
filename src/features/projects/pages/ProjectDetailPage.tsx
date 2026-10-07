@@ -16,6 +16,7 @@ import { usePermission } from '@/lib/permissions'
 import { useUserNameMap } from '@/features/users/hooks'
 import { useProject } from '../api'
 import { statusLabel } from '../config'
+import { describeSchedule, scheduleStatus } from '../schedule'
 import { ProjectFinancialsCard } from '../components/ProjectFinancialsCard'
 import { useCreateMilestone, useUpdateMilestone, useDeleteMilestone } from '../milestones-api'
 import type { ProjectMilestone } from '../types'
@@ -61,6 +62,7 @@ export function ProjectDetailPage() {
     )
   }
 
+  const schedule = scheduleStatus(project, new Date())
   const spentPct = project.budget > 0 ? Math.min(100, Math.round((project.spent / project.budget) * 100)) : 0
 
   return (
@@ -107,6 +109,11 @@ export function ProjectDetailPage() {
               </div>
               <span className="text-sm font-medium">{project.progress}%</span>
             </div>
+            {schedule && (
+              <p className={`mt-1.5 text-xs ${schedule.level === 'behind' ? 'text-destructive' : schedule.level === 'at_risk' ? 'text-warning' : 'text-muted-foreground'}`}>
+                {describeSchedule(schedule)}
+              </p>
+            )}
           </CardContent>
         </Card>
         <Card>
