@@ -1,9 +1,10 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import { useProjectOptions, useProjectNameMap, useProjectCodes } from '@/features/projects/hooks'
 import { useVendorOptions, useVendorNameMap } from '@/features/vendors/hooks'
 import { useContracts, useCreateContract, useUpdateContract, useDeleteContract } from '../api'
 import { contractColumns, contractFields, contractImportColumns } from '../config'
+import { ContractBillingDialog } from '../components/ContractBillingDialog'
 import type { Contract } from '../types'
 
 export function ContractsListPage() {
@@ -11,6 +12,8 @@ export function ContractsListPage() {
   const createMutation = useCreateContract()
   const updateMutation = useUpdateContract()
   const deleteMutation = useDeleteContract()
+
+  const [billingId, setBillingId] = useState<string | null>(null)
 
   const projectOptions = useProjectOptions()
   const projectNameMap = useProjectNameMap()
@@ -44,7 +47,10 @@ export function ContractsListPage() {
     }
   }
 
+  const billingContract = billingId ? (enriched.find((c) => c.id === billingId) ?? null) : null
+
   return (
+    <>
     <EntityListPage<Contract & { projectName: string }>
       title="Contracts & Purchase Orders"
       description="Client contracts and vendor purchase orders, tracked from draft to approval."
@@ -56,6 +62,7 @@ export function ContractsListPage() {
       isLoading={isLoading}
       searchKeys={['title', 'party', 'projectName']}
       entityLabel="contract"
+      onRowClick={(row) => setBillingId(row.id)}
       onCreate={(values) => createMutation.mutateAsync(reconcileVendor(values) as Partial<Contract>)}
       onUpdate={(id, values) => updateMutation.mutateAsync({ id, values: reconcileVendor(values) as Partial<Contract> })}
       onDelete={(id) => deleteMutation.mutateAsync(id)}
@@ -65,5 +72,8 @@ export function ContractsListPage() {
         return projectCodes.includes(code) ? null : `Unknown Project ID: ${code}`
       }}
     />
+
+    <ContractBillingDialog contract={billingContract} onOpenChange={(open) => !open && setBillingId(null)} />
+    </>
   )
 }

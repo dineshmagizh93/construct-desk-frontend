@@ -22,4 +22,6 @@ export interface Payment {
   retentionPercent: number
   /** Set by the server once the withheld retention has been released. */
   retentionReleasedAt?: string | null
+  /** Set by the server when this invoice was raised against a client contract. */
+  contractId?: string | null
 }
