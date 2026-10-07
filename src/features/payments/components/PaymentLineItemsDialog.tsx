@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Printer, Trash2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -12,8 +12,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { toast } from '@/hooks/use-toast'
+import { useProjectNameMap } from '@/features/projects/hooks'
 import { usePermission } from '@/lib/permissions'
+import { openPrintWindow } from '@/lib/printDocument'
+import { usePrintCompany } from '@/lib/usePrintCompany'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { invoiceBodyHtml } from '../invoiceDocument'
 import { useCreateLineItem, useDeleteLineItem } from '../line-items-api'
 import { netDue, retentionAmount, useReleaseRetention } from '../retention'
 import type { Payment } from '../types'
@@ -37,6 +42,8 @@ export function PaymentLineItemsDialog({ payment, onOpenChange }: PaymentLineIte
   const deleteMutation = useDeleteLineItem(payment?.id ?? '')
   const releaseMutation = useReleaseRetention(payment?.id ?? '')
   const canEdit = usePermission('payments', 'edit')
+  const printCompany = usePrintCompany()
+  const projectNames = useProjectNameMap()
 
   if (!payment) return null
 
@@ -180,6 +187,19 @@ export function PaymentLineItemsDialog({ payment, onOpenChange }: PaymentLineIte
             )}
           </div>
         )}
+
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const ok = openPrintWindow(`Invoice ${payment.invoiceNumber}`, invoiceBodyHtml(payment, printCompany, projectNames[payment.projectId]))
+              if (!ok) toast({ title: 'Allow pop-ups to print', description: 'Your browser blocked the print window.', variant: 'destructive' })
+            }}
+          >
+            <Printer className="size-4" /> Print / PDF
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   )

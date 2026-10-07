@@ -198,7 +198,10 @@ export function ReportsPage() {
   const canProjects = usePermission('projects', 'view')
   const canExpenses = usePermission('expenses', 'view')
   const canInventory = usePermission('inventory', 'view')
-  const canVendorReport = usePermission('vendors', 'view') && usePermission('contracts', 'view')
+  // Both hooks run on every render (never short-circuited), as React requires.
+  const canViewVendors = usePermission('vendors', 'view')
+  const canViewContracts = usePermission('contracts', 'view')
+  const canVendorReport = canViewVendors && canViewContracts
 
   return (
     <div>

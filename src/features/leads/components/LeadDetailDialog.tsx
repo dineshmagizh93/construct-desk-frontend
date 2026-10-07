@@ -28,7 +28,10 @@ export function LeadDetailDialog({ lead, onOpenChange }: LeadDetailDialogProps) 
   const addFollowUpMutation = useAddLeadFollowUp()
   const convertMutation = useConvertLead()
   const navigate = useNavigate()
-  const canConvert = usePermission('leads', 'edit') && usePermission('clients', 'create')
+  // Both hooks run on every render (never short-circuited), as React requires.
+  const canEditLeads = usePermission('leads', 'edit')
+  const canCreateClients = usePermission('clients', 'create')
+  const canConvert = canEditLeads && canCreateClients
   const canCreateProject = usePermission('projects', 'create')
   const [createProject, setCreateProject] = useState(true)
   const [projectName, setProjectName] = useState('')

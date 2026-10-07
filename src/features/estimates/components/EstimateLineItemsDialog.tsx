@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, CheckCircle2, FileSignature, Plus, Trash2 } from 'lucide-react'
+import { ArrowRight, CheckCircle2, FileSignature, Plus, Printer, Trash2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -13,9 +13,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { toast } from '@/hooks/use-toast'
 import { usePermission } from '@/lib/permissions'
+import { openPrintWindow } from '@/lib/printDocument'
+import { usePrintCompany } from '@/lib/usePrintCompany'
 import { formatCurrency } from '@/lib/utils'
 import { useCreateContractFromEstimate } from '../contract-api'
+import { estimateBodyHtml } from '../estimateDocument'
 import { useCreateEstimateLineItem, useDeleteEstimateLineItem } from '../line-items-api'
 import type { Estimate } from '../types'
 
@@ -38,7 +42,11 @@ export function EstimateLineItemsDialog({ estimate, onOpenChange }: EstimateLine
   const deleteMutation = useDeleteEstimateLineItem(estimate?.id ?? '')
   const contractMutation = useCreateContractFromEstimate(estimate?.id ?? '')
   const navigate = useNavigate()
-  const canCreateContract = usePermission('estimates', 'edit') && usePermission('contracts', 'create')
+  const printCompany = usePrintCompany()
+  // Both hooks run on every render (never short-circuited), as React requires.
+  const canEditEstimates = usePermission('estimates', 'edit')
+  const canCreateContracts = usePermission('contracts', 'create')
+  const canCreateContract = canEditEstimates && canCreateContracts
 
   if (!estimate) return null
 
@@ -168,6 +176,19 @@ export function EstimateLineItemsDialog({ estimate, onOpenChange }: EstimateLine
             </Button>
           </div>
         )}
+
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const ok = openPrintWindow(`Estimate — ${estimate.title}`, estimateBodyHtml(estimate, printCompany))
+              if (!ok) toast({ title: 'Allow pop-ups to print', description: 'Your browser blocked the print window.', variant: 'destructive' })
+            }}
+          >
+            <Printer className="size-4" /> Print / PDF
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   )
