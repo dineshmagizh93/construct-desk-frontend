@@ -93,7 +93,7 @@ export function ProjectDetailPage() {
             <p className="text-sm text-muted-foreground">Timeline</p>
             <p className="mt-1.5 flex items-center gap-1.5 text-sm font-medium">
               <Calendar className="size-4 text-muted-foreground" />
-              {formatDate(project.startDate)} — {formatDate(project.endDate)}
+              {project.startDate || project.endDate ? `${formatDate(project.startDate)} — ${formatDate(project.endDate)}` : 'Dates not set'}
             </p>
           </CardContent>
         </Card>

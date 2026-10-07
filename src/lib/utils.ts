@@ -13,8 +13,11 @@ export function formatCurrency(value: number, currency = 'INR') {
   }).format(value)
 }
 
-export function formatDate(value: string | Date, options?: Intl.DateTimeFormatOptions) {
+export function formatDate(value: string | Date | null | undefined, options?: Intl.DateTimeFormatOptions) {
+  // A missing or unparseable date is shown as a dash — never as 01 Jan 1970 (what new Date(null) gives).
+  if (!value) return '—'
   const date = typeof value === 'string' ? new Date(value) : value
+  if (Number.isNaN(date.getTime())) return '—'
   return new Intl.DateTimeFormat('en-IN', {
     day: '2-digit',
     month: 'short',

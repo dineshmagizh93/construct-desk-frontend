@@ -20,4 +20,7 @@ export interface Lead {
   location: string
   createdAt: string
   followUps: LeadFollowUp[]
+  /** Set by the server when the lead is converted: the client and project it became. */
+  convertedClientId?: string | null
+  convertedProjectId?: string | null
 }

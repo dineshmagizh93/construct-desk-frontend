@@ -44,3 +44,30 @@ export function useAddLeadFollowUp() {
     onError: (error: Error) => toast({ title: 'Something went wrong', description: error.message, variant: 'destructive' }),
   })
 }
+
+export interface ConvertLeadResult {
+  lead: Lead
+  client: { id: string; name: string }
+  project: { id: string; code: string; name: string } | null
+  clientReused: boolean
+}
+
+export function useConvertLead() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ leadId, createProject, projectName }: { leadId: string; createProject: boolean; projectName?: string }) =>
+      http<ConvertLeadResult>(`/leads/${leadId}/convert`, { method: 'POST', body: JSON.stringify({ createProject, projectName }) }),
+    onSuccess: (result) => {
+      // The lead is now won; a client (and maybe a project) just appeared.
+      queryClient.invalidateQueries({ queryKey: ['leads'] })
+      queryClient.invalidateQueries({ queryKey: ['clients'] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      toast({
+        title: 'Lead converted',
+        description: `${result.clientReused ? 'Linked to existing client' : 'Client created'}${result.project ? ` · project ${result.project.code} created` : ''}.`,
+        variant: 'success',
+      })
+    },
+    onError: (error: Error) => toast({ title: 'Could not convert lead', description: error.message, variant: 'destructive' }),
+  })
+}

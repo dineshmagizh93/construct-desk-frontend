@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Dialog,
   DialogContent,
@@ -9,12 +10,13 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { usePermission } from '@/lib/permissions'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { STATUS_COLORS } from '@/lib/constants'
-import { useAddLeadFollowUp } from '../api'
+import { useAddLeadFollowUp, useConvertLead } from '../api'
 import { leadStatusLabel } from '../config'
 import type { Lead } from '../types'
-import { Phone, Mail, MapPin, Plus } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Phone, Mail, MapPin, Plus } from 'lucide-react'
 
 interface LeadDetailDialogProps {
   lead: Lead | null
@@ -24,6 +26,12 @@ interface LeadDetailDialogProps {
 export function LeadDetailDialog({ lead, onOpenChange }: LeadDetailDialogProps) {
   const [note, setNote] = useState('')
   const addFollowUpMutation = useAddLeadFollowUp()
+  const convertMutation = useConvertLead()
+  const navigate = useNavigate()
+  const canConvert = usePermission('leads', 'edit') && usePermission('clients', 'create')
+  const canCreateProject = usePermission('projects', 'create')
+  const [createProject, setCreateProject] = useState(true)
+  const [projectName, setProjectName] = useState('')
 
   if (!lead) return null
 
@@ -31,6 +39,16 @@ export function LeadDetailDialog({ lead, onOpenChange }: LeadDetailDialogProps) 
     if (!note.trim() || addFollowUpMutation.isPending) return
     await addFollowUpMutation.mutateAsync({ leadId: lead.id, note: note.trim() })
     setNote('')
+  }
+
+  const converted = !!lead.convertedClientId
+  const showConvert = !converted && canConvert && lead.status !== 'lost'
+  const makeProject = createProject && canCreateProject
+  const defaultName = lead.projectType ? `${lead.name} — ${lead.projectType}` : lead.name
+
+  const convert = async () => {
+    await convertMutation.mutateAsync({ leadId: lead.id, createProject: makeProject, projectName: projectName.trim() || undefined })
+    setProjectName('')
   }
 
   return (
@@ -60,6 +78,47 @@ export function LeadDetailDialog({ lead, onOpenChange }: LeadDetailDialogProps) 
           <span className="text-muted-foreground">Estimated Budget</span>
           <span className="font-semibold">{formatCurrency(lead.estimatedBudget)}</span>
         </div>
+
+        {converted && (
+          <div className="space-y-2 rounded-md border border-success/40 bg-success/5 p-3 text-sm">
+            <p className="flex items-center gap-1.5 font-medium">
+              <CheckCircle2 className="size-4 text-success" /> Converted
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={() => navigate(`/clients/${lead.convertedClientId}`)}>
+                Open client <ArrowRight className="size-3.5" />
+              </Button>
+              {lead.convertedProjectId && (
+                <Button variant="outline" size="sm" onClick={() => navigate(`/projects/${lead.convertedProjectId}`)}>
+                  Open project <ArrowRight className="size-3.5" />
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {showConvert && (
+          <div className="space-y-2 rounded-md border border-border p-3 text-sm">
+            <p className="font-medium">Convert to client{canCreateProject ? ' & project' : ''}</p>
+            <p className="text-xs text-muted-foreground">
+              Creates a client from this lead's details (or links to an existing client with the same email) and marks the lead won.
+            </p>
+            {canCreateProject && (
+              <>
+                <label className="flex items-center gap-2">
+                  <input type="checkbox" checked={createProject} onChange={(e) => setCreateProject(e.target.checked)} />
+                  Also create a project{lead.estimatedBudget ? ` (budget ${formatCurrency(lead.estimatedBudget)})` : ''}
+                </label>
+                {createProject && (
+                  <Input placeholder={defaultName} value={projectName} onChange={(e) => setProjectName(e.target.value)} />
+                )}
+              </>
+            )}
+            <Button size="sm" onClick={convert} disabled={convertMutation.isPending}>
+              Convert lead
+            </Button>
+          </div>
+        )}
 
         <div>
           <p className="mb-2 text-sm font-medium">Follow-ups</p>
