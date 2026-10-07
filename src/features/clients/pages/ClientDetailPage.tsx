@@ -12,6 +12,7 @@ import { usePermission } from '@/lib/permissions'
 import { useClient, useAddClientContactLog } from '../api'
 import { useProjects } from '@/features/projects/api'
 import { statusLabel } from '@/features/projects/config'
+import { ClientBillingCard } from '../components/ClientBillingCard'
 
 export function ClientDetailPage() {
   const { id } = useParams()
@@ -147,6 +148,8 @@ export function ClientDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      <ClientBillingCard projectIds={linkedProjects.map((p) => p.id)} />
     </div>
   )
 }
