@@ -14,6 +14,7 @@ import { Wallet, TrendingUp, TrendingDown, Percent, Receipt, Lock } from 'lucide
 import { PageHeader } from '@/components/shared/PageHeader'
 import { StatCard } from '@/components/shared/StatCard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatCurrency } from '@/lib/utils'
 import { useProjects } from '@/features/projects/api'
 import { useFinanceReport } from '../api'
@@ -24,6 +25,8 @@ export function FinanceReportsPage() {
 
   const summary = report?.summary ?? { totalRevenue: 0, totalExpenses: 0, netProfit: 0, profitMargin: 0, outstanding: 0, retentionHeld: 0 }
   const cashFlow = report?.cashFlow ?? []
+  const aging = report?.receivablesAging ?? []
+  const agingTotal = aging.reduce((sum, row) => sum + row.amount, 0)
 
   const budgetVsActual = projects.map((p) => ({
     name: p.name.length > 16 ? `${p.name.slice(0, 16)}…` : p.name,
@@ -83,6 +86,41 @@ export function FinanceReportsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="mt-4">
+        <CardHeader>
+          <CardTitle>Receivables Aging</CardTitle>
+          <p className="text-sm text-muted-foreground">What clients still owe, by how long each unpaid invoice is past its due date (net of retention they are holding).</p>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Age</TableHead>
+                <TableHead className="text-right">Invoices</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead className="text-right">Share</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {aging.map((row) => (
+                <TableRow key={row.key}>
+                  <TableCell className={row.key === 'current' ? '' : 'font-medium'}>{row.label}</TableCell>
+                  <TableCell className="text-right">{row.count}</TableCell>
+                  <TableCell className={`text-right font-medium ${row.key === 'd90_plus' && row.amount > 0 ? 'text-destructive' : ''}`}>{formatCurrency(row.amount)}</TableCell>
+                  <TableCell className="text-right text-muted-foreground">{agingTotal > 0 ? `${Math.round((row.amount / agingTotal) * 100)}%` : '—'}</TableCell>
+                </TableRow>
+              ))}
+              <TableRow>
+                <TableCell className="font-semibold">Total outstanding</TableCell>
+                <TableCell className="text-right font-semibold">{aging.reduce((sum, row) => sum + row.count, 0)}</TableCell>
+                <TableCell className="text-right font-semibold">{formatCurrency(agingTotal)}</TableCell>
+                <TableCell />
+              </TableRow>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -12,6 +12,8 @@ export interface FinanceReport {
     retentionHeld: number
   }
   cashFlow: { month: string; inflow: number; outflow: number }[]
+  /** What clients still owe (net of retention), grouped by how long past due. Always all five buckets, in order. */
+  receivablesAging: { key: string; label: string; count: number; amount: number }[]
 }
 
 export function useFinanceReport() {
