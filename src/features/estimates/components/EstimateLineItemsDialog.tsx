@@ -17,7 +17,7 @@ import { toast } from '@/hooks/use-toast'
 import { usePermission } from '@/lib/permissions'
 import { openPrintWindow } from '@/lib/printDocument'
 import { usePrintCompany } from '@/lib/usePrintCompany'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, formatRate } from '@/lib/utils'
 import { useCreateContractFromEstimate } from '../contract-api'
 import { estimateBodyHtml } from '../estimateDocument'
 import { useCreateEstimateLineItem, useDeleteEstimateLineItem } from '../line-items-api'
@@ -95,7 +95,7 @@ export function EstimateLineItemsDialog({ estimate, onOpenChange }: EstimateLine
               <TableRow key={item.id}>
                 <TableCell>{item.description}</TableCell>
                 <TableCell className="text-right">{item.quantity}</TableCell>
-                <TableCell className="text-right">{formatCurrency(item.unitPrice)}</TableCell>
+                <TableCell className="text-right">{formatRate(item.unitPrice)}</TableCell>
                 <TableCell className="text-right">{item.taxPercent}%</TableCell>
                 <TableCell className="text-right font-medium">{formatCurrency(lineTotal(item))}</TableCell>
                 <TableCell>
@@ -126,7 +126,7 @@ export function EstimateLineItemsDialog({ estimate, onOpenChange }: EstimateLine
           </div>
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Rate (₹)</Label>
-            <Input type="number" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} />
+            <Input type="number" step="0.01" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} />
           </div>
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">GST %</Label>

@@ -40,6 +40,7 @@ export function EquipmentListPage() {
       fields={fields}
       keyField="id"
       moduleKey="equipment"
+      historyEntity="Equipment"
       isLoading={isLoading}
       searchKeys={['name', 'type', 'projectName']}
       entityLabel={moduleText.equipment.entityLabel ?? 'equipment'}

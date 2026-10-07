@@ -57,6 +57,7 @@ export function PurchaseRequestsPage() {
         fields={fields}
         keyField="id"
         moduleKey="inventory"
+        historyEntity="PurchaseRequest"
         isLoading={isLoading}
         searchKeys={['title', 'projectName', 'vendorName']}
         entityLabel="purchase request"

@@ -13,6 +13,17 @@ export function formatCurrency(value: number, currency = 'INR') {
   }).format(value)
 }
 
+/** A per-unit rate: whole rupees stay plain (₹380), but paise are kept (₹62.75) — rounding a rate would misstate it. */
+export function formatRate(value: number, currency = 'INR') {
+  const hasPaise = Math.abs(value * 100 - Math.round(value * 100)) < 1e-6 && Math.round(value * 100) % 100 !== 0
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: hasPaise ? 2 : 0,
+    maximumFractionDigits: 2,
+  }).format(value)
+}
+
 export function formatDate(value: string | Date | null | undefined, options?: Intl.DateTimeFormatOptions) {
   // A missing or unparseable date is shown as a dash — never as 01 Jan 1970 (what new Date(null) gives).
   if (!value) return '—'

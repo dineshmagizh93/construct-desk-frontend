@@ -52,6 +52,7 @@ export function SiteProgressListPage() {
       fields={fields}
       keyField="id"
       moduleKey="site-progress"
+      historyEntity="SiteProgressEntry"
       isLoading={isLoading}
       searchKeys={['projectName']}
       entityLabel={moduleText.siteProgress.entityLabel ?? 'report'}

@@ -16,6 +16,7 @@ export function ClientsListPage() {
       title="Clients"
       description="Every client relationship, from first contract to latest correspondence."
       moduleKey="clients"
+      historyEntity="Client"
       data={data}
       columns={clientColumns}
       fields={clientFields}

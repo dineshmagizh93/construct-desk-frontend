@@ -56,6 +56,7 @@ export function ExpensesListPage() {
       fields={fields}
       keyField="id"
       moduleKey="expenses"
+      historyEntity="Expense"
       isLoading={isLoading}
       searchKeys={['category', 'projectName', 'paidTo']}
       entityLabel="expense"

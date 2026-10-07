@@ -47,6 +47,7 @@ export function TasksListPage() {
       fields={fields}
       keyField="id"
       moduleKey="tasks"
+      historyEntity="Task"
       isLoading={isLoading}
       searchKeys={['title', 'projectName', 'assigneeName']}
       entityLabel="task"

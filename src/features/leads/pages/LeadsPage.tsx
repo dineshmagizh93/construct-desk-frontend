@@ -125,6 +125,7 @@ export function LeadsPage() {
           <EntityListPage<Lead & { assignedToName: string }>
             hideHeader
             moduleKey="leads"
+            historyEntity="Lead"
             toolbarStart={tabsNav}
             data={enriched}
             columns={leadColumns}

@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useExpenses } from '@/features/expenses/api'
 import { STATUS_COLORS } from '@/lib/constants'
 import { usePermission } from '@/lib/permissions'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { formatCurrency, formatDate, formatRate } from '@/lib/utils'
 import { useMeasurements, useUpdateWorkOrder, useWorkOrderItems, useWorkOrderPayments } from '../api'
 import { WORK_ORDER_STATUS_OPTIONS, WORK_ORDER_STATUS_VARIANT, type WorkOrderRow } from '../config'
 import { formatQuantity, measuredQuantity, workOrderFigures } from '../math'
@@ -189,9 +189,9 @@ export function WorkOrderDialog({ order, onOpenChange }: WorkOrderDialogProps) {
                         </TableCell>
                         <TableCell className="text-right">
                           {editing ? (
-                            <Input className="ml-auto h-7 w-24" type="number" value={editRate} onChange={(e) => setEditRate(e.target.value)} />
+                            <Input className="ml-auto h-7 w-24" type="number" step="0.01" value={editRate} onChange={(e) => setEditRate(e.target.value)} />
                           ) : (
-                            formatCurrency(item.rate)
+                            formatRate(item.rate)
                           )}
                         </TableCell>
                         <TableCell className="text-right font-medium">{formatCurrency(Math.round(done * item.rate))}</TableCell>
@@ -312,7 +312,7 @@ export function WorkOrderDialog({ order, onOpenChange }: WorkOrderDialogProps) {
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground">Rate (₹)</Label>
-                    <Input type="number" value={rate} onChange={(e) => setRate(e.target.value)} />
+                    <Input type="number" step="0.01" value={rate} onChange={(e) => setRate(e.target.value)} />
                   </div>
                 </div>
                 <div className="flex justify-end">

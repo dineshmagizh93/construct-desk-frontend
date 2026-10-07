@@ -13,7 +13,7 @@ import { useInventory } from '@/features/inventory/api'
 import { useUserNameMap } from '@/features/users/hooks'
 import { useVendorOptions } from '@/features/vendors/hooks'
 import { usePermission } from '@/lib/permissions'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { formatCurrency, formatDate, formatRate } from '@/lib/utils'
 import { useAddRequestItem, useDeleteRequestItem, useRequestAction } from '../api'
 import { REQUEST_STATUS_VARIANT, type PurchaseRequestRow } from '../config'
 
@@ -140,7 +140,7 @@ export function PurchaseRequestDialog({ request, onOpenChange }: PurchaseRequest
                   <TableCell className="text-right">
                     {item.quantity} {item.unit ?? ''}
                   </TableCell>
-                  <TableCell className="text-right">{formatCurrency(item.estimatedRate)}</TableCell>
+                  <TableCell className="text-right">{formatRate(item.estimatedRate)}</TableCell>
                   <TableCell className="text-right font-medium">{formatCurrency(item.quantity * item.estimatedRate)}</TableCell>
                   <TableCell>
                     {editable && (
@@ -201,7 +201,7 @@ export function PurchaseRequestDialog({ request, onOpenChange }: PurchaseRequest
               </div>
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Est. rate (₹)</Label>
-                <Input type="number" value={rate} onChange={(e) => setRate(e.target.value)} />
+                <Input type="number" step="0.01" value={rate} onChange={(e) => setRate(e.target.value)} />
               </div>
               <div className="flex items-end sm:col-start-4">
                 <Button className="w-full" onClick={submitItem} disabled={!description.trim() || !quantity || addItem.isPending}>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatCurrency, formatDate } from './utils'
+import { formatCurrency, formatDate, formatRate } from './utils'
 
 describe('formatDate', () => {
   it('formats a real date', () => {
@@ -24,5 +24,15 @@ describe('formatCurrency', () => {
     expect(formatCurrency(4500000)).toBe('₹45,00,000')
     expect(formatCurrency(0)).toBe('₹0')
     expect(formatCurrency(1234.6)).toBe('₹1,235')
+  })
+})
+
+describe('formatRate', () => {
+  it('keeps paise on a rate and drops them when there are none', () => {
+    expect(formatRate(62.75)).toBe('₹62.75')
+    expect(formatRate(380.5)).toBe('₹380.50')
+    expect(formatRate(380)).toBe('₹380')
+    expect(formatRate(1850000)).toBe('₹18,50,000')
+    expect(formatRate(0)).toBe('₹0')
   })
 })

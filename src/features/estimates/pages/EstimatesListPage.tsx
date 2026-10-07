@@ -40,6 +40,7 @@ export function EstimatesListPage() {
         fields={fields}
         keyField="id"
         moduleKey="estimates"
+        historyEntity="Estimate"
         isLoading={isLoading}
         searchKeys={['title', 'clientName']}
         entityLabel={moduleText.estimates.entityLabel ?? 'estimate'}

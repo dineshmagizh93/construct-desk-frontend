@@ -51,6 +51,7 @@ export function WorkOrdersPage() {
         fields={fields}
         keyField="id"
         moduleKey="contracts"
+        historyEntity="WorkOrder"
         isLoading={isLoading}
         searchKeys={['title', 'vendorName', 'projectName']}
         entityLabel="work order"

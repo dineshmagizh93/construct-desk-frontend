@@ -66,6 +66,7 @@ export function ProjectsListPage() {
       fields={fields}
       keyField="id"
       moduleKey="projects"
+      historyEntity="Project"
       isLoading={isLoading}
       searchKeys={['name', 'clientName', 'location', 'code']}
       entityLabel="project"

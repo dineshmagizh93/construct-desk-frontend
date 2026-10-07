@@ -53,6 +53,7 @@ export function SafetyLogPage() {
       fields={fields}
       keyField="id"
       moduleKey="site-progress"
+      historyEntity="SafetyIncident"
       isLoading={isLoading}
       searchKeys={['projectName', 'type', 'description']}
       entityLabel="incident"

@@ -7,6 +7,7 @@ import { ConfirmDialog } from './ConfirmDialog'
 import { Pagination } from './Pagination'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { HistoryButton } from '@/features/audit/components/HistoryButton'
 import { usePermission } from '@/lib/permissions'
 import type { Column, FieldConfig, ImportConfig } from './types'
 
@@ -34,6 +35,8 @@ interface EntityListPageProps<T extends object> {
   headerActions?: ReactNode
   toolbarStart?: ReactNode
   rowActions?: (row: T) => ReactNode
+  /** Audit entity name (e.g. "Expense") — adds a History button to each row for people who can read the Activity Log. */
+  historyEntity?: string
   moduleKey?: string
   canCreate?: boolean
   canEdit?: boolean
@@ -66,6 +69,7 @@ export function EntityListPage<T extends object>({
   headerActions,
   toolbarStart,
   rowActions,
+  historyEntity,
   moduleKey,
   canCreate: canCreateProp,
   canEdit: canEditProp,
@@ -195,6 +199,7 @@ export function EntityListPage<T extends object>({
           actions={(row) => (
             <div className="flex justify-end gap-1">
               {rowActions?.(row)}
+              {historyEntity && <HistoryButton entity={historyEntity} entityId={String(row[keyField])} />}
               {canEdit && (
                 <Button variant="ghost" size="icon-sm" aria-label={`Edit ${entityLabel}`} onClick={() => openEdit(row)}>
                   <Pencil className="size-3.5" />

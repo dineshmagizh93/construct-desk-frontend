@@ -40,6 +40,7 @@ export function LabourListPage() {
         fields={fields}
         keyField="id"
         moduleKey="labour"
+        historyEntity="LabourRecord"
         isLoading={isLoading}
         searchKeys={['name', 'role', 'contractor', 'projectName']}
         entityLabel={moduleText.labour.entityLabel ?? 'worker'}

@@ -59,6 +59,7 @@ export function ContractsListPage() {
       fields={fields}
       keyField="id"
       moduleKey="contracts"
+      historyEntity="Contract"
       isLoading={isLoading}
       searchKeys={['title', 'party', 'projectName']}
       entityLabel="contract"

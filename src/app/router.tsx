@@ -29,6 +29,7 @@ const ProjectDetailPage = lazy(() =>
 )
 const TasksListPage = lazy(() => import('@/features/tasks/pages/TasksListPage').then((m) => ({ default: m.TasksListPage })))
 const WorkOrdersPage = lazy(() => import('@/features/work-orders/pages/WorkOrdersPage').then((m) => ({ default: m.WorkOrdersPage })))
+const SiteMeasurementsPage = lazy(() => import('@/features/work-orders/pages/SiteMeasurementsPage').then((m) => ({ default: m.SiteMeasurementsPage })))
 const PurchaseRequestsPage = lazy(() =>
   import('@/features/purchase-requests/pages/PurchaseRequestsPage').then((m) => ({ default: m.PurchaseRequestsPage })),
 )
@@ -72,6 +73,7 @@ const NotificationsPage = lazy(() =>
 )
 const ReportsPage = lazy(() => import('@/features/reports/pages/ReportsPage').then((m) => ({ default: m.ReportsPage })))
 const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage').then((m) => ({ default: m.SettingsPage })))
+const ActivityLogPage = lazy(() => import('@/features/audit/pages/ActivityLogPage').then((m) => ({ default: m.ActivityLogPage })))
 const UsersListPage = lazy(() => import('@/features/users/pages/UsersListPage').then((m) => ({ default: m.UsersListPage })))
 const RolesPage = lazy(() => import('@/features/roles/pages/RolesPage').then((m) => ({ default: m.RolesPage })))
 const PaywallPage = lazy(() => import('@/features/billing/pages/PaywallPage').then((m) => ({ default: m.PaywallPage })))
@@ -150,6 +152,7 @@ const router = createBrowserRouter([
       { path: 'estimates', element: withSuspense(<EstimatesListPage />) },
       { path: 'contracts', element: withSuspense(<ContractsListPage />) },
       { path: 'work-orders', element: withSuspense(<WorkOrdersPage />) },
+      { path: 'site-measurements', element: withSuspense(<SiteMeasurementsPage />) },
       { path: 'vendors', element: withSuspense(<VendorsListPage />) },
       { path: 'labour', element: withSuspense(<LabourListPage />) },
       { path: 'inventory', element: withSuspense(<InventoryListPage />) },
@@ -162,6 +165,7 @@ const router = createBrowserRouter([
       { path: 'notifications', element: withSuspense(<NotificationsPage />) },
       { path: 'reports', element: withSuspense(<ReportsPage />) },
       { path: 'users', element: withSuspense(<UsersListPage />) },
+      { path: 'activity', element: withSuspense(<ActivityLogPage />) },
       { path: 'roles', element: withSuspense(<RolesPage />) },
       { path: 'settings', element: withSuspense(<SettingsPage />) },
       { path: 'billing/paywall', element: withSuspense(<PaywallPage />) },

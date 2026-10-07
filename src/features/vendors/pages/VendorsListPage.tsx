@@ -27,6 +27,7 @@ export function VendorsListPage() {
       title="Vendors & Suppliers"
       description="The material and service suppliers powering every site."
       moduleKey="vendors"
+      historyEntity="Vendor"
       data={enriched}
       columns={vendorColumns}
       fields={vendorFields}

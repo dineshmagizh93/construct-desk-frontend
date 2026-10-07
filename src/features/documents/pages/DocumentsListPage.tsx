@@ -58,6 +58,7 @@ export function DocumentsListPage() {
       fields={fields}
       keyField="id"
       moduleKey="documents"
+      historyEntity="Document"
       isLoading={isLoading}
       searchKeys={['name', 'projectName', 'category']}
       entityLabel="document"

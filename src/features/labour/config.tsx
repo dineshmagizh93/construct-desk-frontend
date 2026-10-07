@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge'
 import type { Column, FieldConfig, ImportColumn } from '@/components/shared/types'
 import type { LabourRecord } from './types'
-import { formatCurrency } from '@/lib/utils'
+import { formatRate } from '@/lib/utils'
 
 export const LABOUR_STATUS_OPTIONS = [
   { label: 'Active', value: 'active' },
@@ -13,7 +13,7 @@ export const labourColumns: Column<LabourRecord & { projectName?: string }>[] = 
   { key: 'projectName', header: 'Assigned Project' },
   { key: 'role', header: 'Role' },
   { key: 'contractor', header: 'Contractor' },
-  { key: 'dailyWage', header: 'Daily Wage', render: (row) => formatCurrency(row.dailyWage) },
+  { key: 'dailyWage', header: 'Daily Wage', render: (row) => formatRate(row.dailyWage) },
   { key: 'phone', header: 'Phone' },
   { key: 'status', header: 'Status', render: (row) => <Badge variant={row.status === 'active' ? 'success' : 'secondary'}>{row.status}</Badge> },
 ]
@@ -23,7 +23,7 @@ export const labourFields: FieldConfig[] = [
   { name: 'projectId', label: 'Assigned Project', type: 'select', options: [], required: true, colSpan: 1 },
   { name: 'role', label: 'Role / Trade', type: 'text', colSpan: 1 },
   { name: 'contractor', label: 'Contractor', type: 'text', colSpan: 1 },
-  { name: 'dailyWage', label: 'Daily Wage (₹)', type: 'number', colSpan: 1 },
+  { name: 'dailyWage', label: 'Daily Wage (₹)', type: 'number', step: '0.01', colSpan: 1 },
   { name: 'phone', label: 'Phone', type: 'text', colSpan: 1 },
   { name: 'status', label: 'Status', type: 'select', options: LABOUR_STATUS_OPTIONS, colSpan: 1 },
   { name: 'joinedDate', label: 'Joined Date', type: 'date', colSpan: 1 },

@@ -1,4 +1,4 @@
-import { formatCurrency } from './utils'
+import { formatCurrency, formatRate } from './utils'
 
 /** Every value that ends up in a printed document is user-entered text (client names, descriptions…),
  * and the document is written into a window that shares this app's origin — so it is escaped, always. */
@@ -50,7 +50,7 @@ export function lineItemsTableHtml(lines: PrintLine[]): string {
   const rows = lines
     .map(
       (line, i) =>
-        `<tr><td>${i + 1}</td><td>${escapeHtml(line.description)}</td><td class="num">${escapeHtml(line.quantity)}</td><td class="num">${escapeHtml(formatCurrency(line.unitPrice))}</td><td class="num">${escapeHtml(line.taxPercent ?? 0)}%</td><td class="num">${escapeHtml(formatCurrency(Math.round(lineAmount(line))))}</td></tr>`,
+        `<tr><td>${i + 1}</td><td>${escapeHtml(line.description)}</td><td class="num">${escapeHtml(line.quantity)}</td><td class="num">${escapeHtml(formatRate(line.unitPrice))}</td><td class="num">${escapeHtml(line.taxPercent ?? 0)}%</td><td class="num">${escapeHtml(formatCurrency(Math.round(lineAmount(line))))}</td></tr>`,
     )
     .join('')
   return `<table><thead><tr><th>#</th><th>Description</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">GST</th><th class="num">Amount</th></tr></thead><tbody>${rows}</tbody></table>`

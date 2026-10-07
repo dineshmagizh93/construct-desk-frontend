@@ -41,6 +41,7 @@ export function InventoryListPage() {
       fields={fields}
       keyField="id"
       moduleKey="inventory"
+      historyEntity="InventoryItem"
       isLoading={isLoading}
       searchKeys={['name', 'category', 'projectName']}
       entityLabel={moduleText.inventory.entityLabel ?? 'material'}

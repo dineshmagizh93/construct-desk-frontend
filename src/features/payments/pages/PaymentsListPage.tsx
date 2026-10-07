@@ -38,6 +38,7 @@ export function PaymentsListPage() {
         fields={fields}
         keyField="id"
         moduleKey="payments"
+        historyEntity="Payment"
         isLoading={isLoading}
         searchKeys={['invoiceNumber', 'clientName', 'projectName']}
         entityLabel="invoice"

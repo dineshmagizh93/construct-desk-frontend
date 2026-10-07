@@ -1,14 +1,14 @@
 import { Badge } from '@/components/ui/badge'
 import type { Column, FieldConfig, ImportColumn } from '@/components/shared/types'
 import type { InventoryItem } from './types'
-import { formatCurrency } from '@/lib/utils'
+import { formatRate } from '@/lib/utils'
 
 export const inventoryColumns: Column<InventoryItem & { projectName?: string }>[] = [
   { key: 'name', header: 'Material' },
   { key: 'category', header: 'Category' },
   { key: 'projectName', header: 'Project' },
   { key: 'quantity', header: 'Stock', render: (row) => `${row.quantity} ${row.unit}` },
-  { key: 'unitCost', header: 'Unit Cost', render: (row) => formatCurrency(row.unitCost) },
+  { key: 'unitCost', header: 'Unit Cost', render: (row) => formatRate(row.unitCost) },
   {
     key: 'reorderLevel',
     header: 'Status',
@@ -27,7 +27,7 @@ export const inventoryFields: FieldConfig[] = [
   { name: 'unit', label: 'Unit', type: 'text', placeholder: 'bags, tons, cu.m…', colSpan: 1 },
   { name: 'quantity', label: 'Quantity in Stock', type: 'number', colSpan: 1 },
   { name: 'reorderLevel', label: 'Reorder Level', type: 'number', colSpan: 1 },
-  { name: 'unitCost', label: 'Unit Cost (₹)', type: 'number', colSpan: 1 },
+  { name: 'unitCost', label: 'Unit Cost (₹)', type: 'number', step: '0.01', colSpan: 1 },
   { name: 'projectId', label: 'Project / Site', type: 'select', options: [], required: true, colSpan: 1 },
 ]
 
