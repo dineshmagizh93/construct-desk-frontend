@@ -28,6 +28,9 @@ const ProjectDetailPage = lazy(() =>
   import('@/features/projects/pages/ProjectDetailPage').then((m) => ({ default: m.ProjectDetailPage })),
 )
 const TasksListPage = lazy(() => import('@/features/tasks/pages/TasksListPage').then((m) => ({ default: m.TasksListPage })))
+const PurchaseRequestsPage = lazy(() =>
+  import('@/features/purchase-requests/pages/PurchaseRequestsPage').then((m) => ({ default: m.PurchaseRequestsPage })),
+)
 const SafetyLogPage = lazy(() => import('@/features/safety/pages/SafetyLogPage').then((m) => ({ default: m.SafetyLogPage })))
 const SiteProgressListPage = lazy(() =>
   import('@/features/site-progress/pages/SiteProgressListPage').then((m) => ({ default: m.SiteProgressListPage })),
@@ -148,6 +151,7 @@ const router = createBrowserRouter([
       { path: 'vendors', element: withSuspense(<VendorsListPage />) },
       { path: 'labour', element: withSuspense(<LabourListPage />) },
       { path: 'inventory', element: withSuspense(<InventoryListPage />) },
+      { path: 'purchase-requests', element: withSuspense(<PurchaseRequestsPage />) },
       { path: 'equipment', element: withSuspense(<EquipmentListPage />) },
       { path: 'expenses', element: withSuspense(<ExpensesListPage />) },
       { path: 'payments', element: withSuspense(<PaymentsListPage />) },
