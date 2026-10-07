@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { ArrowRight, CheckCircle2, FileSignature, Plus, Trash2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -12,7 +13,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { usePermission } from '@/lib/permissions'
 import { formatCurrency } from '@/lib/utils'
+import { useCreateContractFromEstimate } from '../contract-api'
 import { useCreateEstimateLineItem, useDeleteEstimateLineItem } from '../line-items-api'
 import type { Estimate } from '../types'
 
@@ -33,6 +36,9 @@ export function EstimateLineItemsDialog({ estimate, onOpenChange }: EstimateLine
 
   const createMutation = useCreateEstimateLineItem(estimate?.id ?? '')
   const deleteMutation = useDeleteEstimateLineItem(estimate?.id ?? '')
+  const contractMutation = useCreateContractFromEstimate(estimate?.id ?? '')
+  const navigate = useNavigate()
+  const canCreateContract = usePermission('estimates', 'edit') && usePermission('contracts', 'create')
 
   if (!estimate) return null
 
@@ -137,6 +143,29 @@ export function EstimateLineItemsDialog({ estimate, onOpenChange }: EstimateLine
               <span>Total</span>
               <span>{formatCurrency(subtotal + tax)}</span>
             </div>
+          </div>
+        )}
+
+        {estimate.contractId && (
+          <div className="flex items-center justify-between gap-3 rounded-md border border-success/40 bg-success/5 p-3 text-sm">
+            <span className="flex items-center gap-1.5 font-medium">
+              <CheckCircle2 className="size-4 text-success" /> Contract created from this estimate
+            </span>
+            <Button variant="outline" size="sm" onClick={() => navigate('/contracts')}>
+              Open Contracts &amp; POs <ArrowRight className="size-3.5" />
+            </Button>
+          </div>
+        )}
+
+        {estimate.status === 'approved' && !estimate.contractId && canCreateContract && (
+          <div className="flex items-center justify-between gap-3 rounded-md border border-border p-3 text-sm">
+            <p className="text-xs text-muted-foreground">
+              Approved. Raise a draft contract for {formatCurrency(estimate.totalAmount)}
+              {estimate.projectId ? '.' : ' — a project will be created from this estimate too.'}
+            </p>
+            <Button size="sm" onClick={() => contractMutation.mutate()} disabled={contractMutation.isPending || !(estimate.totalAmount > 0)}>
+              <FileSignature className="size-4" /> Create contract
+            </Button>
           </div>
         )}
       </DialogContent>

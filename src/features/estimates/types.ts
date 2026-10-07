@@ -19,4 +19,6 @@ export interface Estimate {
   validUntil: string
   createdAt: string
   lineItems: EstimateLineItem[]
+  /** Set by the server once a contract has been raised from this (approved) estimate. */
+  contractId?: string | null
 }
