@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Bell, CheckCheck, Trash2, CreditCard, Target, PackageX, CheckSquare, FileSignature } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
@@ -7,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn, formatDate } from '@/lib/utils'
 import { useNotifications } from '../hooks'
+import { safeLink } from '../link'
 
 const TYPE_ICON = {
   info: Target,
@@ -19,6 +21,7 @@ const PAGE_SIZE = 10
 
 export function NotificationsPage() {
   const { items, markRead, markAllRead, remove } = useNotifications()
+  const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGE_SIZE)
 
@@ -52,8 +55,12 @@ export function NotificationsPage() {
                 return (
                   <div
                     key={n.id}
-                    className={cn('flex items-start gap-3 p-4', !n.read && 'bg-secondary/40')}
-                    onClick={() => markRead(n.id)}
+                    className={cn('flex items-start gap-3 p-4', !n.read && 'bg-secondary/40', safeLink(n.link) && 'cursor-pointer hover:bg-secondary/60')}
+                    onClick={() => {
+                      markRead(n.id)
+                      const to = safeLink(n.link)
+                      if (to) navigate(to)
+                    }}
                   >
                     <div
                       className={cn(
@@ -69,7 +76,10 @@ export function NotificationsPage() {
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium">{n.title}</p>
                       <p className="text-sm text-muted-foreground">{n.description}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">{formatDate(n.createdAt)}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {formatDate(n.createdAt)}
+                        {safeLink(n.link) && <span className="ml-2 text-primary">Open →</span>}
+                      </p>
                     </div>
                     {!n.read && <span className="mt-1.5 size-2 shrink-0 rounded-full bg-primary" />}
                     <Button
