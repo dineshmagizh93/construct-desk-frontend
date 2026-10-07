@@ -8,6 +8,7 @@ import {
   ClipboardList,
   ShieldAlert,
   ShoppingCart,
+  Hammer,
   Calendar,
   FileText,
   FileSignature,
@@ -77,6 +78,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'Estimates & BOQ', to: '/estimates', icon: FileText, module: 'estimates' },
       { label: 'Contracts & POs', to: '/contracts', icon: FileSignature, module: 'contracts' },
+      { label: 'Work Orders', to: '/work-orders', icon: Hammer, module: 'contracts' },
     ],
   },
   {

@@ -28,6 +28,7 @@ const ProjectDetailPage = lazy(() =>
   import('@/features/projects/pages/ProjectDetailPage').then((m) => ({ default: m.ProjectDetailPage })),
 )
 const TasksListPage = lazy(() => import('@/features/tasks/pages/TasksListPage').then((m) => ({ default: m.TasksListPage })))
+const WorkOrdersPage = lazy(() => import('@/features/work-orders/pages/WorkOrdersPage').then((m) => ({ default: m.WorkOrdersPage })))
 const PurchaseRequestsPage = lazy(() =>
   import('@/features/purchase-requests/pages/PurchaseRequestsPage').then((m) => ({ default: m.PurchaseRequestsPage })),
 )
@@ -148,6 +149,7 @@ const router = createBrowserRouter([
       { path: 'calendar', element: withSuspense(<CalendarPage />) },
       { path: 'estimates', element: withSuspense(<EstimatesListPage />) },
       { path: 'contracts', element: withSuspense(<ContractsListPage />) },
+      { path: 'work-orders', element: withSuspense(<WorkOrdersPage />) },
       { path: 'vendors', element: withSuspense(<VendorsListPage />) },
       { path: 'labour', element: withSuspense(<LabourListPage />) },
       { path: 'inventory', element: withSuspense(<InventoryListPage />) },
