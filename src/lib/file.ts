@@ -11,7 +11,8 @@ interface PresignResponse {
 export async function uploadFile(file: File, folder: UploadFolder): Promise<UploadedFile> {
   const presign = await http<PresignResponse>('/uploads/presign', {
     method: 'POST',
-    body: JSON.stringify({ fileName: file.name, contentType: file.type || 'application/octet-stream', folder }),
+    // The exact size is signed into the upload URL, so storage refuses any other length.
+    body: JSON.stringify({ fileName: file.name, contentType: file.type || 'application/octet-stream', folder, size: file.size }),
   })
 
   const putRes = await fetch(presign.uploadUrl, {

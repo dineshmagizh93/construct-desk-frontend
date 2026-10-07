@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { UploadCloud, X, FileText, Image as ImageIcon, Loader2 } from 'lucide-react'
 import { uploadFile, formatFileSize } from '@/lib/file'
+import { checkUploadSize } from '@/lib/uploadLimits'
 import { cn } from '@/lib/utils'
 import type { UploadedFile, UploadFolder } from './types'
 
@@ -23,7 +24,13 @@ export function FileUploadField({ value = [], onChange, accept, multiple, folder
     setUploading(true)
     setError(null)
     try {
-      const uploaded = await Promise.all(Array.from(fileList).map((file) => uploadFile(file, folder)))
+      // Turn away oversized or empty files up front, but still upload the rest of the batch.
+      const files = Array.from(fileList)
+      const problems = files.map((file) => checkUploadSize(file, folder)).filter((p): p is string => p !== null)
+      const acceptable = files.filter((file) => checkUploadSize(file, folder) === null)
+      if (problems.length > 0) setError(problems.join('. '))
+      if (acceptable.length === 0) return
+      const uploaded = await Promise.all(acceptable.map((file) => uploadFile(file, folder)))
       onChange(multiple ? [...value, ...uploaded] : [uploaded[0]])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed')
