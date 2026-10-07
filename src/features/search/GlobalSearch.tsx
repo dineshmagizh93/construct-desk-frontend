@@ -49,7 +49,14 @@ function useSearchRecords(active: boolean): SearchRecord[] {
 }
 
 /** The top-bar search: type to find projects, clients, leads, tasks, invoices, contracts and vendors. Ctrl/Cmd+K focuses it. */
-export function GlobalSearch() {
+interface GlobalSearchProps {
+  /** 'bar' sits in the top bar and hides on phones; 'mobile' fills the width of the row shown under the top bar on phones. */
+  variant?: 'bar' | 'mobile'
+  /** Called after a result is chosen or Escape is pressed, so a phone overlay can close itself. */
+  onDone?: () => void
+}
+
+export function GlobalSearch({ variant = 'bar', onDone }: GlobalSearchProps) {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
@@ -83,12 +90,14 @@ export function GlobalSearch() {
     setOpen(false)
     setQuery('')
     navigate(hit.to)
+    onDone?.()
   }
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       setOpen(false)
       inputRef.current?.blur()
+      onDone?.()
     } else if (e.key === 'ArrowDown' && hits.length > 0) {
       e.preventDefault()
       setCursor((c) => (c + 1) % hits.length)
@@ -104,10 +113,11 @@ export function GlobalSearch() {
   const showPanel = open && query.trim().length >= MIN_QUERY_LENGTH
 
   return (
-    <div ref={rootRef} className="relative hidden max-w-sm flex-1 sm:block">
+    <div ref={rootRef} className={variant === 'mobile' ? 'relative w-full' : 'relative hidden max-w-sm flex-1 sm:block'}>
       <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
       <Input
         ref={inputRef}
+        autoFocus={variant === 'mobile'}
         value={query}
         placeholder="Search projects, leads, clients…  (Ctrl K)"
         className="pl-8"

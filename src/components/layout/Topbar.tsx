@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bell, Menu, LogOut, Settings, User as UserIcon } from 'lucide-react'
+import { Bell, Menu, Search, X, LogOut, Settings, User as UserIcon } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useUiStore } from '@/lib/ui-store'
 import { ROLE_LABELS } from '@/lib/constants'
@@ -22,6 +23,8 @@ export function Topbar() {
   const navigate = useNavigate()
   const setMobileNavOpen = useUiStore((state) => state.setMobileNavOpen)
   const unread = useNotificationsUnreadCount()
+  // On a phone the search box does not fit in the bar, so a button opens it on a row of its own.
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
 
   const fullName = user ? `${user.firstName} ${user.lastName}` : ''
 
@@ -35,6 +38,14 @@ export function Topbar() {
       </button>
 
       <GlobalSearch />
+
+      <button
+        className="flex size-9 items-center justify-center rounded-md hover:bg-secondary sm:hidden"
+        aria-label={mobileSearchOpen ? 'Close search' : 'Search'}
+        onClick={() => setMobileSearchOpen((open) => !open)}
+      >
+        {mobileSearchOpen ? <X className="size-5" /> : <Search className="size-5" />}
+      </button>
 
       <div className="flex flex-1 items-center justify-end gap-2">
         <button
@@ -82,6 +93,11 @@ export function Topbar() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      {mobileSearchOpen && (
+        <div className="absolute inset-x-0 top-full border-b border-border bg-background p-2 shadow-sm sm:hidden">
+          <GlobalSearch variant="mobile" onDone={() => setMobileSearchOpen(false)} />
+        </div>
+      )}
     </header>
   )
 }
