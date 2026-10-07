@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { CreditCard } from 'lucide-react'
+import { CreditCard, Download } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from '@/hooks/use-toast'
 import { usePlans, useMyCompany, useUpdateMyCompany } from '../platformApi'
+import { describeCounts, downloadCompanyData } from '../exportData'
 
 interface CompanyForm {
   name: string
@@ -54,6 +55,44 @@ function BillingTab() {
   )
 }
 
+function DataTab() {
+  const [busy, setBusy] = useState(false)
+  const [summary, setSummary] = useState<string | null>(null)
+
+  const download = async () => {
+    if (busy) return
+    setBusy(true)
+    try {
+      const result = await downloadCompanyData()
+      setSummary(describeCounts(result.counts) || 'No records yet — the file contains your company details and users only.')
+      toast({ title: 'Download ready', description: 'Your data was saved as a JSON file.', variant: 'success' })
+    } catch (error) {
+      toast({ title: 'Could not download your data', description: error instanceof Error ? error.message : undefined, variant: 'destructive' })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Download your data</CardTitle>
+        <CardDescription>
+          A complete copy of everything in your account — leads, clients, projects, tasks, estimates, contracts, invoices and payments, expenses, vendors, stock, equipment, labour, site
+          progress, safety, documents (names and links) and your team list — as one JSON file. Passwords are never included.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <Button onClick={download} disabled={busy}>
+          <Download className="size-4" /> {busy ? 'Preparing…' : 'Download all my data'}
+        </Button>
+        {summary && <p className="text-sm text-muted-foreground">Saved: {summary}</p>}
+        <p className="text-xs text-muted-foreground">You can download up to 5 times an hour. Only administrators can do this.</p>
+      </CardContent>
+    </Card>
+  )
+}
+
 export function SettingsPage() {
   const { user, company } = useAuth()
   const isSuperAdmin = user?.role === 'super_admin'
@@ -89,6 +128,7 @@ export function SettingsPage() {
         <TabsList>
           <TabsTrigger value="company">Company Profile</TabsTrigger>
           {!isSuperAdmin && company && <TabsTrigger value="billing">Billing</TabsTrigger>}
+          {!isSuperAdmin && company && user?.role === 'admin' && <TabsTrigger value="data">Your data</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="company">
@@ -129,6 +169,12 @@ export function SettingsPage() {
         {!isSuperAdmin && company && (
           <TabsContent value="billing">
             <BillingTab />
+          </TabsContent>
+        )}
+
+        {!isSuperAdmin && company && user?.role === 'admin' && (
+          <TabsContent value="data">
+            <DataTab />
           </TabsContent>
         )}
       </Tabs>

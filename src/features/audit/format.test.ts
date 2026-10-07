@@ -12,6 +12,7 @@ describe('actionPhrase', () => {
     expect(actionPhrase('release-retention')).toBe('released retention on')
     expect(actionPhrase('create-po')).toBe('created a purchase order for')
     expect(actionPhrase('payment-added')).toBe('recorded a payment on')
+    expect(actionPhrase('export')).toBe('downloaded a full data export of')
   })
 
   it('words changes to nested items against their parent', () => {

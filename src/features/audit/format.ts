@@ -14,6 +14,7 @@ const ACTION_PHRASE: Record<string, string> = {
   'create-po': 'created a purchase order for',
   receive: 'received',
   'payment-added': 'recorded a payment on',
+  export: 'downloaded a full data export of',
   'payment-removed': 'removed a payment from',
 }
 
