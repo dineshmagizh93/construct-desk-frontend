@@ -1,10 +1,9 @@
 import { useNavigate } from 'react-router-dom'
-import { Bell, Menu, Search, LogOut, Settings, User as UserIcon } from 'lucide-react'
+import { Bell, Menu, LogOut, Settings, User as UserIcon } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useUiStore } from '@/lib/ui-store'
 import { ROLE_LABELS } from '@/lib/constants'
 import { initials } from '@/lib/utils'
-import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -16,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { useNotificationsUnreadCount } from '@/features/notifications/hooks'
+import { GlobalSearch } from '@/features/search/GlobalSearch'
 
 export function Topbar() {
   const { user, logout } = useAuth()
@@ -34,10 +34,7 @@ export function Topbar() {
         <Menu className="size-5" />
       </button>
 
-      <div className="relative hidden max-w-sm flex-1 sm:block">
-        <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder="Search projects, leads, clients…" className="pl-8" />
-      </div>
+      <GlobalSearch />
 
       <div className="flex flex-1 items-center justify-end gap-2">
         <button
