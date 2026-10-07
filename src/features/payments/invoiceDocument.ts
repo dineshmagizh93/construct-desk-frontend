@@ -33,6 +33,13 @@ export function invoiceBodyHtml(payment: Payment, company: PrintCompany, project
     totalRows.push({ label: `Less retention held (${payment.retentionPercent}%)`, value: retention, negative: true })
     totalRows.push({ label: 'Net payable now', value: netDue({ amount: gross, retentionPercent: payment.retentionPercent }), strong: true })
   }
+  // Part-payments already received: show what is left to pay.
+  const received = payment.receivedAmount ?? 0
+  if (received > 0 && payment.status !== 'paid') {
+    const net = netDue({ amount: gross, retentionPercent: payment.retentionPercent })
+    totalRows.push({ label: 'Received to date', value: received, negative: true })
+    totalRows.push({ label: 'Balance due', value: Math.max(0, net - received), strong: true })
+  }
 
   return [
     letterheadHtml(company),

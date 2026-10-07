@@ -9,7 +9,7 @@ export interface PaymentSummary {
   retentionHeld: number
 }
 
-type Money = Pick<Payment, 'amount' | 'retentionPercent' | 'status' | 'retentionReleasedAt'>
+type Money = Pick<Payment, 'amount' | 'retentionPercent' | 'status' | 'retentionReleasedAt' | 'receivedAmount'>
 
 /** Headline totals for the Payments list, using the same retention-aware definitions as the dashboard and Financial Reports. */
 export function summarisePayments(payments: Money[]): PaymentSummary {

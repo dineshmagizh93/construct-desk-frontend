@@ -13,14 +13,15 @@ export function netDue(p: Pick<Payment, 'amount' | 'retentionPercent'>): number 
 }
 
 /** Money still to come in on one invoice, net of retention (0 once paid). Mirrors backend paymentMath.outstanding. */
-export function outstandingAmount(p: Pick<Payment, 'amount' | 'retentionPercent' | 'status'>): number {
-  return p.status === 'paid' ? 0 : netDue(p)
+export function outstandingAmount(p: Pick<Payment, 'amount' | 'retentionPercent' | 'status' | 'receivedAmount'>): number {
+  return p.status === 'paid' ? 0 : Math.max(0, netDue(p) - Math.max(0, p.receivedAmount ?? 0))
 }
 
 /** Cash received on one invoice: net once paid, plus retention once released. Mirrors backend paymentMath.collected. */
-export function collectedAmount(p: Pick<Payment, 'amount' | 'retentionPercent' | 'status' | 'retentionReleasedAt'>): number {
-  if (p.status !== 'paid') return 0
-  return netDue(p) + (p.retentionReleasedAt ? retentionAmount(p) : 0)
+export function collectedAmount(p: Pick<Payment, 'amount' | 'retentionPercent' | 'status' | 'retentionReleasedAt' | 'receivedAmount'>): number {
+  // A bill marked paid is settled in full whatever the receipts say (older invoices have none).
+  if (p.status === 'paid') return netDue(p) + (p.retentionReleasedAt ? retentionAmount(p) : 0)
+  return Math.min(Math.max(0, p.receivedAmount ?? 0), netDue(p))
 }
 
 export function useReleaseRetention(paymentId: string) {

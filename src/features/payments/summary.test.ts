@@ -24,3 +24,15 @@ describe('summarisePayments', () => {
     expect(summarisePayments([])).toEqual({ outstanding: 0, overdueCount: 0, overdueAmount: 0, collected: 0, retentionHeld: 0 })
   })
 })
+
+describe('summarisePayments with part-payments', () => {
+  it('counts what has come in as collected and the rest as outstanding', () => {
+    const part = { amount: 1000, status: 'unpaid' as const, retentionPercent: 10, retentionReleasedAt: null, receivedAmount: 300 }
+    expect(summarisePayments([part])).toEqual({ outstanding: 600, overdueCount: 0, overdueAmount: 0, collected: 300, retentionHeld: 100 })
+  })
+
+  it('shows only the unpaid balance as overdue', () => {
+    const late = { amount: 1000, status: 'overdue' as const, retentionPercent: 0, retentionReleasedAt: null, receivedAmount: 250 }
+    expect(summarisePayments([late])).toMatchObject({ outstanding: 750, overdueCount: 1, overdueAmount: 750, collected: 250 })
+  })
+})

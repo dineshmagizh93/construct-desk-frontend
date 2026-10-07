@@ -20,6 +20,7 @@ import { openPrintWindow } from '@/lib/printDocument'
 import { usePrintCompany } from '@/lib/usePrintCompany'
 import { formatCurrency, formatDate, formatRate } from '@/lib/utils'
 import { invoiceBodyHtml } from '../invoiceDocument'
+import { PaymentReceiptsSection } from './PaymentReceiptsSection'
 import { useCreateLineItem, useDeleteLineItem } from '../line-items-api'
 import { netDue, retentionAmount, useReleaseRetention } from '../retention'
 import type { Payment } from '../types'
@@ -152,6 +153,8 @@ export function PaymentLineItemsDialog({ payment, onOpenChange }: PaymentLineIte
             </div>
           </div>
         )}
+
+        <PaymentReceiptsSection payment={payment} />
 
         {payment.retentionPercent > 0 && (
           <div className="space-y-2 rounded-md border border-border p-3 text-sm">

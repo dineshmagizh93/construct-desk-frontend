@@ -8,6 +8,15 @@ export interface PaymentLineItem {
   taxPercent: number
 }
 
+export interface PaymentReceipt {
+  id: string
+  amount: number
+  date: string
+  method?: string | null
+  reference?: string | null
+  notes?: string | null
+}
+
 export interface Payment {
   id: string
   invoiceNumber: string
@@ -24,4 +33,7 @@ export interface Payment {
   retentionReleasedAt?: string | null
   /** Set by the server when this invoice was raised against a client contract. */
   contractId?: string | null
+  /** Part-payments received so far; the server keeps it equal to the sum of `receipts`. */
+  receivedAmount?: number
+  receipts?: PaymentReceipt[]
 }

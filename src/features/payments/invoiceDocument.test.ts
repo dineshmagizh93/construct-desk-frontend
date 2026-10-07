@@ -110,3 +110,25 @@ describe('invoiceBodyHtml GST split', () => {
     expect(html).not.toContain('Place of supply')
   })
 })
+
+describe('invoiceBodyHtml part-payments', () => {
+  it('shows what has been received and the balance due', () => {
+    const html = invoiceBodyHtml(invoice({ amount: 100_000, receivedAmount: 40_000 }), company)
+    expect(html).toContain('Received to date')
+    expect(html).toContain('₹40,000')
+    expect(html).toContain('Balance due')
+    expect(html).toContain('₹60,000')
+  })
+
+  it('takes the withheld retention into account', () => {
+    const html = invoiceBodyHtml(invoice({ amount: 100_000, retentionPercent: 10, receivedAmount: 30_000 }), company)
+    expect(html).toContain('Net payable now')
+    expect(html).toContain('Balance due')
+    expect(html).toContain('₹60,000') // 90,000 net less 30,000
+  })
+
+  it('shows nothing extra when nothing has been received, or once paid', () => {
+    expect(invoiceBodyHtml(invoice({ amount: 100_000 }), company)).not.toContain('Balance due')
+    expect(invoiceBodyHtml(invoice({ amount: 100_000, receivedAmount: 100_000, status: 'paid' }), company)).not.toContain('Balance due')
+  })
+})
