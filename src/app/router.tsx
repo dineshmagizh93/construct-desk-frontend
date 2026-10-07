@@ -72,6 +72,7 @@ const NotificationsPage = lazy(() =>
   import('@/features/notifications/pages/NotificationsPage').then((m) => ({ default: m.NotificationsPage })),
 )
 const ReportsPage = lazy(() => import('@/features/reports/pages/ReportsPage').then((m) => ({ default: m.ReportsPage })))
+const AccountPage = lazy(() => import('@/features/account/pages/AccountPage').then((m) => ({ default: m.AccountPage })))
 const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage').then((m) => ({ default: m.SettingsPage })))
 const ActivityLogPage = lazy(() => import('@/features/audit/pages/ActivityLogPage').then((m) => ({ default: m.ActivityLogPage })))
 const UsersListPage = lazy(() => import('@/features/users/pages/UsersListPage').then((m) => ({ default: m.UsersListPage })))
@@ -167,6 +168,7 @@ const router = createBrowserRouter([
       { path: 'users', element: withSuspense(<UsersListPage />) },
       { path: 'activity', element: withSuspense(<ActivityLogPage />) },
       { path: 'roles', element: withSuspense(<RolesPage />) },
+      { path: 'account', element: withSuspense(<AccountPage />) },
       { path: 'settings', element: withSuspense(<SettingsPage />) },
       { path: 'billing/paywall', element: withSuspense(<PaywallPage />) },
       { path: '*', element: <Navigate to="/dashboard" replace /> },

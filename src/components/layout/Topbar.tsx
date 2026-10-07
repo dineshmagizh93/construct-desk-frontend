@@ -64,8 +64,8 @@ export function Topbar() {
               </p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate('/settings')}>
-              <UserIcon /> Profile
+            <DropdownMenuItem onClick={() => navigate('/account')}>
+              <UserIcon /> My account
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate('/settings')}>
               <Settings /> Settings
