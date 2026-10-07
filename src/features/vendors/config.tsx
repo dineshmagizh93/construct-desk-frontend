@@ -9,7 +9,12 @@ export const VENDOR_STATUS_OPTIONS = [
   { label: 'Inactive', value: 'inactive' },
 ]
 
-export type VendorRow = Vendor & { contractCount: number; contractValue: number }
+export type VendorRow = Vendor & {
+  contractCount: number
+  contractValue: number
+  /** Owed for subcontract work done and not yet paid; undefined when the viewer cannot see work orders. */
+  payable?: number
+}
 
 export const vendorColumns: Column<VendorRow>[] = [
   { key: 'name', header: 'Vendor' },
