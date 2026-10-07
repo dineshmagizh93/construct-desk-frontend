@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { toast } from '@/hooks/use-toast'
 import { useProjectNameMap } from '@/features/projects/hooks'
+import { useClientGstinForProject } from '@/features/clients/hooks'
 import { usePermission } from '@/lib/permissions'
 import { openPrintWindow } from '@/lib/printDocument'
 import { usePrintCompany } from '@/lib/usePrintCompany'
@@ -44,6 +45,7 @@ export function PaymentLineItemsDialog({ payment, onOpenChange }: PaymentLineIte
   const canEdit = usePermission('payments', 'edit')
   const printCompany = usePrintCompany()
   const projectNames = useProjectNameMap()
+  const clientGstin = useClientGstinForProject()
 
   if (!payment) return null
 
@@ -193,7 +195,7 @@ export function PaymentLineItemsDialog({ payment, onOpenChange }: PaymentLineIte
             variant="outline"
             size="sm"
             onClick={() => {
-              const ok = openPrintWindow(`Invoice ${payment.invoiceNumber}`, invoiceBodyHtml(payment, printCompany, projectNames[payment.projectId]))
+              const ok = openPrintWindow(`Invoice ${payment.invoiceNumber}`, invoiceBodyHtml(payment, printCompany, projectNames[payment.projectId], clientGstin(payment.projectId)))
               if (!ok) toast({ title: 'Allow pop-ups to print', description: 'Your browser blocked the print window.', variant: 'destructive' })
             }}
           >

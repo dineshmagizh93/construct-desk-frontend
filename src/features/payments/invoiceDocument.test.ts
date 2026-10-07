@@ -80,3 +80,33 @@ describe('invoiceBodyHtml', () => {
     expect(html).toContain('&lt;script&gt;')
   })
 })
+
+describe('invoiceBodyHtml GST split', () => {
+  const lines = [{ id: 'l1', description: 'Excavation', quantity: 100, unitPrice: 1000, taxPercent: 18 }]
+  const itemised = () => invoice({ lineItems: lines })
+
+  it('prints CGST and SGST halves when supplier and client are in the same state', () => {
+    const html = invoiceBodyHtml(itemised(), company, 'Prestige Towers', '29AAAAA0000A1Z5')
+    expect(html).toContain('CGST')
+    expect(html).toContain('SGST')
+    expect(html).not.toContain('IGST')
+    expect(html).toContain('₹9,000')
+    expect(html).toContain('Client GSTIN')
+    expect(html).toContain('29 – Karnataka')
+  })
+
+  it('prints IGST when the client is in another state', () => {
+    const html = invoiceBodyHtml(itemised(), company, undefined, '27AAAAA0000A1Z5')
+    expect(html).toContain('IGST')
+    expect(html).not.toContain('CGST')
+    expect(html).toContain('27 – Maharashtra')
+  })
+
+  it('keeps a single GST line when the client GSTIN is unknown', () => {
+    const html = invoiceBodyHtml(itemised(), company)
+    expect(html).toContain('>GST<')
+    expect(html).not.toContain('CGST')
+    expect(html).not.toContain('IGST')
+    expect(html).not.toContain('Place of supply')
+  })
+})

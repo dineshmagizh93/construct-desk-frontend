@@ -28,6 +28,8 @@ interface EntityListPageProps<T extends object> {
   addButtonLabel?: string
   entityLabel?: string
   onCreate: (values: Record<string, unknown>) => Promise<unknown> | void
+  /** Used for each row of a bulk import instead of onCreate (e.g. to skip a per-record confirmation). */
+  onImportRow?: (values: Record<string, unknown>) => Promise<unknown> | void
   onUpdate: (id: string, values: Record<string, unknown>) => Promise<unknown> | void
   onDelete: (id: string) => Promise<unknown> | void
   getFormDefaults?: (row: T) => Record<string, unknown>
@@ -64,6 +66,7 @@ export function EntityListPage<T extends object>({
   addButtonLabel,
   entityLabel = 'record',
   onCreate,
+  onImportRow,
   onUpdate,
   onDelete,
   getFormDefaults,
@@ -270,7 +273,7 @@ export function EntityListPage<T extends object>({
             validateRow={validateImportRow}
             onConfirm={async (rows) => {
               for (const row of rows) {
-                await onCreate(row)
+                await (onImportRow ?? onCreate)(row)
               }
             }}
           />

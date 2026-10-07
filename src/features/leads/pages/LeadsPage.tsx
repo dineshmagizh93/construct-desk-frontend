@@ -12,6 +12,7 @@ import { useUserOptions, useUserNameMap } from '@/features/users/hooks'
 import { useCreateLead, useDeleteLead, useLeads, useUpdateLead, toLeadPayload } from '../api'
 import { LEAD_KANBAN_COLUMNS, leadColumns, leadFields, leadImportColumns } from '../config'
 import { LeadDetailDialog } from '../components/LeadDetailDialog'
+import { useDuplicateGuard } from '@/features/duplicates/useDuplicateGuard'
 import type { Lead } from '../types'
 
 function getInitials(name: string) {
@@ -47,7 +48,13 @@ export function LeadsPage() {
     [data, userNameMap],
   )
 
-  const createLead = (values: Record<string, unknown>) => createMutation.mutateAsync(toLeadPayload(values))
+  const { confirmCreate, dialog: duplicateDialog } = useDuplicateGuard('leads', 'lead')
+  const importLead = (values: Record<string, unknown>) => createMutation.mutateAsync(toLeadPayload(values))
+  const createLead = async (values: Record<string, unknown>) => {
+    // Backing out of the warning keeps the form open (a rejected save is how the form knows to stay).
+    if (!(await confirmCreate(values))) throw new Error('Cancelled')
+    return importLead(values)
+  }
   const updateLead = (id: string, values: Record<string, unknown>) =>
     updateMutation.mutateAsync({ id, values: toLeadPayload(values) })
 
@@ -137,6 +144,7 @@ export function LeadsPage() {
             getCreateDefaults={() => ({ status: 'new' })}
             onRowClick={(row) => setSelectedLeadId(row.id)}
             onCreate={createLead}
+            onImportRow={importLead}
             onUpdate={updateLead}
             onDelete={(id) => deleteMutation.mutateAsync(id)}
             importConfig={{ columns: leadImportColumns, fileName: 'leads-template.xlsx' }}
@@ -160,6 +168,7 @@ export function LeadsPage() {
         onSubmit={createLead}
         submitLabel="Create"
       />
+      {duplicateDialog}
     </div>
   )
 }
