@@ -16,6 +16,7 @@ import { usePermission } from '@/lib/permissions'
 import { useUserNameMap } from '@/features/users/hooks'
 import { useProject } from '../api'
 import { statusLabel } from '../config'
+import { ProjectFinancialsCard } from '../components/ProjectFinancialsCard'
 import { useCreateMilestone, useUpdateMilestone, useDeleteMilestone } from '../milestones-api'
 import type { ProjectMilestone } from '../types'
 
@@ -60,7 +61,7 @@ export function ProjectDetailPage() {
     )
   }
 
-  const spentPct = Math.min(100, Math.round((project.spent / project.budget) * 100))
+  const spentPct = project.budget > 0 ? Math.min(100, Math.round((project.spent / project.budget) * 100)) : 0
 
   return (
     <div>
@@ -123,6 +124,8 @@ export function ProjectDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {project.financials && <ProjectFinancialsCard financials={project.financials} />}
 
       <Tabs defaultValue="overview" className="mt-6">
         <TabsList>

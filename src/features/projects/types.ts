@@ -30,6 +30,18 @@ export interface ProjectDocumentSummary {
   uploadedAt: string
 }
 
+export interface ProjectFinancials {
+  /** Approved client contract value; null when the viewer can't open Contracts. */
+  contractValue: number | null
+  invoiced: number
+  collected: number
+  outstanding: number
+  spent: number
+  billedMargin: number
+  marginPercent: number | null
+  cashPosition: number
+}
+
 export interface Project {
   id: string
   code: string
@@ -50,4 +62,6 @@ export interface Project {
   tasks: ProjectTaskSummary[]
   expenses: ProjectExpenseSummary[]
   documents: ProjectDocumentSummary[]
+  /** Detail view only; null when the viewer may not see invoices. */
+  financials?: ProjectFinancials | null
 }
