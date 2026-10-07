@@ -1,10 +1,13 @@
 import { useMemo, useState } from 'react'
+import { Banknote } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import { useProjectOptions, useProjectNameMap, useProjectCodes } from '@/features/projects/hooks'
 import { useIndustryConfig } from '@/lib/industry-store'
 import { useLabour, useCreateLabour, useUpdateLabour, useDeleteLabour } from '../api'
 import { labourColumns, labourFields, labourImportColumns } from '../config'
 import { AttendanceDialog } from '../components/AttendanceDialog'
+import { PayrollDialog } from '../components/PayrollDialog'
 import type { LabourRecord } from '../types'
 
 export function LabourListPage() {
@@ -14,6 +17,7 @@ export function LabourListPage() {
   const deleteMutation = useDeleteLabour()
   const { moduleText } = useIndustryConfig()
   const [attendanceWorkerId, setAttendanceWorkerId] = useState<string | null>(null)
+  const [payrollOpen, setPayrollOpen] = useState(false)
   const attendanceWorker = attendanceWorkerId ? (data.find((l) => l.id === attendanceWorkerId) ?? null) : null
 
   const projectOptions = useProjectOptions()
@@ -41,6 +45,11 @@ export function LabourListPage() {
         keyField="id"
         moduleKey="labour"
         historyEntity="LabourRecord"
+        headerActions={
+          <Button variant="outline" onClick={() => setPayrollOpen(true)}>
+            <Banknote className="size-4" /> Payroll
+          </Button>
+        }
         isLoading={isLoading}
         searchKeys={['name', 'role', 'contractor', 'projectName']}
         entityLabel={moduleText.labour.entityLabel ?? 'worker'}
@@ -55,6 +64,7 @@ export function LabourListPage() {
         }}
       />
 
+      <PayrollDialog open={payrollOpen} onOpenChange={setPayrollOpen} workers={data} projectNames={projectNameMap} />
       <AttendanceDialog worker={attendanceWorker} onOpenChange={(open) => !open && setAttendanceWorkerId(null)} />
     </>
   )
