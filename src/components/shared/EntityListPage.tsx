@@ -1,5 +1,5 @@
 import { type ReactNode, lazy, Suspense, useEffect, useMemo, useState } from 'react'
-import { Plus, Search, Pencil, Trash2, Upload } from 'lucide-react'
+import { Plus, Search, Pencil, Trash2, Upload, Download } from 'lucide-react'
 import { PageHeader } from './PageHeader'
 import { DataTable } from './DataTable'
 import { DrawerForm } from './DrawerForm'
@@ -8,6 +8,8 @@ import { Pagination } from './Pagination'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { HistoryButton } from '@/features/audit/components/HistoryButton'
+import { downloadCsv } from '@/lib/csv'
+import { rowsForExport } from '@/lib/exportRows'
 import { usePermission } from '@/lib/permissions'
 import type { Column, FieldConfig, ImportConfig } from './types'
 
@@ -135,8 +137,20 @@ export function EntityListPage<T extends object>({
     }
   }
 
+  // Everything the search currently matches (not just the visible page), with the table's own columns.
+  const exportCsv = () => {
+    const { headers, rows } = rowsForExport(columns, filtered)
+    const slug = entityLabel.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    downloadCsv(`${slug}s-${new Date().toISOString().slice(0, 10)}.csv`, headers, rows)
+  }
+
   const actionButtons = (
     <>
+      {!isLoading && filtered.length > 0 && (
+        <Button variant="outline" onClick={exportCsv} title={`Download ${filtered.length} ${entityLabel}${filtered.length === 1 ? '' : 's'} as a spreadsheet`}>
+          <Download /> Export
+        </Button>
+      )}
       {importConfig && canCreate && (
         <Button variant="outline" onClick={() => setImportOpen(true)}>
           <Upload /> Import
