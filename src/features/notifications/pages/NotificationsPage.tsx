@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bell, CheckCheck, Trash2, CreditCard, Target, PackageX, CheckSquare, FileSignature } from 'lucide-react'
+import { Bell, CheckCheck, SlidersHorizontal, Trash2, CreditCard, Target, PackageX, CheckSquare, FileSignature } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Pagination } from '@/components/shared/Pagination'
@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn, formatDate } from '@/lib/utils'
 import { useNotifications } from '../hooks'
+import { NotificationPreferencesDialog } from '../components/NotificationPreferencesDialog'
 import { safeLink } from '../link'
 
 const TYPE_ICON = {
@@ -22,6 +23,7 @@ const PAGE_SIZE = 10
 export function NotificationsPage() {
   const { items, markRead, markAllRead, remove } = useNotifications()
   const navigate = useNavigate()
+  const [prefsOpen, setPrefsOpen] = useState(false)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGE_SIZE)
 
@@ -38,9 +40,14 @@ export function NotificationsPage() {
         title="Notifications"
         description="Stay on top of leads, payments, stock, and tasks that need attention."
         actions={
-          <Button variant="outline" onClick={markAllRead}>
-            <CheckCheck /> Mark all as read
-          </Button>
+          <>
+            <Button variant="outline" onClick={() => setPrefsOpen(true)}>
+              <SlidersHorizontal /> Preferences
+            </Button>
+            <Button variant="outline" onClick={markAllRead}>
+              <CheckCheck /> Mark all as read
+            </Button>
+          </>
         }
       />
 
@@ -100,6 +107,7 @@ export function NotificationsPage() {
           <Pagination page={page} pageSize={pageSize} total={items.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
         </>
       )}
+      <NotificationPreferencesDialog open={prefsOpen} onOpenChange={setPrefsOpen} />
     </div>
   )
 }
