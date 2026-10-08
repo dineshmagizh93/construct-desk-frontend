@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import { useProjectOptions, useProjectNameMap, useProjectCodes } from '@/features/projects/hooks'
 import { useVendorOptions, useVendorNameMap } from '@/features/vendors/hooks'
+import { useAuth } from '@/hooks/useAuth'
+import { statusOptionsFor } from '../approval'
 import { useContracts, useCreateContract, useUpdateContract, useDeleteContract } from '../api'
 import { contractColumns, contractFields, contractImportColumns } from '../config'
 import { ContractBillingDialog } from '../components/ContractBillingDialog'
@@ -12,6 +14,7 @@ export function ContractsListPage() {
   const createMutation = useCreateContract()
   const updateMutation = useUpdateContract()
   const deleteMutation = useDeleteContract()
+  const { user } = useAuth()
 
   const [billingId, setBillingId] = useState<string | null>(null)
 
@@ -57,6 +60,8 @@ export function ContractsListPage() {
       data={enriched}
       columns={contractColumns}
       fields={fields}
+      // Only administrators can approve or reject; everyone else picks draft or pending (the server enforces it).
+      getFields={(row) => fields.map((f) => (f.name === 'status' ? { ...f, options: statusOptionsFor(user?.role, row?.status) } : f))}
       keyField="id"
       moduleKey="contracts"
       historyEntity="Contract"
