@@ -7,6 +7,7 @@ import { useProjectOptions, useProjectNameMap, useProjectCodes } from '@/feature
 import { useUserOptions, useUserNameMap } from '@/features/users/hooks'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask } from '../api'
 import { TASK_STATUS_OPTIONS, taskColumns, taskFields, taskImportColumns } from '../config'
+import { TaskDetailDialog } from '../components/TaskDetailDialog'
 import { TasksBoard } from '../components/TasksBoard'
 import type { Task } from '../types'
 
@@ -16,6 +17,7 @@ export function TasksListPage() {
   const updateMutation = useUpdateTask()
   const deleteMutation = useDeleteTask()
   const [view, setView] = useState<'list' | 'board'>('list')
+  const [openTaskId, setOpenTaskId] = useState<string | null>(null)
 
   const projectOptions = useProjectOptions()
   const projectNameMap = useProjectNameMap()
@@ -43,6 +45,9 @@ export function TasksListPage() {
     [projectOptions, userOptions],
   )
 
+  const openTask = openTaskId ? (enriched.find((t) => t.id === openTaskId) ?? null) : null
+  const detail = <TaskDetailDialog task={openTask} onOpenChange={(open) => !open && setOpenTaskId(null)} />
+
   const viewToggle = (
     <div className="inline-flex rounded-md border border-border p-0.5">
       <Button variant={view === 'list' ? 'secondary' : 'ghost'} size="sm" onClick={() => setView('list')}>
@@ -57,19 +62,21 @@ export function TasksListPage() {
   if (view === 'board') {
     return (
       <div className="flex h-full min-h-0 flex-col">
-        <PageHeader title="Tasks" description="Drag a task between columns to change its status. Use the list view to add or edit tasks." actions={viewToggle} />
+        <PageHeader title="Tasks" description="Drag a task between columns to change its status; click one to see details and discuss it. Use the list view to add or edit tasks." actions={viewToggle} />
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Loading tasks…</p>
         ) : (
           <div className="min-h-0 flex-1">
-            <TasksBoard tasks={enriched} onStatusChange={(id, status) => updateMutation.mutate({ id, values: { status } })} />
+            <TasksBoard tasks={enriched} onStatusChange={(id, status) => updateMutation.mutate({ id, values: { status } })} onOpen={(task) => setOpenTaskId(task.id)} />
           </div>
         )}
+        {detail}
       </div>
     )
   }
 
   return (
+    <>
     <EntityListPage<Task & { projectName: string; assigneeName: string }>
       title="Tasks"
       description="Every task across every project, assigned and tracked to completion."
@@ -79,6 +86,7 @@ export function TasksListPage() {
       keyField="id"
       moduleKey="tasks"
       historyEntity="Task"
+      onRowClick={(row) => setOpenTaskId(row.id)}
       headerActions={viewToggle}
       bulkStatus={{ field: 'status', options: TASK_STATUS_OPTIONS }}
       isLoading={isLoading}
@@ -97,5 +105,7 @@ export function TasksListPage() {
         return null
       }}
     />
+    {detail}
+    </>
   )
 }

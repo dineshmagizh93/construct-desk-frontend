@@ -27,10 +27,11 @@ const initials = (name: string) =>
 interface TasksBoardProps {
   tasks: BoardTask[]
   onStatusChange: (id: string, status: Task['status']) => void
+  onOpen: (task: BoardTask) => void
 }
 
 /** To Do / In Progress / Done: drag a card across to change its status. */
-export function TasksBoard({ tasks, onStatusChange }: TasksBoardProps) {
+export function TasksBoard({ tasks, onStatusChange, onOpen }: TasksBoardProps) {
   const now = new Date()
   return (
     <KanbanBoard<BoardTask>
@@ -43,7 +44,7 @@ export function TasksBoard({ tasks, onStatusChange }: TasksBoardProps) {
       renderCard={(task) => {
         const due = dueLabel(task.dueDate, task.status === 'done', now)
         return (
-          <div className="w-full text-left">
+          <button className="w-full text-left" onClick={() => onOpen(task)}>
             <div className="flex items-start justify-between gap-2">
               <p className="min-w-0 text-sm font-semibold">{task.title}</p>
               <Badge variant={PRIORITY_VARIANT[task.priority] ?? 'secondary'} className="shrink-0 px-1.5 py-0 text-[10px] font-normal">
@@ -64,7 +65,7 @@ export function TasksBoard({ tasks, onStatusChange }: TasksBoardProps) {
                 </span>
               )}
             </div>
-          </div>
+          </button>
         )
       }}
     />

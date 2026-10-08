@@ -10,6 +10,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { CommentsPanel } from '@/features/comments/CommentsPanel'
 import { usePermission } from '@/lib/permissions'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { STATUS_COLORS } from '@/lib/constants'
@@ -145,6 +146,10 @@ export function LeadDetailDialog({ lead, onOpenChange }: LeadDetailDialogProps) 
               <Plus className="size-4" />
             </Button>
           </div>
+        </div>
+
+        <div className="border-t border-border pt-3">
+          <CommentsPanel entity="Lead" entityId={lead.id} />
         </div>
       </DialogContent>
     </Dialog>
