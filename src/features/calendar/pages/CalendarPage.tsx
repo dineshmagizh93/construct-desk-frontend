@@ -12,7 +12,7 @@ import {
   startOfWeek,
   subMonths,
 } from 'date-fns'
-import { ChevronLeft, ChevronRight, CheckSquare, Flag, Target, CalendarPlus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, CheckSquare, Flag, Target, CalendarPlus, Download } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { DrawerForm } from '@/components/shared/DrawerForm'
 import { Card, CardContent } from '@/components/ui/card'
@@ -22,6 +22,7 @@ import { usePermission } from '@/lib/permissions'
 import type { FieldConfig } from '@/components/shared/types'
 import { useMergedCalendarEvents } from '../data'
 import { useCreateCalendarEvent } from '../api'
+import { buildIcs, downloadIcs, icsFileName } from '../ics'
 import type { CalendarEventRecord } from '../types'
 
 const EVENT_ICON = { task: CheckSquare, milestone: Flag, lead: Target, event: CalendarPlus }
@@ -82,6 +83,17 @@ export function CalendarPage() {
                 <ChevronRight className="size-4" />
               </Button>
             </div>
+            <Button
+              variant="outline"
+              disabled={events.length === 0}
+              title="Download these dates as a calendar file for Google Calendar, Outlook or Apple Calendar"
+              onClick={() => {
+                const now = new Date()
+                downloadIcs(buildIcs(events, now), icsFileName(now))
+              }}
+            >
+              <Download /> Export
+            </Button>
             {canCreate && (
               <Button onClick={() => setAddOpen(true)}>
                 <CalendarPlus /> Add Event
