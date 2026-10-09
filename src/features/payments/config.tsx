@@ -48,6 +48,7 @@ export const paymentFields: FieldConfig[] = [
   { name: 'projectId', label: 'Project', type: 'select', options: [], required: true, colSpan: 1 },
   { name: 'amount', label: 'Bill Amount (₹, gross)', type: 'number', colSpan: 1 },
   { name: 'retentionPercent', label: 'Retention Held by Client (%)', type: 'number', step: '0.5', placeholder: '0', colSpan: 1 },
+  { name: 'retentionDueDate', label: 'Retention Release Date', type: 'date', colSpan: 1 },
   { name: 'dueDate', label: 'Due Date', type: 'date', colSpan: 1 },
   { name: 'status', label: 'Status', type: 'select', options: PAYMENT_STATUS_OPTIONS, colSpan: 1 },
   { name: 'paymentMethod', label: 'Payment Method', type: 'select', options: PAYMENT_METHOD_OPTIONS, colSpan: 1 },

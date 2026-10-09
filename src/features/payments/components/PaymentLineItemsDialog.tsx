@@ -172,6 +172,10 @@ export function PaymentLineItemsDialog({ payment, onOpenChange }: PaymentLineIte
               <span>{formatCurrency(netDue(payment))}</span>
             </div>
 
+            {payment.retentionDueDate && !payment.retentionReleasedAt && (
+              <p className="text-xs text-muted-foreground">Due for release on {formatDate(payment.retentionDueDate)}.</p>
+            )}
+
             {payment.retentionReleasedAt ? (
               <p className="text-xs text-muted-foreground">
                 Retention of {formatCurrency(retentionAmount(payment))} was released on {formatDate(payment.retentionReleasedAt)}.

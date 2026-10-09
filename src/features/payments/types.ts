@@ -31,6 +31,8 @@ export interface Payment {
   retentionPercent: number
   /** Set by the server once the withheld retention has been released. */
   retentionReleasedAt?: string | null
+  /** When the client is due to release the withheld retention; drives the reminder. */
+  retentionDueDate?: string | null
   /** Set by the server when this invoice was raised against a client contract. */
   contractId?: string | null
   /** Part-payments received so far; the server keeps it equal to the sum of `receipts`. */
