@@ -1,10 +1,14 @@
 import { useMemo, useState } from 'react'
+import { Copy } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { usePermission } from '@/lib/permissions'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import { useProjectOptions, useProjectNameMap, useProjectCodes } from '@/features/projects/hooks'
 import { useIndustryConfig } from '@/lib/industry-store'
 import { useEstimates, useCreateEstimate, useUpdateEstimate, useDeleteEstimate } from '../api'
 import { estimateColumns, estimateFields, estimateImportColumns } from '../config'
 import { EstimateLineItemsDialog } from '../components/EstimateLineItemsDialog'
+import { useDuplicateEstimate } from '../duplicate-api'
 import type { Estimate } from '../types'
 
 export function EstimatesListPage() {
@@ -12,6 +16,8 @@ export function EstimatesListPage() {
   const createMutation = useCreateEstimate()
   const updateMutation = useUpdateEstimate()
   const deleteMutation = useDeleteEstimate()
+  const duplicateMutation = useDuplicateEstimate()
+  const canCreate = usePermission('estimates', 'create')
   const { moduleText } = useIndustryConfig()
   const [lineItemsEstimateId, setLineItemsEstimateId] = useState<string | null>(null)
   const lineItemsEstimate = lineItemsEstimateId ? (data.find((e) => e.id === lineItemsEstimateId) ?? null) : null
@@ -41,6 +47,20 @@ export function EstimatesListPage() {
         keyField="id"
         moduleKey="estimates"
         historyEntity="Estimate"
+        rowActions={(row) =>
+          canCreate ? (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Copy estimate"
+              title="Copy as a new draft"
+              disabled={duplicateMutation.isPending}
+              onClick={() => duplicateMutation.mutate(row, { onSuccess: ({ created }) => setLineItemsEstimateId(created.id) })}
+            >
+              <Copy className="size-3.5" />
+            </Button>
+          ) : null
+        }
         isLoading={isLoading}
         searchKeys={['title', 'clientName']}
         entityLabel={moduleText.estimates.entityLabel ?? 'estimate'}
