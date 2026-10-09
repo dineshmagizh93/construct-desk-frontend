@@ -3,6 +3,7 @@ import type { Column, FieldConfig, ImportColumn } from '@/components/shared/type
 import type { Task } from './types'
 import { formatDate } from '@/lib/utils'
 import { STATUS_COLORS } from '@/lib/constants'
+import { RECURRENCE_OPTIONS, recurrenceLabel } from './recurrence'
 
 export const TASK_STATUS_OPTIONS = [
   { label: 'To Do', value: 'todo' },
@@ -33,6 +34,7 @@ export const taskColumns: Column<Task>[] = [
   { key: 'priority', header: 'Priority', render: (row) => <Badge variant={PRIORITY_COLORS[row.priority]}>{row.priority}</Badge> },
   { key: 'status', header: 'Status', render: (row) => <Badge variant={STATUS_COLORS[row.status] ?? 'secondary'}>{taskStatusLabel(row.status)}</Badge> },
   { key: 'dueDate', header: 'Due Date', render: (row) => formatDate(row.dueDate) },
+  { key: 'recurrence', header: 'Repeats', render: (row) => recurrenceLabel(row.recurrence)?.replace('Repeats ', '') ?? '—' },
 ]
 
 export const taskFields: FieldConfig[] = [
@@ -42,6 +44,7 @@ export const taskFields: FieldConfig[] = [
   { name: 'priority', label: 'Priority', type: 'select', options: TASK_PRIORITY_OPTIONS, colSpan: 1 },
   { name: 'status', label: 'Status', type: 'select', options: TASK_STATUS_OPTIONS, colSpan: 1 },
   { name: 'dueDate', label: 'Due Date', type: 'date', colSpan: 1 },
+  { name: 'recurrence', label: 'Repeats (needs a due date)', type: 'select', options: RECURRENCE_OPTIONS, colSpan: 1 },
   { name: 'description', label: 'Description', type: 'textarea', colSpan: 2 },
 ]
 

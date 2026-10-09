@@ -3,6 +3,7 @@ import { KanbanBoard, type KanbanColumn } from '@/components/shared/KanbanBoard'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { dueLabel } from '../dueLabel'
+import { recurrenceLabel } from '../recurrence'
 import type { Task } from '../types'
 
 export const TASK_BOARD_COLUMNS: KanbanColumn[] = [
@@ -51,7 +52,10 @@ export function TasksBoard({ tasks, onStatusChange, onOpen }: TasksBoardProps) {
                 {task.priority}
               </Badge>
             </div>
-            <p className="mt-1 truncate text-xs text-muted-foreground">{task.projectName}</p>
+            <p className="mt-1 truncate text-xs text-muted-foreground">
+              {task.projectName}
+              {recurrenceLabel(task.recurrence) ? ` · ↻ ${recurrenceLabel(task.recurrence)?.replace('Repeats ', '')}` : ''}
+            </p>
             <div className="mt-2.5 flex items-center justify-between gap-2">
               <span className="flex min-w-0 items-center gap-2">
                 <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[9px] font-semibold text-primary">

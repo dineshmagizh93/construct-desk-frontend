@@ -5,6 +5,7 @@ import { STATUS_COLORS } from '@/lib/constants'
 import { cn, formatDate } from '@/lib/utils'
 import { taskStatusLabel } from '../config'
 import { dueLabel } from '../dueLabel'
+import { recurrenceLabel } from '../recurrence'
 import type { Task } from '../types'
 
 const PRIORITY_VARIANT = { high: 'destructive', medium: 'warning', low: 'secondary' } as const
@@ -30,6 +31,7 @@ export function TaskDetailDialog({ task, onOpenChange }: TaskDetailDialogProps) 
           <Badge variant={STATUS_COLORS[task.status] ?? 'secondary'}>{taskStatusLabel(task.status)}</Badge>
           <Badge variant={PRIORITY_VARIANT[task.priority] ?? 'secondary'}>{task.priority} priority</Badge>
           <span className="text-muted-foreground">{task.assigneeName || 'Unassigned'}</span>
+          {recurrenceLabel(task.recurrence) && <Badge variant="outline">↻ {recurrenceLabel(task.recurrence)}</Badge>}
           {task.dueDate && (
             <span className={cn('text-muted-foreground', due?.tone === 'overdue' && 'font-medium text-destructive')}>
               · {formatDate(task.dueDate)}

@@ -10,4 +10,6 @@ export interface Task {
   status: TaskStatus
   dueDate: string
   description: string
+  /** 'daily' | 'weekly' | 'monthly': finishing the task schedules the next one. */
+  recurrence?: string | null
 }
