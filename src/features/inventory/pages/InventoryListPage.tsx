@@ -1,4 +1,9 @@
 import { useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { PackagePlus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { purchaseRequestsApi } from '@/features/purchase-requests/api'
+import { usePermission } from '@/lib/permissions'
 import { SummaryStrip } from '@/components/shared/SummaryStrip'
 import { formatCurrency } from '@/lib/utils'
 import { summariseInventory } from '../summary'
@@ -7,7 +12,9 @@ import { useProjectOptions, useProjectNameMap, useProjectCodes } from '@/feature
 import { useIndustryConfig } from '@/lib/industry-store'
 import { useInventory, useCreateInventoryItem, useUpdateInventoryItem, useDeleteInventoryItem } from '../api'
 import { inventoryColumns, inventoryFields, inventoryImportColumns } from '../config'
+import { RestockDialog } from '../components/RestockDialog'
 import { StockLedgerDialog } from '../components/StockLedgerDialog'
+import { countLines, restockPlan } from '../restock'
 import type { InventoryItem } from '../types'
 
 export function InventoryListPage() {
@@ -16,6 +23,11 @@ export function InventoryListPage() {
   const updateMutation = useUpdateInventoryItem()
   const deleteMutation = useDeleteInventoryItem()
   const { moduleText } = useIndustryConfig()
+
+  const canRequestStock = usePermission('inventory', 'create')
+  const { data: requests = [] } = useQuery({ queryKey: ['purchase-requests'], queryFn: purchaseRequestsApi.list, enabled: canRequestStock })
+  const [restockOpen, setRestockOpen] = useState(false)
+  const plan = useMemo(() => restockPlan(data, requests), [data, requests])
 
   const [ledgerItemId, setLedgerItemId] = useState<string | null>(null)
   const ledgerItem = ledgerItemId ? (data.find((i) => i.id === ledgerItemId) ?? null) : null
@@ -46,6 +58,13 @@ export function InventoryListPage() {
       keyField="id"
       moduleKey="inventory"
       historyEntity="InventoryItem"
+      headerActions={
+        canRequestStock && plan.length > 0 ? (
+          <Button variant="outline" onClick={() => setRestockOpen(true)}>
+            <PackagePlus className="size-4" /> Request restock ({countLines(plan)})
+          </Button>
+        ) : undefined
+      }
       summary={
         data.length > 0 ? (
           <SummaryStrip
@@ -71,6 +90,7 @@ export function InventoryListPage() {
       }}
     />
 
+    <RestockDialog open={restockOpen} onOpenChange={setRestockOpen} plan={plan} projectNames={projectNameMap} />
     <StockLedgerDialog item={ledgerItem} onOpenChange={(open) => !open && setLedgerItemId(null)} />
     </>
   )
