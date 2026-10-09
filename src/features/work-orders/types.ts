@@ -38,6 +38,8 @@ export interface WorkOrder {
   startDate?: string | null
   endDate?: string | null
   retentionPercent: number
+  /** Set by the server once the withheld retention has been released (it is then payable). */
+  retentionReleasedAt?: string | null
   status: WorkOrderStatus
   items: WorkOrderItem[]
   payments: WorkOrderPayment[]

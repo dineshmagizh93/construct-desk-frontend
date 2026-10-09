@@ -16,7 +16,7 @@ export interface PayablesSummary {
   vendorsOwed: number
 }
 
-type OrderLike = Pick<WorkOrder, 'vendorId' | 'status' | 'items' | 'payments' | 'retentionPercent'>
+type OrderLike = Pick<WorkOrder, 'vendorId' | 'status' | 'items' | 'payments' | 'retentionPercent'> & Partial<Pick<WorkOrder, 'retentionReleasedAt'>>
 
 /**
  * What is owed to each subcontractor, from their work orders: executed value, less retention, less what has

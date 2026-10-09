@@ -57,3 +57,13 @@ describe('summarisePayables', () => {
     expect(summarisePayables(new Map())).toEqual({ totalOwed: 0, totalAdvance: 0, vendorsOwed: 0 })
   })
 })
+
+describe('vendorPayables with released retention', () => {
+  it('owes the released retention too', () => {
+    // 40,000 executed, 10% retention: 36,000 net before release, 40,000 after; 6,000 paid
+    const held = vendorPayables([order('v1', { retentionPercent: 10 }, 6_000)]).get('v1')?.owed
+    const released = vendorPayables([order('v1', { retentionPercent: 10, retentionReleasedAt: '2026-10-09T00:00:00.000Z' }, 6_000)]).get('v1')?.owed
+    expect(held).toBe(30_000)
+    expect(released).toBe(34_000)
+  })
+})

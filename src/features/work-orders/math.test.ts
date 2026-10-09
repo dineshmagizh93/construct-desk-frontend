@@ -46,3 +46,20 @@ describe('formatQuantity', () => {
     expect(formatQuantity(100)).toBe('100')
   })
 })
+
+describe('workOrderFigures with released retention', () => {
+  const order = (released: string | null) => ({
+    retentionPercent: 10,
+    retentionReleasedAt: released,
+    items: [{ id: 'a', description: 'Brickwork', quantity: 100, rate: 1000, measurements: [{ id: 'm', date: '', quantity: 40 }] }],
+    payments: [{ id: 'p', date: '', amount: 20_000 }],
+  })
+
+  it('holds the retention back until it is released', () => {
+    expect(workOrderFigures(order(null))).toMatchObject({ retention: 4_000, netPayable: 36_000, balance: 16_000 })
+  })
+
+  it('counts it as payable once released', () => {
+    expect(workOrderFigures(order('2026-10-09T00:00:00.000Z'))).toMatchObject({ retention: 0, netPayable: 40_000, balance: 20_000 })
+  })
+})

@@ -14,10 +14,11 @@ export interface WorkOrderFigures {
   balance: number
 }
 
-export function workOrderFigures(order: Pick<WorkOrder, 'items' | 'payments' | 'retentionPercent'>): WorkOrderFigures {
+export function workOrderFigures(order: Pick<WorkOrder, 'items' | 'payments' | 'retentionPercent' | 'retentionReleasedAt'>): WorkOrderFigures {
   const contractValue = order.items.reduce((sum, i) => sum + Math.round(i.quantity * i.rate), 0)
   const executedValue = order.items.reduce((sum, i) => sum + Math.round(measuredQuantity(i) * i.rate), 0)
-  const retention = Math.round((executedValue * order.retentionPercent) / 100)
+  // Released retention is no longer held back: it is payable like the rest.
+  const retention = order.retentionReleasedAt ? 0 : Math.round((executedValue * order.retentionPercent) / 100)
   const netPayable = executedValue - retention
   const paid = order.payments.reduce((sum, p) => sum + p.amount, 0)
   return {

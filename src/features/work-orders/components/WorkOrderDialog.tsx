@@ -15,6 +15,7 @@ import { formatCurrency, formatDate, formatRate } from '@/lib/utils'
 import { useMeasurements, useUpdateWorkOrder, useWorkOrderItems, useWorkOrderPayments } from '../api'
 import { WORK_ORDER_STATUS_OPTIONS, WORK_ORDER_STATUS_VARIANT, type WorkOrderRow } from '../config'
 import { formatQuantity, measuredQuantity, workOrderFigures } from '../math'
+import { useReleaseWorkOrderRetention } from '../retention-api'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
@@ -64,6 +65,7 @@ export function WorkOrderDialog({ order, onOpenChange }: WorkOrderDialogProps) {
   const measurements = useMeasurements(orderId)
   const payments = useWorkOrderPayments(orderId)
   const updateOrder = useUpdateWorkOrder()
+  const releaseRetention = useReleaseWorkOrderRetention(orderId)
 
   if (!order) return null
 
@@ -122,7 +124,13 @@ export function WorkOrderDialog({ order, onOpenChange }: WorkOrderDialogProps) {
           <Stat
             label="Net payable"
             value={formatCurrency(figures.netPayable)}
-            hint={order.retentionPercent > 0 ? `after ${order.retentionPercent}% retention (${formatCurrency(figures.retention)})` : undefined}
+            hint={
+              order.retentionPercent > 0
+                ? order.retentionReleasedAt
+                  ? `${order.retentionPercent}% retention released ${formatDate(order.retentionReleasedAt)}`
+                  : `after ${order.retentionPercent}% retention (${formatCurrency(figures.retention)})`
+                : undefined
+            }
           />
           <Stat
             label={figures.balance < 0 ? 'Paid ahead' : 'Balance due'}
@@ -148,6 +156,11 @@ export function WorkOrderDialog({ order, onOpenChange }: WorkOrderDialogProps) {
               </SelectContent>
             </Select>
             {order.status === 'completed' && <span>Set back to Active to change the scope or measurements.</span>}
+            {order.status === 'completed' && order.retentionPercent > 0 && !order.retentionReleasedAt && (
+              <Button size="sm" variant="outline" className="ml-auto" onClick={() => releaseRetention.mutate()} disabled={releaseRetention.isPending}>
+                Release retention ({formatCurrency(figures.retention)})
+              </Button>
+            )}
           </div>
         )}
 
