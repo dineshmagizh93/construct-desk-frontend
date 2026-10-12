@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { Download } from 'lucide-react'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import type { UploadedFile } from '@/components/shared/types'
@@ -31,6 +32,7 @@ async function syncFiles(documentId: string, original: UploadedFile[] | undefine
 
 export function DocumentsListPage() {
   const { data = [], isLoading } = useDocuments()
+  const queryClient = useQueryClient()
   const createMutation = useCreateDocument()
   const updateMutation = useUpdateDocument()
   const deleteMutation = useDeleteDocument()
@@ -97,6 +99,8 @@ export function DocumentsListPage() {
         const { file, ...rest } = values as Partial<DocumentItem>
         const created = await createMutation.mutateAsync(rest as Partial<DocumentItem>)
         await syncFiles(created.id, undefined, file)
+        // The list already refreshed when the record was created, i.e. before its files were attached.
+        await queryClient.invalidateQueries({ queryKey: ['documents'] })
         return created
       }}
       onUpdate={async (id, values) => {
@@ -104,6 +108,7 @@ export function DocumentsListPage() {
         const original = data.find((d) => d.id === id)?.file
         const updated = await updateMutation.mutateAsync({ id, values: rest as Partial<DocumentItem> })
         await syncFiles(id, original, file)
+        await queryClient.invalidateQueries({ queryKey: ['documents'] })
         return updated
       }}
       onDelete={(id) => deleteMutation.mutateAsync(id)}
