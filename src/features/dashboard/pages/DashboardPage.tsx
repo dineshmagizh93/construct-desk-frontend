@@ -1,116 +1,193 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { AlertTriangle, Building2, CheckCircle2, CheckSquare, ChevronRight, Clock, Wallet } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, ChevronRight } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { StatCard } from '@/components/shared/StatCard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
-import { cn, formatCurrency } from '@/lib/utils'
+import { useProjects } from '@/features/projects/api'
+import { usePermission } from '@/lib/permissions'
 import { formatRupeeAxis } from '@/lib/formatAxis'
-import { useDashboard, type AttentionItem } from '../api'
+import { cn, formatCurrency } from '@/lib/utils'
+import { DEFAULT_FILTERS, useDashboard, type AttentionItem, type DashboardFilters, type MonitoringTotals } from '../api'
+import { BudgetChart, CostBreakdownChart, WorkforceChart, WorkloadChart } from '../components/MonitoringCharts'
+import { monitoringTiles, type Tile, type TileTone } from '../tiles'
 
-const TONE_STYLE: Record<AttentionItem['tone'], string> = {
+const ATTENTION_TONE: Record<AttentionItem['tone'], string> = {
   destructive: 'bg-destructive/10 text-destructive',
   warning: 'bg-warning/15 text-warning',
   info: 'bg-primary/10 text-primary',
 }
 
-/** What a manager needs on arrival: what to act on, four headline numbers, and the money trend. Everything else lives in its module. */
-export function DashboardPage() {
+const TILE_TONE: Record<TileTone, string> = { good: 'text-success', bad: 'text-destructive', neutral: 'text-foreground' }
+
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'All (except cancelled)' },
+  { value: 'planning', label: 'Planning' },
+  { value: 'in_progress', label: 'In progress' },
+  { value: 'on_hold', label: 'On hold' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'cancelled', label: 'Cancelled' },
+]
+
+function FilterCard({ filters, onChange }: { filters: DashboardFilters; onChange: (next: DashboardFilters) => void }) {
+  const { data: projects = [] } = useProjects()
+  const sorted = [...projects].sort((a, b) => a.name.localeCompare(b.name))
+  return (
+    <Card>
+      <CardContent className="space-y-3 p-4">
+        <div className="space-y-1.5">
+          <p className="text-sm text-muted-foreground">Project</p>
+          <Select value={filters.projectId} onValueChange={(projectId) => onChange({ ...filters, projectId })}>
+            <SelectTrigger aria-label="Project">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All projects</SelectItem>
+              {sorted.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name} ({p.code})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <p className="text-sm text-muted-foreground">Status</p>
+          <Select value={filters.status} onValueChange={(status) => onChange({ ...filters, status })}>
+            <SelectTrigger aria-label="Status">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUS_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function KpiTile({ tile }: { tile: Tile }) {
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <p className="text-sm text-muted-foreground">{tile.label}</p>
+        <p className={cn('mt-1 text-2xl font-semibold tracking-tight tabular-nums', TILE_TONE[tile.tone])} title={tile.title}>
+          {tile.value}
+        </p>
+        <p className="mt-1 text-xs text-muted-foreground">{tile.hint}</p>
+      </CardContent>
+    </Card>
+  )
+}
+
+function UtilizedBudgetTile({ totals }: { totals: MonitoringTotals }) {
+  const percent = totals.utilizedPercent
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <p className="text-sm text-muted-foreground">Utilized Budget</p>
+        <p className={cn('mt-1 text-2xl font-semibold tracking-tight tabular-nums', percent !== null && percent > 100 && 'text-destructive')}>
+          {percent === null ? '—' : `${percent}%`}
+        </p>
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary" role="progressbar" aria-valuenow={Math.min(100, percent ?? 0)} aria-valuemin={0} aria-valuemax={100}>
+          <div className={cn('h-full rounded-full', percent !== null && percent > 100 ? 'bg-destructive' : 'bg-primary')} style={{ width: `${Math.min(100, percent ?? 0)}%` }} />
+        </div>
+        <p className="mt-1.5 text-xs text-muted-foreground" title={`${formatCurrency(totals.spent)} of ${formatCurrency(totals.budget)}`}>
+          Spent {formatRupeeAxis(totals.spent)} of {formatRupeeAxis(totals.budget)}
+        </p>
+      </CardContent>
+    </Card>
+  )
+}
+
+function AttentionCard({ items }: { items: AttentionItem[] }) {
   const navigate = useNavigate()
-  const { data, isLoading } = useDashboard()
-  const kpis = data?.kpis
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          {items.length > 0 ? <AlertTriangle className="size-4 text-warning" /> : <CheckCircle2 className="size-4 text-success" />}
+          Needs your attention
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {items.length === 0 ? (
+          <p className="text-sm text-muted-foreground">You're all caught up — nothing is waiting on you right now.</p>
+        ) : (
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+            {items.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => navigate(item.to)}
+                className="flex items-center gap-3 rounded-md border border-border p-3 text-left transition-colors hover:bg-secondary/60"
+              >
+                <span className={cn('flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold tabular-nums', ATTENTION_TONE[item.tone])}>
+                  {item.count}
+                </span>
+                <span className="min-w-0 flex-1 text-sm">
+                  {item.label}
+                  {item.amount ? <span className="ml-1 text-muted-foreground">· {formatCurrency(item.amount)}</span> : null}
+                </span>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+              </button>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
 
-  // A null figure means this role can't see that data — leave the card out rather than show a fake zero.
-  const cards = [
-    { label: 'Active Projects', value: kpis?.activeProjects, icon: Building2, format: String },
-    { label: 'Revenue This Month', value: kpis?.revenueMtd, icon: Wallet, format: formatCurrency },
-    { label: 'Pending Payments', value: kpis?.pendingPayments, icon: Clock, format: formatCurrency },
-    { label: 'Open Tasks', value: kpis?.openTasks, icon: CheckSquare, format: String },
-  ].filter((card) => isLoading || card.value !== null)
-
-  const trend = data?.revenueTrend
-  const attention = data?.attention ?? []
+/** Project monitoring: budget, schedule, cost and workload for the projects chosen, then what needs action. */
+export function DashboardPage() {
+  const [filters, setFilters] = useState<DashboardFilters>(DEFAULT_FILTERS)
+  const { data, isLoading } = useDashboard(filters)
+  const canViewProjects = usePermission('projects', 'view')
+  const monitoring = data?.monitoring ?? null
+  const tiles = monitoring ? monitoringTiles(monitoring.totals) : []
+  const [scheduleVariance, costVariance, ...indexes] = tiles
 
   return (
-    <div>
-      <PageHeader title="Dashboard" description="What needs your attention, and how the business is doing." />
+    <div className="space-y-4">
+      <PageHeader title="Dashboard" description="How your projects are doing against budget and schedule, and what needs action." />
 
-      {!isLoading && (
-        <Card className="mb-4">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {attention.length > 0 ? <AlertTriangle className="size-4 text-warning" /> : <CheckCircle2 className="size-4 text-success" />}
-              Needs your attention
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {attention.length === 0 ? (
-              <p className="text-sm text-muted-foreground">You're all caught up — nothing is waiting on you right now.</p>
-            ) : (
-              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                {attention.map((item) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => navigate(item.to)}
-                    className="flex items-center gap-3 rounded-md border border-border p-3 text-left transition-colors hover:bg-secondary/60"
-                  >
-                    <span className={cn('flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold tabular-nums', TONE_STYLE[item.tone])}>
-                      {item.count}
-                    </span>
-                    <span className="min-w-0 flex-1 text-sm">
-                      {item.label}
-                      {item.amount ? <span className="ml-1 text-muted-foreground">· {formatCurrency(item.amount)}</span> : null}
-                    </span>
-                    <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-                  </button>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      {isLoading && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-[104px]" />
+          ))}
+        </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {cards.map((card) =>
-          isLoading ? (
-            <Skeleton key={card.label} className="h-[104px]" />
-          ) : (
-            <StatCard key={card.label} label={card.label} value={card.format(card.value as number)} icon={card.icon} />
-          ),
-        )}
-      </div>
+      {monitoring && (
+        <>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {canViewProjects && <FilterCard filters={filters} onChange={setFilters} />}
+            <KpiTile tile={scheduleVariance} />
+            <KpiTile tile={costVariance} />
+            <UtilizedBudgetTile totals={monitoring.totals} />
+            {indexes.map((tile) => (
+              <KpiTile key={tile.key} tile={tile} />
+            ))}
+          </div>
 
-      {trend && (
-        <Card className="mt-4">
-          <CardHeader>
-            <CardTitle>Revenue vs Expense</CardTitle>
-          </CardHeader>
-          <CardContent className="h-72 pl-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={trend} margin={{ top: 4, right: 16, left: 8, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="expenseFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--color-accent)" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="var(--color-accent)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} className="text-xs" />
-                <YAxis tickLine={false} axisLine={false} className="text-xs" tickFormatter={formatRupeeAxis} />
-                <Tooltip formatter={(value) => formatCurrency(Number(value ?? 0))} contentStyle={{ borderRadius: 8, borderColor: 'var(--color-border)', fontSize: 13 }} />
-                <Area type="monotone" dataKey="revenue" stroke="var(--color-primary)" fill="url(#revenueFill)" strokeWidth={2} name="Revenue" />
-                <Area type="monotone" dataKey="expense" stroke="var(--color-accent)" fill="url(#expenseFill)" strokeWidth={2} name="Expense" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <BudgetChart data={monitoring.budgetByProject} />
+            {monitoring.costBreakdown && <CostBreakdownChart data={monitoring.costBreakdown} />}
+            {monitoring.workload && <WorkloadChart data={monitoring.workload} />}
+            {monitoring.workforce && <WorkforceChart data={monitoring.workforce} />}
+          </div>
+        </>
       )}
+
+      {!isLoading && <AttentionCard items={data?.attention ?? []} />}
     </div>
   )
 }
