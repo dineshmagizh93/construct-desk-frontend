@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import {
   Dialog,
@@ -57,9 +57,13 @@ export function DrawerForm({
     formState: { errors },
   } = useForm({ defaultValues })
 
+  // Reset only when the form opens. Callers build `defaultValues` fresh on every render, so depending on it here
+  // wiped what the user had picked whenever the page re-rendered (e.g. after a failed save).
+  const latestDefaults = useRef(defaultValues)
+  latestDefaults.current = defaultValues
   useEffect(() => {
-    if (open) reset(defaultValues ?? {})
-  }, [open, defaultValues, reset])
+    if (open) reset(latestDefaults.current ?? {})
+  }, [open, reset])
 
   const submit = async (raw: Record<string, unknown>) => {
     // Normalise empty optional inputs so the API/Prisma don't choke: empty date → null (and any
