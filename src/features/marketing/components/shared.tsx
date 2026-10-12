@@ -29,7 +29,7 @@ export function SectionHeading({
 }
 
 export function TrustStrip() {
-  const labels = ['General Contractors', 'Interior Studios', 'Civil Engineers', 'Project Developers', 'Renovation Firms']
+  const labels = ['General Contractors', 'Civil Engineers', 'Project Developers', 'Renovation Firms']
   return (
     <section className="border-b border-border bg-background">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-5 px-6 py-8 sm:flex-row sm:justify-between">

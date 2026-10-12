@@ -1,6 +1,5 @@
 import { useAuthStore } from '@/features/auth/store'
-
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000'
+import { API_URL } from '@/lib/apiUrl'
 
 export class HttpError extends Error {
   status: number

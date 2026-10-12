@@ -80,7 +80,7 @@ export const STEPS = [
     title: 'Create your workspace',
     description: 'Book a demo and we set up your company profile and admin login for you.',
     points: [
-      'Pick Construction or Interior Design terminology',
+      'Company profile, GST details and roles set up for you',
       'Admin login is issued after your demo',
       'Trial starts with no credit card',
     ],
@@ -267,7 +267,7 @@ export const FAQS: Faq[] = [
     category: 'General',
     question: 'Does this work for interior design businesses too?',
     answer:
-      'Yes — ConstructDesk supports both Construction and Interior Design workspaces, with terminology and project types tailored to each.',
+      'Not at the moment — ConstructDesk is built for construction businesses: contractors, civil engineers, developers and renovation firms. If your work includes site execution, ask us on a demo call whether it fits.',
   },
   {
     category: 'General',

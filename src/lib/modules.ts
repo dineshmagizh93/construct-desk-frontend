@@ -96,6 +96,10 @@ export const MODULE_GROUPS: { label: string; modules: { key: ModuleKey; label: s
   },
 ]
 
+/** The modules customers actually use day to day, as marketing counts them. Settings, Users and Roles are admin
+ * screens, not products. Derived from MODULE_GROUPS so the figure on the site cannot drift from the real list. */
+export const BUSINESS_MODULE_COUNT = MODULE_GROUPS.filter((group) => group.label !== 'System').reduce((sum, group) => sum + group.modules.length, 0)
+
 /** Starter plan's module allowlist — mirrors backend shared/modules.ts STARTER_MODULE_KEYS exactly.
  * Single source of truth for the pricing/comparison page so marketing copy can't drift from what's
  * actually enforced. */

@@ -17,7 +17,7 @@ export function TermsPage() {
         <div>
           <h2>1. The Service</h2>
           <p>
-            ConstructDesk is a cloud-based CRM for construction and interior design businesses, covering leads,
+            ConstructDesk is a cloud-based CRM for construction businesses, covering leads,
             clients, projects, site progress, estimates, contracts, resources, finance, and reporting. Access to
             individual modules depends on the subscription plan assigned to your account.
           </p>

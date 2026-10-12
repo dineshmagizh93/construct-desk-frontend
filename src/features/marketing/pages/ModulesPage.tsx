@@ -311,7 +311,7 @@ export function ModulesPage() {
 
       <PageCta
         title="We’ll walk the modules your roles actually open"
-        description="Sales, site, and accounts each get a different picture of the same project. That’s the demo — not a slide of 22 icons."
+        description="Sales, site, and accounts each get a different picture of the same project. That’s the demo — not a slide of icons."
         primary={{ label: 'Request a demo', to: '/request-demo' }}
         secondary={{ label: 'Compare plans', to: '/pricing' }}
       />

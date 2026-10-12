@@ -2,8 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Company, User } from '@/types'
 import type { LoginPayload } from './types'
-
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000'
+import { API_URL } from '@/lib/apiUrl'
 
 interface AuthResponse {
   user: User

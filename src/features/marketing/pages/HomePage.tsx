@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { INDUSTRY_CONFIGS, INTERIOR_DESIGN_ENABLED } from '@/lib/industry'
 import { cn } from '@/lib/utils'
-import { MODULE_GROUPS, MODULE_KEYS } from '@/lib/modules'
+import { BUSINESS_MODULE_COUNT, MODULE_GROUPS } from '@/lib/modules'
 import { DIFFERENTIATORS, FEATURES, PLANS, STEPS } from '../content'
 import { ProductPreview } from '../components/ProductPreview'
 import { ConstructionScene } from '../components/ConstructionScene'
@@ -80,7 +80,7 @@ function HeroSection() {
 
 function ProofBar() {
   const items = [
-    { value: String(MODULE_KEYS.length), label: 'Production modules' },
+    { value: String(BUSINESS_MODULE_COUNT), label: 'Production modules' },
     { value: '5', label: 'Built-in roles' },
     { value: '4', label: 'Permission levels' },
     { value: 'GST', label: 'India-ready billing' },
@@ -335,7 +335,7 @@ function ModulesSection() {
           <div>
             <SectionHeading
               eyebrow="Modules"
-              title={`${MODULE_KEYS.length} modules. One connected workspace.`}
+              title={`${BUSINESS_MODULE_COUNT} modules. One connected workspace.`}
               description="From sales and planning to site operations and finance, bring your entire workflow together with access tailored to each role."
               align="left"
             />
@@ -484,7 +484,7 @@ const TESTIMONIALS = [
     quote: 'From lead to invoice — our sales and accounts teams finally work off the same data.',
     name: 'Priya M.',
     role: 'Operations Head',
-    company: 'Studio Forma Interiors',
+    company: 'Greenfield Developers',
     initials: 'PM',
   },
 ]
@@ -527,7 +527,7 @@ function PricingSection() {
         <SectionHeading
           eyebrow="Pricing"
           title="Straightforward plans"
-          description="Start free. Upgrade when the crew grows. Yearly billing includes two months free."
+          description="Start on a trial. Upgrade when the crew grows. Yearly billing includes two months free."
         />
         <div className="grid gap-4 lg:grid-cols-3">
           {PLANS.map((plan) => (

@@ -29,7 +29,7 @@ const KPIS = [
 const PROJECTS = [
   { name: 'Lakeview Towers', client: 'MetroBuild', progress: 72, status: 'In progress', tone: 'text-amber-800 bg-amber-100' },
   { name: 'Prestige Business Park', client: 'Greenfield Dev.', progress: 28, status: 'Planning', tone: 'text-slate-700 bg-slate-100' },
-  { name: 'Whitefield Residency', client: 'Studio Forma', progress: 100, status: 'Completed', tone: 'text-emerald-800 bg-emerald-100' },
+  { name: 'Whitefield Residency', client: 'Greenfield Dev.', progress: 100, status: 'Completed', tone: 'text-emerald-800 bg-emerald-100' },
   { name: 'Riverside Block C', client: 'Apex Civil', progress: 64, status: 'In progress', tone: 'text-amber-800 bg-amber-100' },
 ]
 
