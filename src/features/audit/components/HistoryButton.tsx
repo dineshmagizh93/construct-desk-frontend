@@ -1,5 +1,3 @@
-import { useState } from 'react'
-import { History } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -42,39 +40,37 @@ function HistoryList({ entity, entityId }: { entity: string; entityId: string })
   )
 }
 
-/**
- * A small History button for a record: opens everything recorded against it — who created, edited,
- * approved or removed what, and when. Shown only to people who can read the Activity Log (the same
- * `users:view` permission the backend asks for), so it never appears as a button that would fail.
- */
-export function HistoryButton({ entity, entityId, title }: { entity: string; entityId: string; title?: string }) {
-  const canView = usePermission('users', 'view')
-  const [open, setOpen] = useState(false)
-  if (!canView) return null
+/** Whether the signed-in person may read the Activity Log (the same `users:view` the backend asks for). */
+export function useCanViewHistory() {
+  return usePermission('users', 'view')
+}
 
+/**
+ * Everything recorded against one record: who created, edited, approved or removed what, and when. Opened from a
+ * row's three-dots menu; the menu only offers it to people who can read the Activity Log, so it never fails for them.
+ */
+export function HistoryDialog({
+  entity,
+  entityId,
+  title,
+  open,
+  onOpenChange,
+}: {
+  entity: string
+  entityId: string
+  title?: string
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
   return (
-    <>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-label={`View history of this ${entityName(entity)}`}
-        title="History"
-        onClick={(e) => {
-          e.stopPropagation()
-          setOpen(true)
-        }}
-      >
-        <History className="size-3.5" />
-      </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle>History{title ? ` — ${title}` : ''}</DialogTitle>
-            <DialogDescription>Every change recorded against this {entityName(entity)}, newest first.</DialogDescription>
-          </DialogHeader>
-          {open && <HistoryList entity={entity} entityId={entityId} />}
-        </DialogContent>
-      </Dialog>
-    </>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-xl">
+        <DialogHeader>
+          <DialogTitle>History{title ? ` — ${title}` : ''}</DialogTitle>
+          <DialogDescription>Every change recorded against this {entityName(entity)}, newest first.</DialogDescription>
+        </DialogHeader>
+        {open && <HistoryList entity={entity} entityId={entityId} />}
+      </DialogContent>
+    </Dialog>
   )
 }

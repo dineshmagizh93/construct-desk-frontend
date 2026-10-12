@@ -3,13 +3,6 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Download } from 'lucide-react'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import type { UploadedFile } from '@/components/shared/types'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/ui/button'
 import { useProjectOptions, useProjectNameMap, useProjectCodes } from '@/features/projects/hooks'
 import { http } from '@/lib/http'
 import { useDocuments, useCreateDocument, useUpdateDocument, useDeleteDocument } from '../api'
@@ -66,34 +59,16 @@ export function DocumentsListPage() {
       entityLabel="document"
       addButtonLabel="Upload Document"
       rowActions={(row) => {
-        if (row.file.length === 0) return null
-        if (row.file.length === 1) {
-          return (
-            <Button variant="ghost" size="icon-sm" asChild>
-              <a href={row.file[0].url} download={row.file[0].name} onClick={(e) => e.stopPropagation()}>
-                <Download className="size-3.5" />
-              </a>
-            </Button>
-          )
-        }
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon-sm" onClick={(e) => e.stopPropagation()}>
-                <Download className="size-3.5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-              {row.file.map((f) => (
-                <DropdownMenuItem key={f.id} asChild>
-                  <a href={f.url} download={f.name}>
-                    {f.name}
-                  </a>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )
+        if (row.file.length === 0) return []
+        if (row.file.length === 1) return [{ key: 'download', label: `Download ${row.file[0].name}`, icon: Download, href: row.file[0].url, download: row.file[0].name }]
+        return [
+          {
+            key: 'download',
+            label: `Download files (${row.file.length})`,
+            icon: Download,
+            children: row.file.map((f) => ({ key: f.id, label: f.name, href: f.url, download: f.name })),
+          },
+        ]
       }}
       onCreate={async (values) => {
         const { file, ...rest } = values as Partial<DocumentItem>

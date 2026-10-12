@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { Copy } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { usePermission } from '@/lib/permissions'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import { useProjectOptions, useProjectNameMap, useProjectCodes } from '@/features/projects/hooks'
@@ -48,18 +47,17 @@ export function EstimatesListPage() {
         moduleKey="estimates"
         historyEntity="Estimate"
         rowActions={(row) =>
-          canCreate ? (
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Copy estimate"
-              title="Copy as a new draft"
-              disabled={duplicateMutation.isPending}
-              onClick={() => duplicateMutation.mutate(row, { onSuccess: ({ created }) => setLineItemsEstimateId(created.id) })}
-            >
-              <Copy className="size-3.5" />
-            </Button>
-          ) : null
+          canCreate
+            ? [
+                {
+                  key: 'copy',
+                  label: 'Copy as a new draft',
+                  icon: Copy,
+                  disabled: duplicateMutation.isPending,
+                  onSelect: () => duplicateMutation.mutate(row, { onSuccess: ({ created }) => setLineItemsEstimateId(created.id) }),
+                },
+              ]
+            : []
         }
         isLoading={isLoading}
         searchKeys={['title', 'clientName']}

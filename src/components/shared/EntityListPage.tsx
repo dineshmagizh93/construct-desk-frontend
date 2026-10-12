@@ -1,16 +1,17 @@
 import { type ReactNode, lazy, Suspense, useEffect, useMemo, useState } from 'react'
-import { Plus, Search, Pencil, Trash2, Upload, Download } from 'lucide-react'
+import { Plus, Search, Pencil, Trash2, Upload, Download, History } from 'lucide-react'
 import { PageHeader } from './PageHeader'
 import { DataTable } from './DataTable'
 import { DrawerForm } from './DrawerForm'
 import { ConfirmDialog } from './ConfirmDialog'
 import { Pagination } from './Pagination'
+import { RowActionsMenu, type RowMenuItem } from './RowActionsMenu'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/hooks/use-toast'
 import { bulkSummary, runBulk } from '@/lib/bulk'
-import { HistoryButton } from '@/features/audit/components/HistoryButton'
+import { HistoryDialog, useCanViewHistory } from '@/features/audit/components/HistoryButton'
 import { downloadCsv } from '@/lib/csv'
 import { rowsForExport } from '@/lib/exportRows'
 import { usePermission } from '@/lib/permissions'
@@ -41,7 +42,8 @@ interface EntityListPageProps<T extends object> {
   onRowClick?: (row: T) => void
   headerActions?: ReactNode
   toolbarStart?: ReactNode
-  rowActions?: (row: T) => ReactNode
+  /** Extra actions for a row, shown at the top of its three-dots menu (before History, Edit and Delete). */
+  rowActions?: (row: T) => RowMenuItem[]
   /** Lets people tick rows and change this select field on all of them at once (only where a plain status change is safe). */
   bulkStatus?: { field: string; label?: string; options: SelectOption[] }
   /** Headline figures (e.g. a SummaryStrip) shown between the header and the table. */
@@ -104,6 +106,8 @@ export function EntityListPage<T extends object>({
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editing, setEditing] = useState<T | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<T | null>(null)
+  const [historyTarget, setHistoryTarget] = useState<T | null>(null)
+  const canViewHistory = useCanViewHistory()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(initialPageSize)
   const [importOpen, setImportOpen] = useState(false)
@@ -306,22 +310,17 @@ export function EntityListPage<T extends object>({
           onRowClick={onRowClick}
           emptyTitle={`No ${entityLabel}s yet`}
           emptyDescription={`Add your first ${entityLabel} to get started.`}
-          actions={(row) => (
-            <div className="flex justify-end gap-1">
-              {rowActions?.(row)}
-              {historyEntity && <HistoryButton entity={historyEntity} entityId={String(row[keyField])} />}
-              {canEdit && (
-                <Button variant="ghost" size="icon-sm" aria-label={`Edit ${entityLabel}`} onClick={() => openEdit(row)}>
-                  <Pencil className="size-3.5" />
-                </Button>
-              )}
-              {canDelete && (
-                <Button variant="ghost" size="icon-sm" aria-label={`Delete ${entityLabel}`} onClick={() => setDeleteTarget(row)}>
-                  <Trash2 className="size-3.5 text-destructive" />
-                </Button>
-              )}
-            </div>
-          )}
+          actions={(row) => {
+            const items: RowMenuItem[] = [...(rowActions?.(row) ?? [])]
+            if (historyEntity && canViewHistory) items.push({ key: 'history', label: 'History', icon: History, onSelect: () => setHistoryTarget(row) })
+            if (canEdit) items.push({ key: 'edit', label: `Edit ${entityLabel}`, icon: Pencil, onSelect: () => openEdit(row) })
+            if (canDelete) items.push({ key: 'delete', label: `Delete ${entityLabel}`, icon: Trash2, destructive: true, separatorBefore: items.length > 0, onSelect: () => setDeleteTarget(row) })
+            return (
+              <div className="flex justify-end">
+                <RowActionsMenu items={items} label={entityLabel} />
+              </div>
+            )
+          }}
         />
       </div>
 
@@ -329,6 +328,15 @@ export function EntityListPage<T extends object>({
         <div className="shrink-0">
           <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
         </div>
+      )}
+
+      {historyEntity && (
+        <HistoryDialog
+          entity={historyEntity}
+          entityId={historyTarget ? String(historyTarget[keyField]) : ''}
+          open={!!historyTarget}
+          onOpenChange={(open) => !open && setHistoryTarget(null)}
+        />
       )}
 
       <DrawerForm

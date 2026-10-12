@@ -3,6 +3,7 @@ import { Shield, Pencil, Plus, Trash2 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { DataTable } from '@/components/shared/DataTable'
 import { Pagination } from '@/components/shared/Pagination'
+import { RowActionsMenu, type RowMenuItem } from '@/components/shared/RowActionsMenu'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -185,20 +186,18 @@ export function RolesPage() {
           loading={isLoading}
           emptyTitle="No roles yet"
           emptyDescription="Add a role to define permissions for your team."
-          actions={(row) => (
-            <div className="flex justify-end gap-1">
-              {canEdit && (
-                <Button variant="ghost" size="icon-sm" title="Permissions" onClick={() => openEdit(row)}>
-                  <Pencil className="size-3.5" />
-                </Button>
-              )}
-              {canDelete && !row.isSystem && row.userCount === 0 && (
-                <Button variant="ghost" size="icon-sm" title="Delete" onClick={() => setDeleteTarget(row)}>
-                  <Trash2 className="size-3.5 text-destructive" />
-                </Button>
-              )}
-            </div>
-          )}
+          actions={(row) => {
+            const items: RowMenuItem[] = []
+            if (canEdit) items.push({ key: 'permissions', label: 'Permissions', icon: Pencil, onSelect: () => openEdit(row) })
+            if (canDelete && !row.isSystem && row.userCount === 0) {
+              items.push({ key: 'delete', label: 'Delete role', icon: Trash2, destructive: true, separatorBefore: items.length > 0, onSelect: () => setDeleteTarget(row) })
+            }
+            return (
+              <div className="flex justify-end">
+                <RowActionsMenu items={items} label="role" />
+              </div>
+            )
+          }}
         />
       </div>
 
