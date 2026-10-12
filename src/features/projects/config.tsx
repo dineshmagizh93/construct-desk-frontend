@@ -56,7 +56,7 @@ export const projectColumns: Column<Project>[] = [
 ]
 
 export const projectFields: FieldConfig[] = [
-  { name: 'code', label: 'Project ID', type: 'text', required: true, colSpan: 1, placeholder: 'PRJ-0001' },
+  { name: 'code', label: 'Project ID', type: 'text', required: true, colSpan: 1, placeholder: 'e.g. MC-001' },
   { name: 'name', label: 'Project Name', type: 'text', required: true, colSpan: 1 },
   { name: 'clientId', label: 'Client (existing)', type: 'select', options: [], colSpan: 1 },
   {

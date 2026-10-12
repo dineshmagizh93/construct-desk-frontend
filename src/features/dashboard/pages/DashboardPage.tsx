@@ -36,6 +36,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn, formatCurrency, formatDate } from '@/lib/utils'
+import { formatRupeeAxis } from '@/lib/formatAxis'
 import { useDashboard, type AttentionItem, type DashboardActivity } from '../api'
 
 const ACTIVITY_ICONS: Record<DashboardActivity['type'], LucideIcon> = {
@@ -162,7 +163,7 @@ export function DashboardPage() {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
                     <XAxis dataKey="month" tickLine={false} axisLine={false} className="text-xs" />
-                    <YAxis tickLine={false} axisLine={false} className="text-xs" tickFormatter={(v) => `₹${(v / 100000).toFixed(0)}L`} />
+                    <YAxis tickLine={false} axisLine={false} className="text-xs" tickFormatter={formatRupeeAxis} />
                     <Tooltip
                       formatter={(value) => formatCurrency(Number(value ?? 0))}
                       contentStyle={{ borderRadius: 8, borderColor: 'var(--color-border)', fontSize: 13 }}

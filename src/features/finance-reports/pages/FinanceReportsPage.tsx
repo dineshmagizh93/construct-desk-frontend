@@ -16,6 +16,7 @@ import { StatCard } from '@/components/shared/StatCard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatCurrency } from '@/lib/utils'
+import { formatRupeeAxis } from '@/lib/formatAxis'
 import { useProjects } from '@/features/projects/api'
 import { useFinanceReport } from '../api'
 
@@ -57,7 +58,7 @@ export function FinanceReportsPage() {
               <LineChart data={cashFlow} margin={{ top: 4, right: 16, left: 8, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
                 <XAxis dataKey="month" tickLine={false} axisLine={false} className="text-xs" />
-                <YAxis tickLine={false} axisLine={false} className="text-xs" tickFormatter={(v) => `₹${(v / 100000).toFixed(0)}L`} />
+                <YAxis tickLine={false} axisLine={false} className="text-xs" tickFormatter={formatRupeeAxis} />
                 <Tooltip formatter={(value) => formatCurrency(Number(value ?? 0))} contentStyle={{ borderRadius: 8, borderColor: 'var(--color-border)', fontSize: 13 }} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Line type="monotone" dataKey="inflow" stroke="var(--color-success)" strokeWidth={2} name="Inflow" />
@@ -76,7 +77,7 @@ export function FinanceReportsPage() {
               <BarChart data={budgetVsActual} margin={{ top: 4, right: 16, left: 8, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
                 <XAxis dataKey="name" tickLine={false} axisLine={false} className="text-xs" />
-                <YAxis tickLine={false} axisLine={false} className="text-xs" tickFormatter={(v) => `₹${(v / 100000).toFixed(0)}L`} />
+                <YAxis tickLine={false} axisLine={false} className="text-xs" tickFormatter={formatRupeeAxis} />
                 <Tooltip formatter={(value) => formatCurrency(Number(value ?? 0))} contentStyle={{ borderRadius: 8, borderColor: 'var(--color-border)', fontSize: 13 }} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Bar dataKey="budget" fill="var(--color-primary)" radius={[4, 4, 0, 0]} name="Budget" />

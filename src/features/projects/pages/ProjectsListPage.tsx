@@ -2,11 +2,12 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { EntityListPage } from '@/components/shared/EntityListPage'
 import { toast } from '@/hooks/use-toast'
+import { useAuthStore } from '@/features/auth/store'
 import { useIndustryConfig } from '@/lib/industry-store'
 import { useClientOptions, useClientNameMap } from '@/features/clients/hooks'
 import { useCreateProject, useDeleteProject, useProjects, useUpdateProject } from '../api'
 import { PROJECT_STATUS_OPTIONS, projectColumns, projectFields, projectImportColumns } from '../config'
-import { nextProjectCode } from '../utils'
+import { nextProjectCode, projectCodePrefix } from '../utils'
 import type { Project } from '../types'
 
 export function ProjectsListPage() {
@@ -16,6 +17,7 @@ export function ProjectsListPage() {
   const updateMutation = useUpdateProject()
   const deleteMutation = useDeleteProject()
   const industryConfig = useIndustryConfig()
+  const codePrefix = projectCodePrefix(useAuthStore((state) => state.company?.name))
   const clientOptions = useClientOptions()
   const clientNameMap = useClientNameMap()
 
@@ -73,7 +75,7 @@ export function ProjectsListPage() {
       entityLabel="project"
       onRowClick={(row) => navigate(`/projects/${row.id}`)}
       getCreateDefaults={() => ({
-        code: nextProjectCode(data),
+        code: nextProjectCode(data, codePrefix),
         status: 'planning',
         type: industryConfig.projectTypeOptions[0]?.value,
       })}
