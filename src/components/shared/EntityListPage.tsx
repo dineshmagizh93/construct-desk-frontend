@@ -218,7 +218,8 @@ export function EntityListPage<T extends object>({
         </Button>
       )}
       {canCreate && (
-        <Button onClick={openCreate}>
+        // Wait for the list: the form's suggested defaults (e.g. the next project code) come from it.
+        <Button onClick={openCreate} disabled={isLoading}>
           <Plus /> {addButtonLabel ?? `Add ${entityLabel}`}
         </Button>
       )}
