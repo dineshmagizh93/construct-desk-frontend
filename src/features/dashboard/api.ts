@@ -10,52 +10,36 @@ export interface AttentionItem {
   tone: 'warning' | 'destructive' | 'info'
 }
 
-/** Budget, progress and late/over-budget counts for the projects on screen (see backend shared/projectMonitoring.ts). */
-export interface ProjectSummary {
-  projectCount: number
-  budget: number
-  spent: number
-  utilizedPercent: number | null
-  completionRate: number | null
-  behindSchedule: number
-  overBudget: number
-}
-
-export interface TaskSummary { open: number; overdue: number }
-export interface MoneySummary { pendingPayments: number; overdueInvoices: number; overdueAmount: number; revenueThisMonth: number }
-export interface TrendPoint { month: string; revenue: number; expense: number }
-export interface BudgetBar { id: string; name: string; code: string; budget: number; spent: number }
-export interface CostSlice { category: string; amount: number; percent: number }
+export interface StageCount { status: string; count: number }
 export interface WorkloadBar { id: string; name: string; code: string; completed: number; remaining: number; overdue: number }
 
-/** Each part is null when the signed-in user can't see that data, so the page leaves it out. */
-export interface Monitoring {
-  summary: ProjectSummary
-  tasks: TaskSummary | null
-  money: MoneySummary | null
-  trend: TrendPoint[] | null
-  budgetByProject: BudgetBar[]
-  costBreakdown: CostSlice[] | null
-  workload: WorkloadBar[] | null
+/**
+ * One entry per module, straight from that module's own records. A card is null when the signed-in person
+ * cannot open that module, so the page leaves it out (see backend modules/dashboard/routes.ts).
+ */
+export interface DashboardCards {
+  leads: { pipeline: number; quiet: number } | null
+  projects: { running: number; onHold: number; behind: number; total: number } | null
+  tasks: { open: number; overdue: number } | null
+  siteProgress: { reportsThisWeek: number; lastReport: string | null } | null
+  invoices: { overdue: number; overdueAmount: number; toCollect: number } | null
+  expenses: { awaitingApproval: number } | null
+  stock: { low: number; total: number } | null
+  equipment: { dueForService: number; total: number } | null
+}
+
+export interface DashboardCharts {
+  leadsByStage: StageCount[] | null
+  projectsByStatus: StageCount[] | null
+  tasksByProject: WorkloadBar[] | null
 }
 
 export interface DashboardData {
-  monitoring: Monitoring | null
+  cards: DashboardCards
+  charts: DashboardCharts
   attention: AttentionItem[]
 }
 
-/** "all" means no filter on that dimension. */
-export interface DashboardFilters {
-  projectId: string
-  status: string
-}
-
-export const DEFAULT_FILTERS: DashboardFilters = { projectId: 'all', status: 'all' }
-
-export function useDashboard(filters: DashboardFilters) {
-  const params = new URLSearchParams()
-  if (filters.projectId !== 'all') params.set('projectId', filters.projectId)
-  if (filters.status !== 'all') params.set('status', filters.status)
-  const query = params.toString()
-  return useQuery({ queryKey: ['dashboard', filters.projectId, filters.status], queryFn: () => http<DashboardData>(`/dashboard${query ? `?${query}` : ''}`) })
+export function useDashboard() {
+  return useQuery({ queryKey: ['dashboard'], queryFn: () => http<DashboardData>('/dashboard') })
 }
