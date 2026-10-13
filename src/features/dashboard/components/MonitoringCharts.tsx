@@ -3,7 +3,7 @@ import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveCo
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatRupeeAxis } from '@/lib/formatAxis'
 import { formatCurrency } from '@/lib/utils'
-import type { BudgetBar, CostSlice, WorkforceBar, WorkloadBar } from '../api'
+import type { BudgetBar, CostSlice, TrendPoint, WorkloadBar } from '../api'
 
 const TOOLTIP_STYLE = { borderRadius: 8, borderColor: 'var(--color-border)', fontSize: 13 }
 const TICK = { fontSize: 12 }
@@ -51,7 +51,7 @@ export function BudgetChart({ data }: { data: BudgetBar[] }) {
 /** Where the money went, as a donut plus the amounts, for the projects on screen. */
 export function CostBreakdownChart({ data }: { data: CostSlice[] }) {
   return (
-    <ChartCard title="Cost Breakdown" empty={data.length === 0 && 'No expenses recorded yet.'}>
+    <ChartCard title="Where the Money Went" empty={data.length === 0 && 'No expenses recorded yet.'}>
       <div className="grid items-center gap-4 sm:grid-cols-2">
         <div className="h-48">
           <ResponsiveContainer width="100%" height="100%">
@@ -80,10 +80,32 @@ export function CostBreakdownChart({ data }: { data: CostSlice[] }) {
   )
 }
 
+/** Money received against money spent, month by month. */
+export function MoneyTrendChart({ data }: { data: TrendPoint[] }) {
+  const empty = data.every((point) => point.revenue === 0 && point.expense === 0)
+  return (
+    <ChartCard title="Money In vs Out — Last 6 Months" empty={empty && 'No payments received or expenses recorded in the last 6 months.'}>
+      <div className="h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} barGap={4}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
+            <XAxis dataKey="month" tickLine={false} axisLine={false} tick={TICK} />
+            <YAxis tickLine={false} axisLine={false} tick={TICK} tickFormatter={formatRupeeAxis} width={64} />
+            <Tooltip cursor={{ fill: 'var(--color-secondary)' }} formatter={(value) => formatCurrency(Number(value ?? 0))} contentStyle={TOOLTIP_STYLE} />
+            <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
+            <Bar dataKey="revenue" name="Money in" fill="var(--color-success)" radius={[4, 4, 0, 0]} maxBarSize={28} />
+            <Bar dataKey="expense" name="Money out" fill="var(--color-accent)" radius={[4, 4, 0, 0]} maxBarSize={28} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </ChartCard>
+  )
+}
+
 /** Tasks per project: done, still to do, and past due. */
 export function WorkloadChart({ data }: { data: WorkloadBar[] }) {
   return (
-    <ChartCard title="Workload — Top 5 Projects" empty={data.length === 0 && 'No tasks yet.'}>
+    <ChartCard title="Tasks by Project" empty={data.length === 0 && 'No tasks yet.'}>
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} layout="vertical" margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
@@ -96,32 +118,9 @@ export function WorkloadChart({ data }: { data: WorkloadBar[] }) {
               contentStyle={TOOLTIP_STYLE}
             />
             <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
-            <Bar dataKey="completed" name="Completed" stackId="tasks" fill="var(--color-success)" maxBarSize={22} />
-            <Bar dataKey="remaining" name="Remaining" stackId="tasks" fill="var(--color-primary)" maxBarSize={22} />
+            <Bar dataKey="completed" name="Done" stackId="tasks" fill="var(--color-success)" maxBarSize={22} />
+            <Bar dataKey="remaining" name="To do" stackId="tasks" fill="var(--color-primary)" maxBarSize={22} />
             <Bar dataKey="overdue" name="Overdue" stackId="tasks" fill="var(--color-destructive)" maxBarSize={22} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </ChartCard>
-  )
-}
-
-/** Workers on site, from each project's latest daily report. */
-export function WorkforceChart({ data }: { data: WorkforceBar[] }) {
-  return (
-    <ChartCard title="Workers on Site — Top 5 Projects" empty={data.length === 0 && 'No daily site reports yet.'}>
-      <div className="h-64">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 16, right: 8, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
-            <XAxis dataKey="code" tickLine={false} axisLine={false} tick={TICK} />
-            <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={TICK} width={40} />
-            <Tooltip
-              cursor={{ fill: 'var(--color-secondary)' }}
-              labelFormatter={(_, payload) => (payload?.[0]?.payload as WorkforceBar | undefined)?.name ?? ''}
-              contentStyle={TOOLTIP_STYLE}
-            />
-            <Bar dataKey="workers" name="Workers on site" fill="var(--color-success)" radius={[4, 4, 0, 0]} maxBarSize={36} label={{ position: 'top', fontSize: 12 }} />
           </BarChart>
         </ResponsiveContainer>
       </div>

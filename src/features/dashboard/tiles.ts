@@ -1,5 +1,5 @@
 import { formatRupeeAxis } from '@/lib/formatAxis'
-import type { MonitoringTotals } from './api'
+import type { Monitoring } from './api'
 
 export type TileTone = 'good' | 'bad' | 'neutral'
 
@@ -13,64 +13,68 @@ export interface Tile {
   title?: string
 }
 
-const EMPTY = '—'
-const money = (n: number | null) => (n === null ? EMPTY : formatRupeeAxis(n))
-const signedMoney = (n: number | null) => (n === null ? EMPTY : n > 0 ? `+${formatRupeeAxis(n)}` : formatRupeeAxis(n))
-const exact = (n: number | null) => (n === null ? undefined : `₹${n.toLocaleString('en-IN')}`)
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
+const exact = (n: number) => `₹${n.toLocaleString('en-IN')}`
 
-/** The index tiles, in the order shown: schedule and cost variance, completion, the two performance indexes, and the forecast. */
-export function monitoringTiles(t: MonitoringTotals): Tile[] {
-  const sv = t.scheduleVariance
-  const cv = t.costVariance
-  const spi = t.schedulePerformanceIndex
-  const cpi = t.costPerformanceIndex
-  const eac = t.estimateAtCompletion
+/**
+ * The headline figures after the budget tile, in plain words: how much work is done, what is owed and earned, and how many
+ * tasks and projects are late or over budget. A figure the person may not see (no access to payments or tasks) is left out.
+ */
+export function dashboardTiles(m: Monitoring): Tile[] {
+  const { summary, money, tasks } = m
+  const tiles: Tile[] = []
 
-  return [
-    {
-      key: 'scheduleVariance',
-      label: 'Schedule Variance',
-      value: signedMoney(sv),
-      hint: sv === null ? 'Needs project start and end dates' : sv >= 0 ? 'Ahead of plan' : 'Behind plan',
-      tone: sv === null ? 'neutral' : sv >= 0 ? 'good' : 'bad',
-      title: exact(sv),
-    },
-    {
-      key: 'costVariance',
-      label: 'Cost Variance',
-      value: signedMoney(cv),
-      hint: cv === null ? 'Nothing spent yet' : cv >= 0 ? 'Under budget for the work done' : 'Over budget for the work done',
-      tone: cv === null ? 'neutral' : cv >= 0 ? 'good' : 'bad',
-      title: exact(cv),
-    },
-    {
-      key: 'completionRate',
-      label: 'Project Completion Rate',
-      value: t.completionRate === null ? EMPTY : `${t.completionRate}%`,
-      hint: 'Weighted by project budget',
+  tiles.push({
+    key: 'completion',
+    label: 'Work Completed',
+    value: summary.completionRate === null ? '—' : `${summary.completionRate}%`,
+    hint: summary.projectCount === 0 ? 'No projects match' : `Across ${plural(summary.projectCount, 'project')}`,
+    tone: 'neutral',
+  })
+
+  if (money) {
+    tiles.push({
+      key: 'pending',
+      label: 'Pending Payments',
+      value: formatRupeeAxis(money.pendingPayments),
+      hint: money.overdueInvoices > 0 ? `${plural(money.overdueInvoices, 'invoice')} overdue` : 'Nothing overdue',
+      tone: money.overdueInvoices > 0 ? 'bad' : 'neutral',
+      title: exact(money.pendingPayments),
+    })
+    tiles.push({
+      key: 'revenue',
+      label: 'Revenue This Month',
+      value: formatRupeeAxis(money.revenueThisMonth),
+      hint: 'Collected from clients',
       tone: 'neutral',
-    },
-    {
-      key: 'cpi',
-      label: 'Cost Performance Index',
-      value: cpi === null ? EMPTY : cpi.toFixed(2),
-      hint: cpi === null ? 'Nothing spent yet' : cpi >= 1 ? 'Work is costing less than planned' : 'Work is costing more than planned',
-      tone: cpi === null ? 'neutral' : cpi >= 1 ? 'good' : 'bad',
-    },
-    {
-      key: 'spi',
-      label: 'Schedule Performance Index',
-      value: spi === null ? EMPTY : spi.toFixed(2),
-      hint: spi === null ? 'Needs project start and end dates' : spi >= 1 ? 'Progress is ahead of the timeline' : 'Progress is behind the timeline',
-      tone: spi === null ? 'neutral' : spi >= 1 ? 'good' : 'bad',
-    },
-    {
-      key: 'eac',
-      label: 'Estimate at Completion',
-      value: money(eac),
-      hint: eac === null ? 'Needs project budgets' : `Budget ${money(t.budget)}`,
-      tone: eac === null ? 'neutral' : eac > t.budget ? 'bad' : 'neutral',
-      title: exact(eac),
-    },
-  ]
+      title: exact(money.revenueThisMonth),
+    })
+  }
+
+  if (tasks) {
+    tiles.push({
+      key: 'tasks',
+      label: 'Open Tasks',
+      value: String(tasks.open),
+      hint: tasks.overdue > 0 ? `${tasks.overdue} overdue` : 'None overdue',
+      tone: tasks.overdue > 0 ? 'bad' : 'good',
+    })
+  }
+
+  tiles.push({
+    key: 'behind',
+    label: 'Behind Schedule',
+    value: String(summary.behindSchedule),
+    hint: summary.behindSchedule === 0 ? 'All projects on track' : `${plural(summary.behindSchedule, 'project')} well behind plan`,
+    tone: summary.behindSchedule > 0 ? 'bad' : 'good',
+  })
+  tiles.push({
+    key: 'over',
+    label: 'Over Budget',
+    value: String(summary.overBudget),
+    hint: summary.overBudget === 0 ? 'No project over budget' : `${plural(summary.overBudget, 'project')} spending past budget`,
+    tone: summary.overBudget > 0 ? 'bad' : 'good',
+  })
+
+  return tiles
 }

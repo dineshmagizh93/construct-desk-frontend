@@ -1,47 +1,60 @@
 import { describe, expect, it } from 'vitest'
-import type { MonitoringTotals } from './api'
-import { monitoringTiles } from './tiles'
+import type { Monitoring } from './api'
+import { dashboardTiles } from './tiles'
 
-const totals = (over: Partial<MonitoringTotals> = {}): MonitoringTotals => ({
-  budget: 30_000_000, spent: 7_000_000, utilizedPercent: 23.3, completionRate: 30, scheduleVariance: -6_000_000,
-  schedulePerformanceIndex: 0.6, costVariance: 2_000_000, costPerformanceIndex: 1.29, estimateAtCompletion: 23_000_000, ...over,
+const monitoring = (over: Partial<Monitoring> = {}): Monitoring => ({
+  summary: { projectCount: 9, budget: 220_150_000, spent: 2_026_000, utilizedPercent: 0.9, completionRate: 29.9, behindSchedule: 3, overBudget: 0 },
+  tasks: { open: 9, overdue: 9 },
+  money: { pendingPayments: 24_622_500, overdueInvoices: 6, overdueAmount: 24_622_500, revenueThisMonth: 0 },
+  trend: [],
+  budgetByProject: [],
+  costBreakdown: [],
+  workload: [],
+  ...over,
 })
-const byKey = (t: MonitoringTotals) => Object.fromEntries(monitoringTiles(t).map((tile) => [tile.key, tile]))
+const byKey = (m: Monitoring) => Object.fromEntries(dashboardTiles(m).map((t) => [t.key, t]))
 
-describe('monitoringTiles', () => {
-  it('reads behind-schedule but under-budget figures correctly', () => {
-    const tiles = byKey(totals())
-    expect(tiles.scheduleVariance).toMatchObject({ value: '-₹60L', hint: 'Behind plan', tone: 'bad' })
-    expect(tiles.costVariance).toMatchObject({ value: '+₹20L', tone: 'good' })
-    expect(tiles.completionRate.value).toBe('30%')
-    expect(tiles.cpi).toMatchObject({ value: '1.29', tone: 'good' })
-    expect(tiles.spi).toMatchObject({ value: '0.60', tone: 'bad' })
+describe('dashboardTiles', () => {
+  it('says things in plain words with the right colours', () => {
+    const t = byKey(monitoring())
+    expect(t.completion).toMatchObject({ value: '29.9%', hint: 'Across 9 projects', tone: 'neutral' })
+    expect(t.pending).toMatchObject({ value: '₹2.5 Cr', hint: '6 invoices overdue', tone: 'bad', title: '₹2,46,22,500' })
+    expect(t.revenue).toMatchObject({ value: '₹0', hint: 'Collected from clients' })
+    expect(t.tasks).toMatchObject({ value: '9', hint: '9 overdue', tone: 'bad' })
+    expect(t.behind).toMatchObject({ value: '3', hint: '3 projects well behind plan', tone: 'bad' })
+    expect(t.over).toMatchObject({ value: '0', hint: 'No project over budget', tone: 'good' })
   })
 
-  it('shows the forecast against the budget, red only when it is higher', () => {
-    expect(byKey(totals()).eac).toMatchObject({ value: '₹2.3 Cr', hint: 'Budget ₹3 Cr', tone: 'neutral' })
-    expect(byKey(totals({ estimateAtCompletion: 36_000_000 })).eac.tone).toBe('bad')
+  it('reads well when everything is fine', () => {
+    const t = byKey(monitoring({
+      summary: { projectCount: 1, budget: 100, spent: 10, utilizedPercent: 10, completionRate: 50, behindSchedule: 0, overBudget: 0 },
+      tasks: { open: 2, overdue: 0 },
+      money: { pendingPayments: 0, overdueInvoices: 0, overdueAmount: 0, revenueThisMonth: 1_500_000 },
+    }))
+    expect(t.completion.hint).toBe('Across 1 project')
+    expect(t.pending).toMatchObject({ value: '₹0', hint: 'Nothing overdue', tone: 'neutral' })
+    expect(t.revenue.value).toBe('₹15L')
+    expect(t.tasks).toMatchObject({ hint: 'None overdue', tone: 'good' })
+    expect(t.behind).toMatchObject({ hint: 'All projects on track', tone: 'good' })
   })
 
-  it('treats exactly on plan as good, not behind', () => {
-    const tiles = byKey(totals({ scheduleVariance: 0, schedulePerformanceIndex: 1, costVariance: 0, costPerformanceIndex: 1 }))
-    expect(tiles.scheduleVariance).toMatchObject({ value: '₹0', tone: 'good' })
-    expect(tiles.cpi.tone).toBe('good')
-    expect(tiles.spi.tone).toBe('good')
+  it('uses singular wording for one overdue invoice or one project', () => {
+    const t = byKey(monitoring({
+      summary: { projectCount: 3, budget: 1, spent: 2, utilizedPercent: 200, completionRate: 10, behindSchedule: 1, overBudget: 1 },
+      money: { pendingPayments: 5000, overdueInvoices: 1, overdueAmount: 5000, revenueThisMonth: 0 },
+    }))
+    expect(t.pending.hint).toBe('1 invoice overdue')
+    expect(t.behind.hint).toBe('1 project well behind plan')
+    expect(t.over.hint).toBe('1 project spending past budget')
   })
 
-  it('shows a dash and says why when there is nothing to measure', () => {
-    const tiles = byKey(totals({ scheduleVariance: null, schedulePerformanceIndex: null, costVariance: null, costPerformanceIndex: null, estimateAtCompletion: null, completionRate: null }))
-    expect(tiles.scheduleVariance).toMatchObject({ value: '—', hint: 'Needs project start and end dates', tone: 'neutral' })
-    expect(tiles.costVariance).toMatchObject({ value: '—', hint: 'Nothing spent yet', tone: 'neutral' })
-    expect(tiles.cpi.value).toBe('—')
-    expect(tiles.spi.value).toBe('—')
-    expect(tiles.eac).toMatchObject({ value: '—', tone: 'neutral' })
-    expect(tiles.completionRate.value).toBe('—')
+  it('leaves out what the person may not see', () => {
+    const keys = dashboardTiles(monitoring({ money: null, tasks: null })).map((t) => t.key)
+    expect(keys).toEqual(['completion', 'behind', 'over'])
   })
 
-  it('keeps the exact amount for a tooltip', () => {
-    expect(byKey(totals()).costVariance.title).toBe('₹20,00,000')
-    expect(byKey(totals({ costVariance: null })).costVariance.title).toBeUndefined()
+  it('shows a dash and says so when no project matches', () => {
+    const t = byKey(monitoring({ summary: { projectCount: 0, budget: 0, spent: 0, utilizedPercent: null, completionRate: null, behindSchedule: 0, overBudget: 0 } }))
+    expect(t.completion).toMatchObject({ value: '—', hint: 'No projects match' })
   })
 })

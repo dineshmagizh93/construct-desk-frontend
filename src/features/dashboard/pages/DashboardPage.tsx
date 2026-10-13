@@ -9,9 +9,9 @@ import { useProjects } from '@/features/projects/api'
 import { usePermission } from '@/lib/permissions'
 import { formatRupeeAxis } from '@/lib/formatAxis'
 import { cn, formatCurrency } from '@/lib/utils'
-import { DEFAULT_FILTERS, useDashboard, type AttentionItem, type DashboardFilters, type MonitoringTotals } from '../api'
-import { BudgetChart, CostBreakdownChart, WorkforceChart, WorkloadChart } from '../components/MonitoringCharts'
-import { monitoringTiles, type Tile, type TileTone } from '../tiles'
+import { DEFAULT_FILTERS, useDashboard, type AttentionItem, type DashboardFilters, type ProjectSummary } from '../api'
+import { BudgetChart, CostBreakdownChart, MoneyTrendChart, WorkloadChart } from '../components/MonitoringCharts'
+import { dashboardTiles, type Tile, type TileTone } from '../tiles'
 
 const ATTENTION_TONE: Record<AttentionItem['tone'], string> = {
   destructive: 'bg-destructive/10 text-destructive',
@@ -86,20 +86,20 @@ function KpiTile({ tile }: { tile: Tile }) {
   )
 }
 
-function UtilizedBudgetTile({ totals }: { totals: MonitoringTotals }) {
-  const percent = totals.utilizedPercent
+function UtilizedBudgetTile({ summary }: { summary: ProjectSummary }) {
+  const percent = summary.utilizedPercent
   return (
     <Card>
       <CardContent className="p-4">
-        <p className="text-sm text-muted-foreground">Utilized Budget</p>
+        <p className="text-sm text-muted-foreground">Budget Used</p>
         <p className={cn('mt-1 text-2xl font-semibold tracking-tight tabular-nums', percent !== null && percent > 100 && 'text-destructive')}>
           {percent === null ? '—' : `${percent}%`}
         </p>
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary" role="progressbar" aria-valuenow={Math.min(100, percent ?? 0)} aria-valuemin={0} aria-valuemax={100}>
           <div className={cn('h-full rounded-full', percent !== null && percent > 100 ? 'bg-destructive' : 'bg-primary')} style={{ width: `${Math.min(100, percent ?? 0)}%` }} />
         </div>
-        <p className="mt-1.5 text-xs text-muted-foreground" title={`${formatCurrency(totals.spent)} of ${formatCurrency(totals.budget)}`}>
-          Spent {formatRupeeAxis(totals.spent)} of {formatRupeeAxis(totals.budget)}
+        <p className="mt-1.5 text-xs text-muted-foreground" title={`${formatCurrency(summary.spent)} of ${formatCurrency(summary.budget)}`}>
+          Spent {formatRupeeAxis(summary.spent)} of {formatRupeeAxis(summary.budget)}
         </p>
       </CardContent>
     </Card>
@@ -151,12 +151,11 @@ export function DashboardPage() {
   const { data, isLoading } = useDashboard(filters)
   const canViewProjects = usePermission('projects', 'view')
   const monitoring = data?.monitoring ?? null
-  const tiles = monitoring ? monitoringTiles(monitoring.totals) : []
-  const [scheduleVariance, costVariance, ...indexes] = tiles
+  const tiles = monitoring ? dashboardTiles(monitoring) : []
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Dashboard" description="How your projects are doing against budget and schedule, and what needs action." />
+      <PageHeader title="Dashboard" description="How your projects, money and tasks are doing, and what needs action." />
 
       {isLoading && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -170,10 +169,8 @@ export function DashboardPage() {
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {canViewProjects && <FilterCard filters={filters} onChange={setFilters} />}
-            <KpiTile tile={scheduleVariance} />
-            <KpiTile tile={costVariance} />
-            <UtilizedBudgetTile totals={monitoring.totals} />
-            {indexes.map((tile) => (
+            <UtilizedBudgetTile summary={monitoring.summary} />
+            {tiles.map((tile) => (
               <KpiTile key={tile.key} tile={tile} />
             ))}
           </div>
@@ -181,8 +178,8 @@ export function DashboardPage() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <BudgetChart data={monitoring.budgetByProject} />
             {monitoring.costBreakdown && <CostBreakdownChart data={monitoring.costBreakdown} />}
+            {monitoring.trend && <MoneyTrendChart data={monitoring.trend} />}
             {monitoring.workload && <WorkloadChart data={monitoring.workload} />}
-            {monitoring.workforce && <WorkforceChart data={monitoring.workforce} />}
           </div>
         </>
       )}
