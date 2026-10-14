@@ -31,6 +31,12 @@ export function useSubscribe() {
   })
 }
 
+export function useCancelSubscription() {
+  return useMutation({
+    mutationFn: () => http<{ cancelAtPeriodEnd: boolean; currentPeriodEnd: string | null }>('/billing/cancel', { method: 'POST' }),
+  })
+}
+
 // ---- Own company profile ----
 
 export function useMyCompany(enabled = true) {

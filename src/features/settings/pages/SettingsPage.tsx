@@ -12,7 +12,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from '@/hooks/use-toast'
-import { usePlans, useMyCompany, useUpdateMyCompany } from '../platformApi'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { subscriptionAccess } from '@/features/billing/access'
+import { formatDate } from '@/lib/utils'
+import { usePlans, useMyCompany, useUpdateMyCompany, useCancelSubscription, refreshMyCompany } from '../platformApi'
 import { describeCounts, downloadCompanyData } from '../exportData'
 
 interface CompanyForm {
@@ -28,7 +31,44 @@ function BillingTab() {
   const { data: plans = [] } = usePlans()
   const navigate = useNavigate()
 
+  const cancelSubscription = useCancelSubscription()
+  const [confirmingCancel, setConfirmingCancel] = useState(false)
+
   const currentPlan = plans.find((p) => p.id === company?.subscriptionPlanId)
+  const access = company ? subscriptionAccess(company) : null
+  // Only a customer paying through Razorpay has something to cancel; a trial or a plan set up by hand does not.
+  const canCancel = !!company?.razorpaySubscriptionId && company.subscriptionStatus === 'active' && !company.cancelAtPeriodEnd
+  // A second subscription beside a running one would bill twice, so switching plans goes through cancelling first.
+  const canChoosePlan = !canCancel
+
+  const statusLabel =
+    access?.state === 'ending'
+      ? `Cancelled · open until ${formatDate(access.endsAt)}`
+      : access?.state === 'grace'
+        ? `Payment failed · open until ${formatDate(access.endsAt)}`
+        : company?.subscriptionStatus === 'trialing' && access?.endsAt
+          ? `Free trial · ends ${formatDate(access.endsAt)}`
+          : company?.subscriptionStatus === 'active'
+            ? 'Active'
+            : company?.subscriptionStatus === 'past_due'
+              ? 'Payment overdue'
+              : company?.subscriptionStatus === 'cancelled'
+                ? 'Cancelled'
+                : company?.subscriptionStatus
+
+  const cancel = async () => {
+    try {
+      const result = await cancelSubscription.mutateAsync()
+      await refreshMyCompany()
+      toast({
+        title: 'Subscription cancelled',
+        description: result.currentPeriodEnd ? `You can keep using ConstructDesk until ${formatDate(result.currentPeriodEnd)}. You will not be charged again.` : 'You will not be charged again.',
+        variant: 'success',
+      })
+    } catch (error) {
+      toast({ title: 'Could not cancel', description: error instanceof Error ? error.message : undefined, variant: 'destructive' })
+    }
+  }
 
   return (
     <Card>
@@ -43,13 +83,35 @@ function BillingTab() {
           <div>
             <p className="text-sm font-medium">{currentPlan?.name ?? 'No plan selected'}</p>
             <p className="text-xs text-muted-foreground">
-              Status: <Badge variant={company?.subscriptionStatus === 'active' || company?.subscriptionStatus === 'trialing' ? 'success' : 'destructive'}>{company?.subscriptionStatus}</Badge>
+              Status: <Badge variant={access?.allowed && access.state !== 'grace' ? 'success' : 'destructive'}>{statusLabel}</Badge>
             </p>
           </div>
-          <Button size="sm" onClick={() => navigate('/billing/paywall')}>
-            {currentPlan ? 'Change plan' : 'Choose a plan'}
-          </Button>
+          <div className="flex items-center gap-2">
+            {canCancel && (
+              <Button size="sm" variant="outline" onClick={() => setConfirmingCancel(true)}>
+                Cancel subscription
+              </Button>
+            )}
+            {canChoosePlan && (
+              <Button size="sm" onClick={() => navigate('/billing/paywall')}>
+                {currentPlan ? 'Change plan' : 'Choose a plan'}
+              </Button>
+            )}
+          </div>
         </div>
+        {canCancel && (
+          <p className="text-xs text-muted-foreground">
+            Cancelling stops future charges. You keep full access until the end of the period you have paid for. To switch to a different plan, cancel first and then choose the new one.
+          </p>
+        )}
+        <ConfirmDialog
+          open={confirmingCancel}
+          onOpenChange={setConfirmingCancel}
+          title="Cancel your subscription?"
+          description={`You will not be charged again, and ${company?.name ?? 'your workspace'} stays available until ${formatDate(company?.currentPeriodEnd)}. Your data is kept, and you can subscribe again any time.`}
+          confirmLabel="Cancel subscription"
+          onConfirm={cancel}
+        />
       </CardContent>
     </Card>
   )

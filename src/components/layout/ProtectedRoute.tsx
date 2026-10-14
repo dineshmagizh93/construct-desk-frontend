@@ -3,9 +3,8 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { http } from '@/lib/http'
 import { useAuthStore } from '@/features/auth/store'
 import { useAuth } from '@/hooks/useAuth'
+import { subscriptionAccess } from '@/features/billing/access'
 import type { Company, User } from '@/types'
-
-const ACTIVE_STATUSES = new Set(['trialing', 'active'])
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user, company } = useAuth()
@@ -32,7 +31,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isPaywalled =
     user?.role !== 'super_admin' &&
     !!company &&
-    !ACTIVE_STATUSES.has(company.subscriptionStatus) &&
+    !subscriptionAccess(company).allowed &&
     location.pathname !== '/billing/paywall'
 
   if (isPaywalled) {

@@ -5,12 +5,14 @@ import { MobileNav } from './MobileNav'
 import { RouteAccessGuard } from './RouteAccessGuard'
 import { ImpersonationBanner } from './ImpersonationBanner'
 import { TrialBanner } from './TrialBanner'
+import { SubscriptionNotice } from './SubscriptionNotice'
 
 export function AppLayout() {
   return (
     <div className="workspace-shell flex h-dvh flex-col overflow-hidden bg-background">
       <ImpersonationBanner />
       <TrialBanner />
+      <SubscriptionNotice />
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <Sidebar />
         <MobileNav />

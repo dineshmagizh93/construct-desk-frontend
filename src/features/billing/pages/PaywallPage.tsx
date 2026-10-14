@@ -7,14 +7,16 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, formatDate } from '@/lib/utils'
 import { openRazorpayCheckout } from '@/lib/razorpay'
+import { subscriptionAccess } from '../access'
 import { usePlans, useSubscribe, refreshMyCompany } from '../../settings/platformApi'
 
 export function PaywallPage() {
   const { user, company } = useAuth()
   const navigate = useNavigate()
-  const isStillActive = company?.subscriptionStatus === 'trialing' || company?.subscriptionStatus === 'active'
+  const access = company ? subscriptionAccess(company) : null
+  const isStillActive = !!access?.allowed
   const { data: plans = [], isLoading } = usePlans()
   const subscribeMutation = useSubscribe()
   const [subscribingPlanId, setSubscribingPlanId] = useState<string | null>(null)
@@ -51,7 +53,13 @@ export function PaywallPage() {
         <h1 className="text-xl font-semibold">{isStillActive ? 'Choose a plan' : 'Your subscription has lapsed'}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {isStillActive ? (
-            <>Add a plan for {company?.name ?? 'your workspace'} now so access continues without interruption once your trial ends.</>
+            access?.state === 'ending' ? (
+              <>Your subscription is cancelled and {company?.name ?? 'your workspace'} stays open until {formatDate(access.endsAt)}. Choose a plan to carry on after that.</>
+            ) : access?.state === 'grace' ? (
+              <>Your last payment did not go through. Subscribe again to keep {company?.name ?? 'your workspace'} open past {formatDate(access.endsAt)}.</>
+            ) : (
+              <>Add a plan for {company?.name ?? 'your workspace'} now so access continues without interruption once your trial ends.</>
+            )
           ) : (
             <>
               {company?.name ?? 'Your workspace'} needs an active plan to keep using ConstructDesk. Pick a plan below

@@ -47,6 +47,10 @@ export interface Company {
   subscriptionPlanId?: string
   subscriptionPlan?: SubscriptionPlan | null
   currentPeriodEnd?: string
+  /** The customer cancelled: the workspace stays open until currentPeriodEnd. */
+  cancelAtPeriodEnd?: boolean
+  /** Set while a Razorpay subscription is attached (paid customers). */
+  razorpaySubscriptionId?: string | null
 }
 
 export type Status = 'active' | 'inactive' | 'pending' | 'completed' | 'cancelled'

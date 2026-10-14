@@ -49,8 +49,8 @@ export function RefundPolicyPage() {
         <div>
           <h2>4. Failed or overdue payments</h2>
           <p>
-            If a renewal payment fails, we'll notify you and give a grace period to update your payment method before
-            any access is restricted. Continued non-payment beyond the grace period may result in the workspace
+            If a renewal payment fails, we'll notify you, the payment is retried, and your workspace stays fully accessible for 7 days after
+            your paid period ends so you can update your payment method. Continued non-payment beyond those 7 days may result in the workspace
             being paused until payment is resolved; your data is preserved, not deleted, during this time.
           </p>
         </div>

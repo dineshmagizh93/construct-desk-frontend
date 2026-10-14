@@ -290,12 +290,12 @@ export const FAQS: Faq[] = [
     category: 'Billing',
     question: 'What happens if my subscription lapses?',
     answer:
-      "You'll get a grace period before access pauses — your data is never deleted, and you can resume anytime by renewing your plan.",
+      "If a renewal payment fails, your workspace keeps working for 7 more days while the payment is retried. After that, access pauses — your data is never deleted, and you can resume anytime by subscribing again.",
   },
   {
     category: 'Billing',
     question: 'Can I change plans later?',
-    answer: 'Yes — upgrade or downgrade anytime from Settings → Billing. Changes take effect on your next billing cycle.',
+    answer: 'Yes. Cancel your current subscription from Settings → Billing (you keep access until the period you paid for ends), then choose the new plan. You are never charged for two plans at once.',
   },
 ]
 
