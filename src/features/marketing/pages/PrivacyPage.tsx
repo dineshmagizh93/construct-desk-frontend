@@ -30,6 +30,15 @@ export function PrivacyPage() {
             <li>Billing details processed by our payment partner, Razorpay (we do not store your card or bank details ourselves).</li>
             <li>Basic usage information (pages visited within the app, actions taken) used to operate and improve the product.</li>
           </ul>
+          <p><strong>When you simply visit this website:</strong></p>
+          <ul>
+            <li>
+              We count visits to our public pages, anonymously: which page was opened, the website that referred you, the country your connection is in, and
+              whether you used a phone, tablet or computer. We do not use cookies for this and we do not store your IP address; it is combined with your
+              browser details into a one-way code that changes every day, so your visits on different days cannot be linked. If your browser sends a Do Not
+              Track or Global Privacy Control signal, we do not count your visit. These counts are kept for about 13 months.
+            </li>
+          </ul>
         </div>
 
         <div>

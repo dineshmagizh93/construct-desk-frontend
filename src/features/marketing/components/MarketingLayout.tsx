@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { MotionConfig } from 'framer-motion'
 import './marketing.css'
+import { trackPageView } from '../analytics'
 import { MarketingFooter } from './MarketingFooter'
 import { MarketingNav } from './MarketingNav'
 
@@ -10,6 +11,7 @@ export function MarketingLayout() {
 
   useEffect(() => {
     window.scrollTo(0, 0)
+    trackPageView(location.pathname)
   }, [location.pathname])
 
   return (
