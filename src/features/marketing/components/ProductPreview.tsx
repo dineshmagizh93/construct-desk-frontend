@@ -89,7 +89,7 @@ export function ProductPreview({ className }: { className?: string }) {
             <span className="text-sm font-semibold">ConstructDesk</span>
           </div>
           <nav className="space-y-0.5 p-3">
-            <p className="px-2 pb-1.5 pt-1 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
+            <p className="px-2 pb-1.5 pt-1 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/60">
               Overview
             </p>
             {NAV.map((item) => (
@@ -123,7 +123,7 @@ export function ProductPreview({ className }: { className?: string }) {
               <div key={kpi.label} className="rounded-xl border border-border bg-card px-4 py-3.5">
                 <p className="text-xs text-muted-foreground">{kpi.label}</p>
                 <p className="mt-1 font-display text-xl font-semibold tracking-tight">{kpi.value}</p>
-                <p className={cn('mt-1 text-xs', kpi.up ? 'text-emerald-600' : 'text-muted-foreground')}>{kpi.delta}</p>
+                <p className={cn('mt-1 text-xs', kpi.up ? 'text-emerald-700' : 'text-muted-foreground')}>{kpi.delta}</p>
               </div>
             ))}
           </div>

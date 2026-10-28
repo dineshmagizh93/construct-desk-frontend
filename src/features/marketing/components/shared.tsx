@@ -36,7 +36,7 @@ export function TrustStrip() {
         <p className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Built for</p>
         <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
           {labels.map((label) => (
-            <span key={label} className="font-display text-sm font-semibold tracking-tight text-foreground/40">
+            <span key={label} className="font-display text-sm font-semibold tracking-tight text-foreground/70">
               {label}
             </span>
           ))}
