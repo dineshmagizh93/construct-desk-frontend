@@ -35,11 +35,19 @@ describe('Google Ads tag', () => {
     }
   })
 
-  it('reports nothing until a conversion label is configured', async () => {
-    const { loadGoogleAdsTag, reportDemoRequest, win } = await setup()
+  it('reports a demo request to Google Ads as a conversion', async () => {
+    const { loadGoogleAdsTag, reportDemoRequest, win, GOOGLE_ADS_ID, DEMO_CONVERSION_LABEL } = await setup()
     loadGoogleAdsTag()
     const before = win.dataLayer!.length
     reportDemoRequest()
-    expect(win.dataLayer!.length).toBe(before)
+    expect(win.dataLayer!.length).toBe(before + 1)
+    const sent = Array.from(win.dataLayer![before] as ArrayLike<unknown>)
+    expect(sent).toEqual(['event', 'conversion', { send_to: `${GOOGLE_ADS_ID}/${DEMO_CONVERSION_LABEL}`, value: 1.0, currency: 'INR' }])
+  })
+
+  it('reports nothing when the tag was never loaded (opted out or signed in)', async () => {
+    const { reportDemoRequest, win } = await setup({ doNotTrack: '1' })
+    reportDemoRequest()
+    expect(win.dataLayer).toBeUndefined()
   })
 })

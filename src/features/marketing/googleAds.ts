@@ -7,8 +7,8 @@ import { trackingAllowed } from './analytics'
 
 export const GOOGLE_ADS_ID = 'AW-18542173806'
 
-/** The conversion label from Google Ads (Goals > Conversions > the "demo request" action). Until it is set, only the tag loads. */
-export const DEMO_CONVERSION_LABEL = ''
+/** The conversion label of the "Submit lead form" action in Google Ads (the part after the slash in its send_to). */
+export const DEMO_CONVERSION_LABEL = 'K2cqCMr94qwdEO68zIlF'
 
 type Gtag = (...args: unknown[]) => void
 interface GtagWindow extends Window {
@@ -46,7 +46,7 @@ export function reportDemoRequest(): void {
   try {
     const w = window as GtagWindow
     if (!loaded || !DEMO_CONVERSION_LABEL || typeof w.gtag !== 'function') return
-    w.gtag('event', 'conversion', { send_to: `${GOOGLE_ADS_ID}/${DEMO_CONVERSION_LABEL}` })
+    w.gtag('event', 'conversion', { send_to: `${GOOGLE_ADS_ID}/${DEMO_CONVERSION_LABEL}`, value: 1.0, currency: 'INR' })
   } catch {
     // Same: never visible.
   }
