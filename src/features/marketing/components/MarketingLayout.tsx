@@ -3,12 +3,17 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { MotionConfig } from 'framer-motion'
 import './marketing.css'
 import { trackPageView } from '../analytics'
+import { loadGoogleAdsTag } from '../googleAds'
 import { applyPageMeta } from '../pageMeta'
 import { MarketingFooter } from './MarketingFooter'
 import { MarketingNav } from './MarketingNav'
 
 export function MarketingLayout() {
   const location = useLocation()
+
+  useEffect(() => {
+    loadGoogleAdsTag()
+  }, [])
 
   useEffect(() => {
     window.scrollTo(0, 0)

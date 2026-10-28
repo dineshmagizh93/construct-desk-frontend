@@ -38,6 +38,11 @@ export function PrivacyPage() {
               browser details into a one-way code that changes every day, so your visits on different days cannot be linked. If your browser sends a Do Not
               Track or Global Privacy Control signal, we do not count your visit. These counts are kept for about 13 months.
             </li>
+            <li>
+              We advertise on Google. When you visit our public pages, the Google Ads tag may set a cookie and share your visit (the page, and whether you
+              reached us from one of our ads) with Google, so we can see which ads lead to demo requests. It is not loaded for signed-in customers, or if
+              your browser sends a Do Not Track or Global Privacy Control signal. You can also manage ad settings at adssettings.google.com.
+            </li>
           </ul>
         </div>
 
@@ -101,8 +106,9 @@ export function PrivacyPage() {
         <div>
           <h2>7. Cookies</h2>
           <p>
-            We use only the cookies/local storage necessary to keep you signed in and remember basic preferences
-            (like your selected industry view). We don't use third-party advertising trackers.
+            Inside the app we use only the cookies/local storage necessary to keep you signed in and remember basic preferences
+            (like your selected industry view). On our public website, the Google Ads tag described above may set an advertising cookie. We do not
+            use advertising trackers inside the signed-in app.
           </p>
         </div>
 

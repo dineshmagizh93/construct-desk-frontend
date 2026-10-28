@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { http } from '@/lib/http'
+import { reportDemoRequest } from '../googleAds'
 import { PageHero } from '../components/shared'
 
 interface FormValues {
@@ -39,6 +40,7 @@ export function RequestDemoPage() {
     try {
       await http('/demo-requests', { method: 'POST', body: JSON.stringify(values) })
       setSubmitted(true)
+      reportDemoRequest()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong — please try again.')
     }

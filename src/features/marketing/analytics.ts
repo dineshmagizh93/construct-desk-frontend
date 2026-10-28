@@ -26,10 +26,18 @@ function signedIn(): boolean {
   }
 }
 
+/** Public-website visitors only: not a developer machine, not a signed-in customer, and not someone who asked not to be tracked. */
+export function trackingAllowed(): boolean {
+  try {
+    return !LOCAL_HOSTS.includes(window.location.hostname) && !optedOut() && !signedIn()
+  } catch {
+    return false
+  }
+}
+
 export function trackPageView(pathname: string): void {
   try {
-    if (LOCAL_HOSTS.includes(window.location.hostname)) return
-    if (optedOut() || signedIn()) return
+    if (!trackingAllowed()) return
     // React can run an effect twice in development; a page is only counted once in a row.
     if (pathname === lastPath) return
     lastPath = pathname
