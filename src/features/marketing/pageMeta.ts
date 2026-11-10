@@ -69,3 +69,23 @@ export function applyPageMeta(pathname: string): void {
     // Search tags are never worth breaking a page for.
   }
 }
+
+/** Only the real public pages are for search engines. Sign-in pages, the app, and any address that does not exist are kept out of the index. */
+export function robotsFor(pathname: string): string {
+  const clean = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname
+  return PAGE_META[clean] ? 'index, follow' : 'noindex, follow'
+}
+
+export function applyRobotsMeta(pathname: string): void {
+  try {
+    let tag = document.head.querySelector('meta[name="robots"]')
+    if (!tag) {
+      tag = document.createElement('meta')
+      tag.setAttribute('name', 'robots')
+      document.head.appendChild(tag)
+    }
+    tag.setAttribute('content', robotsFor(pathname))
+  } catch {
+    // Search tags are never worth breaking a page for.
+  }
+}

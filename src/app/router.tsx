@@ -1,9 +1,10 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
 import { MarketingLayout } from '@/features/marketing/components/MarketingLayout'
+import { applyRobotsMeta } from '@/features/marketing/pageMeta'
 import { Skeleton } from '@/components/ui/skeleton'
 
 const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage').then((m) => ({ default: m.LoginPage })))
@@ -177,5 +178,9 @@ const router = createBrowserRouter([
 ])
 
 export function AppRouter() {
+  useEffect(() => {
+    applyRobotsMeta(router.state.location.pathname)
+    return router.subscribe((state) => applyRobotsMeta(state.location.pathname))
+  }, [])
   return <RouterProvider router={router} />
 }

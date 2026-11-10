@@ -9,7 +9,6 @@ import {
   FolderOpen,
   Hammer,
   Layers,
-  Quote,
   ShieldCheck,
   Target,
   Wallet,
@@ -472,54 +471,6 @@ function IndustriesSection() {
   )
 }
 
-const TESTIMONIALS = [
-  {
-    quote: 'We replaced five spreadsheets and two WhatsApp groups. Every site update now lives in one place.',
-    name: 'Rajesh K.',
-    role: 'Project Director',
-    company: 'MetroBuild Contractors',
-    initials: 'RK',
-  },
-  {
-    quote: 'From lead to invoice — our sales and accounts teams finally work off the same data.',
-    name: 'Priya M.',
-    role: 'Operations Head',
-    company: 'Greenfield Developers',
-    initials: 'PM',
-  },
-]
-
-function TestimonialsSection() {
-  return (
-    <section className="marketing-section-alt border-b border-border">
-      <div className="mx-auto max-w-6xl px-6 py-20">
-        <SectionHeading eyebrow="Teams" title="Built for the way Indian sites actually run" />
-        <div className="grid gap-4 lg:grid-cols-2">
-          {TESTIMONIALS.map((item) => (
-            <figure key={item.name} className="rounded-2xl border border-border bg-card p-8">
-              <Quote className="size-6 text-accent" strokeWidth={1.5} />
-              <blockquote className="mt-4 font-display text-xl font-medium leading-snug tracking-tight text-balance">
-                {item.quote}
-              </blockquote>
-              <figcaption className="mt-6 flex items-center gap-3">
-                <span className="flex size-10 items-center justify-center rounded-full border border-border bg-secondary text-xs font-semibold">
-                  {item.initials}
-                </span>
-                <span>
-                  <span className="block text-sm font-semibold">{item.name}</span>
-                  <span className="block text-sm text-muted-foreground">
-                    {item.role}, {item.company}
-                  </span>
-                </span>
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
 function PricingSection() {
   return (
     <section className="border-b border-border bg-background">
@@ -650,7 +601,6 @@ export function HomePage() {
       <ModulesSection />
       <StepsSection />
       <IndustriesSection />
-      <TestimonialsSection />
       <PricingSection />
       <WhySection />
       <FinalCta />

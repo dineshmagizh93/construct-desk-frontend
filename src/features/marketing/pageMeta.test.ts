@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PAGE_META } from './pageMeta'
+import { PAGE_META, robotsFor } from './pageMeta'
 import sitemap from '../../../public/sitemap.xml?raw'
 
 describe('PAGE_META', () => {
@@ -18,5 +18,13 @@ describe('PAGE_META', () => {
     const paths = [...sitemap.matchAll(/<loc>https:\/\/constructdesk\.in(\/[^<]*)<\/loc>/g)].map((m) => m[1])
     expect(paths.length).toBeGreaterThan(5)
     for (const p of paths) expect(PAGE_META[p], p).toBeDefined()
+  })
+
+  it('lets search engines index only the public pages', () => {
+    for (const p of Object.keys(PAGE_META)) expect(robotsFor(p), p).toBe('index, follow')
+    expect(robotsFor('/pricing/')).toBe('index, follow')
+    for (const p of ['/login', '/forgot-password', '/dashboard', '/industries', '/projects/42', '/nothing-here']) {
+      expect(robotsFor(p), p).toBe('noindex, follow')
+    }
   })
 })
